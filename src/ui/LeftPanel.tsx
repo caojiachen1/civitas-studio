@@ -6,8 +6,10 @@ import {
   Check,
   CircleDot,
   Construction,
+  Copy,
   Eraser,
   Fence,
+  Grid2X2,
   FilePlus2,
   Focus,
   Footprints,
@@ -40,6 +42,7 @@ import { useRuntime } from '../editor/runtime'
 import { getEditorScene } from '../editor/engineRef'
 import { createBlankDocument } from '../editor/store'
 import { createSampleDocument, SAMPLE_VIEW } from '../editor/sample'
+import { completeLevelRooms, detectedRoomCount, roomCompletionSummary } from '../editor/plan'
 import { CatalogPanel } from './CatalogPanel'
 import { NumberField, Section, Segmented, Slider, Swatch, Toggle } from './common'
 import type { PanelId } from './panels'
@@ -207,6 +210,7 @@ function LevelRow({ levelId }: { levelId: string }) {
   const setActiveLevel = useEditor((state) => state.setActiveLevel)
   const updateLevel = useEditor((state) => state.updateLevel)
   const deleteLevel = useEditor((state) => state.deleteLevel)
+  const duplicateLevel = useEditor((state) => state.duplicateLevel)
   const toast = useRuntime((state) => state.toast)
   const [name, setName] = useState(level?.name ?? '')
   const active = level?.id === activeLevelId
@@ -238,6 +242,21 @@ function LevelRow({ levelId }: { levelId: string }) {
           标高 {level.elevation.toFixed(2)} m · {count} 个构件
         </span>
       </span>
+      <button
+        type="button"
+        className="level-copy"
+        title="复制本层平面到新楼层"
+        onClick={(event) => {
+          event.stopPropagation()
+          const ok = duplicateLevel(levelId)
+          toast(
+            ok ? '已复制本层平面到新楼层' : '该层没有可复制的墙体、门窗或楼板',
+            ok ? 'success' : 'warn',
+          )
+        }}
+      >
+        <Copy size={13} />
+      </button>
       <button
         type="button"
         className="level-delete"
@@ -446,6 +465,157 @@ function SelectPanel() {
           <span>R 旋转 · Delete 删除 · F 聚焦 · Ctrl+D 复制</span>
         </div>
         <kbd>?</kbd>
+      </div>
+    </div>
+  )
+}
+
+function PlanPanel() {
+  const tool = useEditor((state) => state.tool)
+  const setTool = useEditor((state) => state.setTool)
+  const settings = useEditor((state) => state.settings)
+  const patchSettings = useEditor((state) => state.patchSettings)
+  const defaults = useEditor((state) => state.toolOptions)
+  const setPlanOptions = useEditor((state) => state.setPlanOptions)
+  const doc = useEditor((state) => state.doc)
+  const activeLevelId = useEditor((state) => state.doc.activeLevelId)
+  const duplicateLevel = useEditor((state) => state.duplicateLevel)
+  const toast = useRuntime((state) => state.toast)
+  const [withFurniture, setWithFurniture] = useState(false)
+
+  const activeLevel = doc.levels.find((level) => level.id === activeLevelId)
+  const walls = useMemo(
+    () =>
+      Object.values(doc.entities).filter(
+        (entity) => entity.kind === 'wall' && entity.levelId === activeLevelId,
+      ).length,
+    [doc, activeLevelId],
+  )
+  const surfaces = useMemo(
+    () =>
+      Object.values(doc.entities).filter(
+        (entity) =>
+          (entity.kind === 'slab' || entity.kind === 'roof') && entity.levelId === activeLevelId,
+      ).length,
+    [doc, activeLevelId],
+  )
+  const rooms = useMemo(() => detectedRoomCount(doc, activeLevelId), [doc, activeLevelId])
+
+  const complete = () => {
+    const result = completeLevelRooms(doc, activeLevelId, defaults, defaults.plan)
+    if (result.entities.length === 0) {
+      toast(rooms > 0 ? '这些房间已经完整，没有需要补全的构件' : '没有检测到闭合房间', 'info')
+      return
+    }
+    const store = useEditor.getState()
+    store.beginHistory('补全房间')
+    store.addEntities(result.entities, false)
+    toast(`补全 ${result.rooms} 个房间：${roomCompletionSummary(result)}`, 'success')
+  }
+
+  const copyUp = () => {
+    const ok = duplicateLevel(activeLevelId, { withFurniture })
+    toast(
+      ok ? '已复制本层平面到新楼层' : '当前层没有可复制的墙体、门窗或楼板',
+      ok ? 'success' : 'warn',
+    )
+  }
+
+  return (
+    <div className="panel-scroll">
+      <PanelHeading
+        eyebrow="PLAN MODE"
+        title="平面建造"
+        subtitle="俯视拖拽房间，自动生成三维墙体、楼板与门窗；按层复制即可快速叠出整栋建筑。"
+        icon={Grid2X2}
+      />
+      <ToolLaunch
+        active={tool === 'plan'}
+        label="拖拽房间"
+        hint="在平面视图拖出矩形，松开自动成房"
+        icon={Grid2X2}
+        onClick={() => {
+          setTool('plan')
+          if (!settings.planMode) patchSettings({ planMode: true })
+        }}
+      />
+      <Section title="平面视图">
+        <Toggle
+          checked={settings.planMode}
+          onChange={(value) => patchSettings({ planMode: value })}
+          label="锁定俯视视角"
+          hint="隐藏屋顶与其他楼层，只允许平移/缩放，便于二维绘制"
+        />
+        <button
+          type="button"
+          className="soft-button wide"
+          disabled={!settings.planMode}
+          onClick={() => patchSettings({ planMode: false })}
+        >
+          <Rotate3d size={14} /> 返回 3D 视角
+        </button>
+        <p className="micro-hint">
+          当前层：{activeLevel?.name ?? '—'} · 闭合房间 {rooms} 个 · 墙体 {walls} 段 · 楼板/屋顶 {surfaces} 块
+        </p>
+      </Section>
+      <Section title="自动生成">
+        <Toggle
+          checked={defaults.plan.autoSlab}
+          onChange={(autoSlab) => setPlanOptions({ autoSlab })}
+          label="自动楼板"
+          hint="房间内生成一块与墙体同尺寸的地板"
+        />
+        <Toggle
+          checked={defaults.plan.autoDoor}
+          onChange={(autoDoor) => setPlanOptions({ autoDoor })}
+          label="自动门"
+          hint="在第一条能容纳门的墙居中开一扇门"
+        />
+        <Toggle
+          checked={defaults.plan.autoWindow}
+          onChange={(autoWindow) => setPlanOptions({ autoWindow })}
+          label="自动窗"
+          hint="其余墙面各开一扇窗（放不下会自动跳过）"
+        />
+        <Toggle
+          checked={defaults.plan.autoRoof}
+          onChange={(autoRoof) => setPlanOptions({ autoRoof })}
+          label="自动屋顶（仅顶层）"
+          hint="多层建筑请先关闭，封顶时再打开"
+        />
+      </Section>
+      <Section title="快速操作">
+        <div className="button-row">
+          <button type="button" className="soft-button" onClick={complete}>
+            <Sparkles size={14} /> 补全闭合房间
+          </button>
+          <button type="button" className="soft-button" onClick={copyUp}>
+            <Copy size={14} /> 复制到新楼层
+          </button>
+        </div>
+        <Toggle
+          checked={withFurniture}
+          onChange={setWithFurniture}
+          label="复制时包含家具"
+          hint="墙体、门窗、楼板始终复制；家具按此开关决定"
+        />
+        <p className="micro-hint">
+          「补全闭合房间」会把手工画的闭合墙环补上楼板，并可自动加门/窗/屋顶；「复制到新楼层」会把本层平面抬到新的标高，自动组成多层建筑。
+        </p>
+      </Section>
+      <Section title="使用顺序">
+        <TipList
+          items={[
+            '进入平面视图，拖出第一个房间；可继续拖出相邻房间。',
+            '用墙体工具补画异形轮廓，再点「补全闭合房间」。',
+            '需要多层时点「复制到新楼层」，在上层继续改墙与门窗。',
+            '最后在顶层打开「自动屋顶」并补全，或手动加屋顶。',
+          ]}
+        />
+      </Section>
+      <div className="panel-footnote">
+        <span className="legend-dot valid" /> 拖拽生成
+        <span className="footnote-sep">·</span> Esc 退出平面模式
       </div>
     </div>
   )
@@ -1047,6 +1217,7 @@ export function LeftPanel({ activePanel }: { activePanel: PanelId }) {
   return (
     <aside className="side-panel">
       {activePanel === 'select' && <SelectPanel />}
+      {activePanel === 'plan' && <PlanPanel />}
       {activePanel === 'wall' && <WallPanel />}
       {activePanel === 'openings' && <OpeningsPanel />}
       {activePanel === 'slab' && <SlabPanel />}

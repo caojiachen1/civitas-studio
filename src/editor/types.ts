@@ -1,7 +1,7 @@
 export type Vec2 = [number, number]
 export type Vec3 = [number, number, number]
 
-export type ToolId = 'select' | 'wall' | 'slab' | 'door' | 'window' | 'roof' | 'path' | 'object' | 'erase'
+export type ToolId = 'select' | 'plan' | 'wall' | 'slab' | 'door' | 'window' | 'roof' | 'path' | 'object' | 'erase'
 
 export type ModelCategory =
   | 'living'
@@ -222,6 +222,7 @@ export interface EditorSettings {
   showGrid: boolean
   showRoofs: boolean
   isolateLevel: boolean
+  planMode: boolean
   shadows: boolean
   quality: RenderQuality
 }
@@ -251,12 +252,20 @@ export interface RoofDefaults {
   overhang: number
 }
 
+export interface PlanOptions {
+  autoSlab: boolean
+  autoDoor: boolean
+  autoWindow: boolean
+  autoRoof: boolean
+}
+
 export interface PlacementDefaults {
   wall: WallDefaults
   slab: SlabDefaults
   openings: OpeningDefaults
   roof: RoofDefaults
   path: PathOptions
+  plan: PlanOptions
 }
 
 export interface DoorStyleDef {

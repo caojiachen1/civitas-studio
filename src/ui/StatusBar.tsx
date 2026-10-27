@@ -1,4 +1,4 @@
-import { CircleHelp } from 'lucide-react'
+import { CircleHelp, Grid2X2 } from 'lucide-react'
 import { useEditor } from '../editor/store'
 import { useRuntime } from '../editor/runtime'
 import { pathTypeLabel, toolLabelForState } from './labels'
@@ -11,6 +11,8 @@ export function StatusBar() {
   const perf = useRuntime((state) => state.perf)
   const setHelpOpen = useRuntime((state) => state.setHelpOpen)
   const tool = useEditor((state) => state.tool)
+  const planMode = useEditor((state) => state.settings.planMode)
+  const patchSettings = useEditor((state) => state.patchSettings)
   const activeModelId = useEditor((state) => state.activeModelId)
   const pathType = useEditor((state) => state.toolOptions.path.type)
   const label = tool === 'path' ? pathTypeLabel(pathType) : toolLabelForState(tool, activeModelId)
@@ -21,6 +23,11 @@ export function StatusBar() {
       <div className="status-left">
         <span className={`status-indicator ${invalidReason ? 'is-error' : snapLabel ? 'is-snap' : ''}`} />
         <span className="status-tool">{label}</span>
+        {planMode && (
+          <button type="button" className="status-chip plan-chip" onClick={() => patchSettings({ planMode: false })}>
+            <Grid2X2 size={12} /> 平面模式 · 退出
+          </button>
+        )}
         <span className="status-hint">{hint}</span>
         {snapLabel && !invalidReason && <span className="status-chip is-snap">{snapLabel}</span>}
         {invalidReason && <span className="status-chip is-error">{invalidReason}</span>}

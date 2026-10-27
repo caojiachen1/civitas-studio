@@ -3,57 +3,105 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 
 function makeSkyTexture(): THREE.Texture {
   const canvas = document.createElement('canvas')
-  canvas.width = 32
-  canvas.height = 512
+  canvas.width = 128
+  canvas.height = 1024
   const ctx = canvas.getContext('2d')!
-  const gradient = ctx.createLinearGradient(0, 0, 0, 512)
-  gradient.addColorStop(0, '#2a2a2a')
-  gradient.addColorStop(0.42, '#242424')
-  gradient.addColorStop(0.7, '#1f1f1f')
-  gradient.addColorStop(1, '#1b1b1b')
+  const gradient = ctx.createLinearGradient(0, 0, 0, 1024)
+  gradient.addColorStop(0, '#2c2c2c')
+  gradient.addColorStop(0.32, '#262626')
+  gradient.addColorStop(0.58, '#222222')
+  gradient.addColorStop(0.82, '#1d1d1d')
+  gradient.addColorStop(1, '#191919')
   ctx.fillStyle = gradient
-  ctx.fillRect(0, 0, 32, 512)
+  ctx.fillRect(0, 0, 128, 1024)
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
   return texture
 }
 
+const GROUND_SIZE = 1024
+const GROUND_REPEAT = 110
+
 function makeGroundTexture(): THREE.CanvasTexture {
+  const size = GROUND_SIZE
   const canvas = document.createElement('canvas')
-  canvas.width = 512
-  canvas.height = 512
+  canvas.width = size
+  canvas.height = size
   const ctx = canvas.getContext('2d')!
   ctx.fillStyle = '#2b2b2b'
-  ctx.fillRect(0, 0, 512, 512)
+  ctx.fillRect(0, 0, size, size)
   let seed = 1234567
   const rand = () => {
     seed = (seed * 1664525 + 1013904223) % 4294967296
     return seed / 4294967296
   }
-  for (let i = 0; i < 2600; i++) {
-    const x = rand() * 512
-    const y = rand() * 512
-    const v = Math.floor(rand() * 24) - 12
-    ctx.fillStyle = `rgba(${52 + v},${52 + v},${52 + v},${0.16 + rand() * 0.2})`
+  // broad soil mottling
+  for (let i = 0; i < 900; i++) {
+    const x = rand() * size
+    const y = rand() * size
+    const v = Math.floor(rand() * 20) - 10
+    ctx.fillStyle = `rgba(${46 + v},${46 + v},${46 + v},${0.1 + rand() * 0.12})`
     ctx.beginPath()
-    ctx.ellipse(x, y, 2 + rand() * 8, 1 + rand() * 4, rand() * 3.14, 0, Math.PI * 2)
+    ctx.ellipse(x, y, 18 + rand() * 48, 12 + rand() * 30, rand() * 3.14, 0, Math.PI * 2)
     ctx.fill()
   }
-  for (let i = 0; i < 1200; i++) {
-    const x = rand() * 512
-    const y = rand() * 512
-    ctx.strokeStyle = `rgba(${58 + rand() * 24},${58 + rand() * 24},${58 + rand() * 24},${0.12 + rand() * 0.12})`
-    ctx.lineWidth = 0.7
+  // fine pebbles and grit
+  for (let i = 0; i < 11000; i++) {
+    const x = rand() * size
+    const y = rand() * size
+    const v = Math.floor(rand() * 30) - 15
+    ctx.fillStyle = `rgba(${54 + v},${54 + v},${54 + v},${0.2 + rand() * 0.26})`
+    ctx.beginPath()
+    ctx.ellipse(x, y, 1.5 + rand() * 7, 1 + rand() * 3.6, rand() * 3.14, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  // dry grass fibres
+  for (let i = 0; i < 4800; i++) {
+    const x = rand() * size
+    const y = rand() * size
+    ctx.strokeStyle = `rgba(${62 + rand() * 28},${62 + rand() * 28},${62 + rand() * 24},${0.1 + rand() * 0.14})`
+    ctx.lineWidth = 0.7 + rand() * 0.8
     ctx.beginPath()
     ctx.moveTo(x, y)
-    ctx.lineTo(x + (rand() - 0.5) * 3, y - 2 - rand() * 4)
+    ctx.lineTo(x + (rand() - 0.5) * 4, y - 2 - rand() * 6)
     ctx.stroke()
   }
   const texture = new THREE.CanvasTexture(canvas)
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.set(90, 90)
+  texture.repeat.set(GROUND_REPEAT, GROUND_REPEAT)
   texture.colorSpace = THREE.SRGBColorSpace
+  texture.anisotropy = 16
+  return texture
+}
+
+function makeGroundBumpTexture(): THREE.CanvasTexture {
+  const size = 512
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#808080'
+  ctx.fillRect(0, 0, size, size)
+  let seed = 7654321
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296
+    return seed / 4294967296
+  }
+  for (let i = 0; i < 6200; i++) {
+    const x = rand() * size
+    const y = rand() * size
+    const bright = rand() > 0.45
+    const v = bright ? 130 + rand() * 50 : 70 + rand() * 40
+    ctx.fillStyle = `rgba(${v},${v},${v},${0.18 + rand() * 0.3})`
+    ctx.beginPath()
+    ctx.ellipse(x, y, 1 + rand() * 5, 0.8 + rand() * 3, rand() * 3.14, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.wrapS = THREE.RepeatWrapping
+  texture.wrapT = THREE.RepeatWrapping
+  texture.repeat.set(GROUND_REPEAT, GROUND_REPEAT)
   texture.anisotropy = 8
   return texture
 }
@@ -152,6 +200,8 @@ export function setupEnvironment(scene: THREE.Scene, renderer: THREE.WebGLRender
     new THREE.PlaneGeometry(700, 700),
     new THREE.MeshStandardMaterial({
       map: makeGroundTexture(),
+      bumpMap: makeGroundBumpTexture(),
+      bumpScale: 0.055,
       color: '#ffffff',
       roughness: 0.98,
       metalness: 0,

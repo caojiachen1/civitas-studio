@@ -17,6 +17,7 @@ import {
   type SlabStyle,
   type ToolId,
 } from './types'
+import { buildLevelCopy } from './plan'
 
 export function uid(prefix = 'e'): string {
   const raw =
@@ -74,6 +75,7 @@ export interface EditorState {
   setOpeningDefaults: (patch: Partial<PlacementDefaults['openings']>) => void
   setRoofDefaults: (patch: Partial<PlacementDefaults['roof']>) => void
   setPathOptions: (patch: Partial<PathOptions>) => void
+  setPlanOptions: (patch: Partial<PlacementDefaults['plan']>) => void
   setPathType: (type: PathType) => void
   setDoorStyle: (style: string) => void
   setWindowStyle: (style: string) => void
@@ -93,6 +95,7 @@ export interface EditorState {
 
   setActiveLevel: (id: string) => void
   addLevel: (history?: boolean) => void
+  duplicateLevel: (sourceLevelId: string, options?: { withFurniture?: boolean }) => boolean
   updateLevel: (id: string, patch: Partial<Level>) => void
   deleteLevel: (id: string) => void
   registerCustomAsset: (asset: CustomAsset) => void
@@ -120,6 +123,12 @@ const defaultOptions: PlacementDefaults = {
     bridgeHeight: 2.6,
     railings: true,
   },
+  plan: {
+    autoSlab: true,
+    autoDoor: true,
+    autoWindow: true,
+    autoRoof: false,
+  },
 }
 
 const defaultSettings: EditorSettings = {
@@ -128,6 +137,7 @@ const defaultSettings: EditorSettings = {
   showGrid: true,
   showRoofs: true,
   isolateLevel: false,
+  planMode: false,
   shadows: true,
   quality: 'auto',
 }
@@ -198,6 +208,8 @@ export const useEditor = create<EditorState>()((set, get) => ({
   setRoofDefaults: (patch) => set((s) => ({ toolOptions: { ...s.toolOptions, roof: { ...s.toolOptions.roof, ...patch } } })),
   setPathOptions: (patch) =>
     set((s) => ({ toolOptions: { ...s.toolOptions, path: { ...s.toolOptions.path, ...patch } } })),
+  setPlanOptions: (patch) =>
+    set((s) => ({ toolOptions: { ...s.toolOptions, plan: { ...s.toolOptions.plan, ...patch } } })),
   setPathType: (type) =>
     set((s) => {
       const preset = PATH_PRESETS[type]
@@ -381,6 +393,44 @@ export const useEditor = create<EditorState>()((set, get) => ({
         dirty: true,
       }
     })
+  },
+
+  duplicateLevel: (sourceLevelId, options) => {
+    const state = get()
+    const source = state.doc.levels.find((level) => level.id === sourceLevelId)
+    if (!source) return false
+    const targetId = uid('level')
+    const copies = buildLevelCopy(
+      Object.values(state.doc.entities),
+      sourceLevelId,
+      targetId,
+      options?.withFurniture ?? false,
+    )
+    if (copies.length === 0) return false
+    get().beginHistory('复制楼层平面')
+    set((s) => {
+      const top = s.doc.levels.reduce((max, level) => Math.max(max, level.elevation), 0)
+      const level: Level = {
+        id: targetId,
+        name: `第${s.doc.levels.length + 1}层`,
+        elevation: top + LEVEL_HEIGHT,
+      }
+      const entities = { ...s.doc.entities }
+      for (const entity of copies) entities[entity.id] = entity
+      return {
+        doc: {
+          ...s.doc,
+          levels: [...s.doc.levels, level],
+          activeLevelId: level.id,
+          entities,
+          entityOrder: [...s.doc.entityOrder, ...copies.map((entity) => entity.id)],
+        },
+        selectedId: null,
+        revision: s.revision + 1,
+        dirty: true,
+      }
+    })
+    return true
   },
 
   updateLevel: (id, patch) =>

@@ -94,10 +94,19 @@ export default function App() {
   }, [])
 
   const activatePanel = (id: PanelId) => {
-    setActivePanel(id)
     const store = useEditor.getState()
+    if (id === 'plan' && activePanel === 'plan' && store.settings.planMode) {
+      store.patchSettings({ planMode: false })
+      return
+    }
+    const keepPlan = id === 'plan' || id === 'wall' || id === 'openings' || id === 'slab' || id === 'roof'
+    if (store.settings.planMode && !keepPlan) store.patchSettings({ planMode: false })
+    setActivePanel(id)
     if (id === 'select') store.setTool('select')
-    else if (id === 'wall') store.setTool('wall')
+    else if (id === 'plan') {
+      store.setTool('plan')
+      if (!store.settings.planMode) store.patchSettings({ planMode: true })
+    } else if (id === 'wall') store.setTool('wall')
     else if (id === 'openings') {
       if (store.tool !== 'door' && store.tool !== 'window') store.setTool('door')
     } else if (id === 'slab') store.setTool('slab')

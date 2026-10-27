@@ -13,7 +13,7 @@ function seededRandom(seed: number) {
 }
 
 function makeTexture(style: SlabStyle): THREE.CanvasTexture {
-  const size = 512
+  const size = 1024
   const canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
@@ -23,14 +23,14 @@ function makeTexture(style: SlabStyle): THREE.CanvasTexture {
     const base = style === 'wood' ? '#c3a077' : style === 'oak' ? '#a07850' : '#8f7355'
     ctx.fillStyle = base
     ctx.fillRect(0, 0, size, size)
-    const plank = style === 'deck' ? 64 : 42
+    const plank = style === 'deck' ? 128 : 84
     for (let x = 0; x < size; x += plank) {
       const shade = (rand() - 0.5) * 22
       ctx.fillStyle = `rgba(${shade > 0 ? 255 : 40},${shade > 0 ? 240 : 30},${shade > 0 ? 220 : 20},${Math.abs(shade) / 160})`
       ctx.fillRect(x, 0, plank, size)
       ctx.fillStyle = 'rgba(52,36,24,0.28)'
-      ctx.fillRect(x, 0, 2, size)
-      if (style === 'deck') ctx.fillRect(x + plank - 3, 0, 3, size)
+      ctx.fillRect(x, 0, 4, size)
+      if (style === 'deck') ctx.fillRect(x + plank - 6, 0, 6, size)
       for (let i = 0; i < 22; i++) {
         ctx.strokeStyle = `rgba(72,46,28,${0.04 + rand() * 0.07})`
         ctx.lineWidth = 0.8 + rand()
@@ -40,24 +40,24 @@ function makeTexture(style: SlabStyle): THREE.CanvasTexture {
         ctx.bezierCurveTo(gx + rand() * 8 - 4, size * 0.33, gx + rand() * 8 - 4, size * 0.66, gx + rand() * 4, size)
         ctx.stroke()
       }
-      for (let y = 0; y < size; y += 128 + Math.floor(rand() * 90)) {
+      for (let y = 0; y < size; y += 256 + Math.floor(rand() * 180)) {
         ctx.fillStyle = 'rgba(50,34,22,0.25)'
-        ctx.fillRect(x, y, plank, 2)
+        ctx.fillRect(x, y, plank, 4)
       }
     }
   } else if (style === 'tile') {
     ctx.fillStyle = '#d8d4ca'
     ctx.fillRect(0, 0, size, size)
-    const tile = 128
+    const tile = 256
     for (let y = 0; y < size; y += tile) {
       for (let x = 0; x < size; x += tile) {
         const v = Math.floor(rand() * 12)
         ctx.fillStyle = `rgb(${210 + v},${205 + v},${195 + v})`
-        ctx.fillRect(x + 3, y + 3, tile - 6, tile - 6)
+        ctx.fillRect(x + 5, y + 5, tile - 10, tile - 10)
       }
     }
     ctx.strokeStyle = 'rgba(140,134,122,0.55)'
-    ctx.lineWidth = 5
+    ctx.lineWidth = 8
     for (let i = 0; i <= size; i += tile) {
       ctx.beginPath()
       ctx.moveTo(i, 0)
@@ -76,24 +76,24 @@ function makeTexture(style: SlabStyle): THREE.CanvasTexture {
       let x = 0
       const h = size / rows
       while (x < size) {
-        const w = 80 + rand() * 100
+        const w = 160 + rand() * 200
         const v = Math.floor(rand() * 24) - 12
         ctx.fillStyle = `rgb(${160 + v},${155 + v},${145 + v})`
-        ctx.fillRect(x + 3, row * h + 3, Math.min(w, size - x) - 6, h - 6)
+        ctx.fillRect(x + 5, row * h + 5, Math.min(w, size - x) - 10, h - 10)
         x += w
       }
     }
   } else {
     ctx.fillStyle = '#b8b5ac'
     ctx.fillRect(0, 0, size, size)
-    for (let i = 0; i < 22000; i++) {
+    for (let i = 0; i < 88000; i++) {
       const v = Math.floor(rand() * 40) - 20
       ctx.fillStyle = `rgba(${128 + v},${128 + v},${124 + v},0.22)`
       ctx.fillRect(rand() * size, rand() * size, 1 + rand() * 3, 1 + rand() * 3)
     }
     ctx.strokeStyle = 'rgba(105,104,98,0.3)'
     ctx.lineWidth = 2
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 9; i++) {
       ctx.beginPath()
       ctx.moveTo(rand() * size, rand() * size)
       ctx.lineTo(rand() * size, rand() * size)
@@ -104,7 +104,7 @@ function makeTexture(style: SlabStyle): THREE.CanvasTexture {
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
   texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 8
+  texture.anisotropy = 16
   return texture
 }
 

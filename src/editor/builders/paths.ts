@@ -4,8 +4,155 @@ import { getPathBundle, type PathSample } from '../geom'
 import { getPlainMaterial, getSurfaceMaterial } from '../../models/kit'
 import type { PathEntity, Vec2 } from '../types'
 
-const asphalt = getPlainMaterial('#4c5052', { roughness: 0.95 })
-const sidewalkMat = getPlainMaterial('#c6c0b2', { roughness: 0.92 })
+function seeded(seed: number) {
+  let s = seed
+  return () => {
+    s = (s * 1664525 + 1013904223) % 4294967296
+    return s / 4294967296
+  }
+}
+
+function asphaltTextures(): { color: THREE.CanvasTexture; bump: THREE.CanvasTexture } {
+  const size = 512
+  const color = document.createElement('canvas')
+  color.width = size
+  color.height = size
+  const ctx = color.getContext('2d')!
+  const rand = seeded(9731)
+  ctx.fillStyle = '#4c5052'
+  ctx.fillRect(0, 0, size, size)
+  for (let i = 0; i < 16000; i++) {
+    const v = Math.floor(rand() * 34) - 17
+    ctx.fillStyle = `rgba(${72 + v},${77 + v},${80 + v},${0.2 + rand() * 0.3})`
+    ctx.fillRect(rand() * size, rand() * size, 1 + rand() * 2.4, 1 + rand() * 2.4)
+  }
+  for (let i = 0; i < 70; i++) {
+    ctx.strokeStyle = `rgba(36,40,42,${0.12 + rand() * 0.18})`
+    ctx.lineWidth = 0.8 + rand() * 1.6
+    ctx.beginPath()
+    let x = rand() * size
+    let y = rand() * size
+    ctx.moveTo(x, y)
+    for (let k = 0; k < 4; k++) {
+      x += (rand() - 0.5) * 40
+      y += (rand() - 0.5) * 40
+      ctx.lineTo(x, y)
+    }
+    ctx.stroke()
+  }
+  for (let i = 0; i < 9; i++) {
+    ctx.fillStyle = `rgba(58,62,64,${0.1 + rand() * 0.12})`
+    ctx.beginPath()
+    ctx.ellipse(rand() * size, rand() * size, 18 + rand() * 46, 8 + rand() * 22, rand() * 3.14, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  const bump = document.createElement('canvas')
+  bump.width = size
+  bump.height = size
+  const bctx = bump.getContext('2d')!
+  bctx.fillStyle = '#808080'
+  bctx.fillRect(0, 0, size, size)
+  const brand = seeded(3117)
+  for (let i = 0; i < 12000; i++) {
+    const v = Math.floor(brand() * 90) + 35
+    bctx.fillStyle = `rgba(${v},${v},${v},${0.25 + brand() * 0.35})`
+    bctx.fillRect(brand() * size, brand() * size, 1 + brand() * 3, 1 + brand() * 3)
+  }
+  const colorTexture = new THREE.CanvasTexture(color)
+  const bumpTexture = new THREE.CanvasTexture(bump)
+  for (const texture of [colorTexture, bumpTexture]) {
+    texture.wrapS = THREE.RepeatWrapping
+    texture.wrapT = THREE.RepeatWrapping
+    texture.repeat.set(0.25, 0.25)
+    texture.anisotropy = 16
+  }
+  colorTexture.colorSpace = THREE.SRGBColorSpace
+  return { color: colorTexture, bump: bumpTexture }
+}
+
+function sidewalkTextures(): { color: THREE.CanvasTexture; bump: THREE.CanvasTexture } {
+  const size = 512
+  const color = document.createElement('canvas')
+  color.width = size
+  color.height = size
+  const ctx = color.getContext('2d')!
+  const rand = seeded(4519)
+  ctx.fillStyle = '#c6c0b2'
+  ctx.fillRect(0, 0, size, size)
+  const tile = size / 4
+  for (let y = 0; y < 4; y++) {
+    for (let x = 0; x < 4; x++) {
+      const v = Math.floor(rand() * 14) - 7
+      ctx.fillStyle = `rgb(${198 + v},${192 + v},${178 + v})`
+      ctx.fillRect(x * tile + 3, y * tile + 3, tile - 6, tile - 6)
+      for (let i = 0; i < 90; i++) {
+        const s = Math.floor(rand() * 16) - 8
+        ctx.fillStyle = `rgba(${190 + s},${184 + s},${170 + s},0.25)`
+        ctx.fillRect(x * tile + rand() * tile, y * tile + rand() * tile, 1.5, 1.5)
+      }
+    }
+  }
+  ctx.strokeStyle = 'rgba(120,114,102,0.5)'
+  ctx.lineWidth = 4
+  for (let i = 0; i <= 4; i++) {
+    ctx.beginPath()
+    ctx.moveTo(i * tile, 0)
+    ctx.lineTo(i * tile, size)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(0, i * tile)
+    ctx.lineTo(size, i * tile)
+    ctx.stroke()
+  }
+  const bump = document.createElement('canvas')
+  bump.width = size
+  bump.height = size
+  const bctx = bump.getContext('2d')!
+  bctx.fillStyle = '#a0a0a0'
+  bctx.fillRect(0, 0, size, size)
+  bctx.strokeStyle = '#303030'
+  bctx.lineWidth = 5
+  for (let i = 0; i <= 4; i++) {
+    bctx.beginPath()
+    bctx.moveTo(i * tile, 0)
+    bctx.lineTo(i * tile, size)
+    bctx.stroke()
+    bctx.beginPath()
+    bctx.moveTo(0, i * tile)
+    bctx.lineTo(size, i * tile)
+    bctx.stroke()
+  }
+  const colorTexture = new THREE.CanvasTexture(color)
+  const bumpTexture = new THREE.CanvasTexture(bump)
+  for (const texture of [colorTexture, bumpTexture]) {
+    texture.wrapS = THREE.RepeatWrapping
+    texture.wrapT = THREE.RepeatWrapping
+    texture.repeat.set(0.5, 0.5)
+    texture.anisotropy = 16
+  }
+  colorTexture.colorSpace = THREE.SRGBColorSpace
+  return { color: colorTexture, bump: bumpTexture }
+}
+
+function texturedGroundMaterial(
+  maker: () => { color: THREE.CanvasTexture; bump: THREE.CanvasTexture },
+  roughness: number,
+  bumpScale: number,
+  fallback: string,
+): THREE.Material {
+  if (typeof document === 'undefined') return getPlainMaterial(fallback, { roughness })
+  const { color, bump } = maker()
+  return new THREE.MeshStandardMaterial({
+    map: color,
+    bumpMap: bump,
+    bumpScale,
+    roughness,
+    metalness: 0,
+  })
+}
+
+const asphalt = texturedGroundMaterial(asphaltTextures, 0.95, 0.035, '#4c5052')
+const sidewalkMat = texturedGroundMaterial(sidewalkTextures, 0.92, 0.02, '#c6c0b2')
 const curbMat = getPlainMaterial('#a6a094', { roughness: 0.88 })
 const lineWhite = getPlainMaterial('#e7e0d0', { roughness: 0.72 })
 const lineYellow = getPlainMaterial('#cdb87c', { roughness: 0.72 })

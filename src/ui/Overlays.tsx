@@ -7,6 +7,7 @@ import {
   Maximize2,
   MousePointer2,
   Move3d,
+  Rotate3d,
   Route,
   X,
 } from 'lucide-react'
@@ -23,10 +24,18 @@ export function SceneOverlay() {
   const invalidReason = useRuntime((state) => state.invalidReason)
   const snapLabel = useRuntime((state) => state.snapLabel)
   const pathType = useEditor((state) => state.toolOptions.path.type)
+  const planMode = useEditor((state) => state.settings.planMode)
+  const patchSettings = useEditor((state) => state.patchSettings)
   const label = tool === 'path' ? pathTypeLabel(pathType) : toolLabelForState(tool, activeModelId)
 
   return (
     <>
+      {planMode && (
+        <button type="button" className="plan-exit" onClick={() => patchSettings({ planMode: false })}>
+          <Rotate3d size={15} />
+          退出平面模式
+        </button>
+      )}
       <div className={`scene-mode-chip ${invalidReason ? 'is-invalid' : ''}`}>
         <span className="mode-dot" />
         <div>
@@ -42,7 +51,7 @@ export function SceneOverlay() {
           <EmptyState
             icon={Sparkles}
             title="一块等待建造的场地"
-            hint="从左侧选择墙体、路径或家具开始；也可以加载示例场景查看完整作品。"
+            hint="从左侧「平面」拖一个房间，或选择墙体、路径、家具开始；也可以加载示例场景查看完整作品。"
           />
         </div>
       )}
@@ -147,7 +156,7 @@ export function HelpModal() {
               </li>
               <li>
                 <strong>观察预览</strong>
-                <span>青色为可放置，红色为禁止放置并会说明原因。</span>
+                <span>浅灰色为可放置，红色为禁止放置并会说明原因。</span>
               </li>
               <li>
                 <strong>点击确认</strong>
@@ -167,6 +176,18 @@ export function HelpModal() {
               <li>河流与道路交叉时，需要改用桥梁；道路不能生成在水面上。</li>
               <li>屋顶工具会自动寻找墙体围成的闭合房间，并按房间外接矩形生成屋顶。</li>
             </ul>
+          </section>
+          <section>
+            <h3>平面建造</h3>
+            <p className="help-copy">
+              左侧「平面」面板会进入俯视锁定视角。拖出矩形即可自动生成墙体、楼板、门窗；手工画完闭合墙环后，点「补全闭合房间」补上楼板/屋顶/门。
+            </p>
+            <p className="help-copy">
+              「复制到新楼层」会把本层平面整体抬到新的标高，快速叠出多层建筑；最后在顶层打开自动屋顶并补全即可封顶。
+            </p>
+            <p className="help-copy">
+              退出平面模式：点击视图右上角「退出平面模式」、状态栏的平面模式按钮、再次点击左侧「平面」栏，或按 <kbd>Esc</kbd>。
+            </p>
           </section>
           <section className="shortcut-section">
             <h3>操作快捷键</h3>

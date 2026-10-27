@@ -6,6 +6,7 @@ export class CameraRig {
   camera: THREE.PerspectiveCamera
   dom: HTMLCanvasElement
   enabled = true
+  planLock = false
   onRightClick: (() => void) | null = null
   target = new THREE.Vector3(0, 0.5, 0)
   distance = 30
@@ -74,6 +75,7 @@ export class CameraRig {
     this.lastY = event.clientY
     this.moved += Math.abs(dx) + Math.abs(dy)
     if (this.mode === 'orbit') {
+      if (this.planLock) return
       this.azimuth -= dx * 0.0062
       this.polar = clamp(this.polar - dy * 0.0052, 0.16, 1.47)
     } else {

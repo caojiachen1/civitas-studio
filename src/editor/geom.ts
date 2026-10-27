@@ -117,7 +117,7 @@ export function getPathBundle(entity: PathEntity): PathBundle {
     curve = new THREE.CatmullRomCurve3(pts, Boolean(entity.closed), 'catmullrom', 0.5)
   }
   const roughLength = curve.getLength()
-  const divisions = Math.max(12, Math.min(420, Math.ceil(roughLength / 0.55)))
+  const divisions = Math.max(16, Math.min(760, Math.ceil(roughLength / 0.32)))
   const samples: PathSample[] = []
   let prev: THREE.Vector3 | null = null
   for (let i = 0; i <= divisions; i++) {

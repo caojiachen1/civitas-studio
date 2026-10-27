@@ -1041,6 +1041,25 @@ select {
   opacity: 0;
 }
 
+.level-copy {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  color: var(--muted-2);
+  opacity: 0;
+}
+
+.level-row:hover .level-copy {
+  opacity: 1;
+}
+
+.level-copy:hover {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
 .level-row:hover .level-delete {
   opacity: 1;
 }
@@ -2214,6 +2233,31 @@ input[type="range"]::-webkit-slider-thumb {
   border-color: rgba(255, 107, 107, 0.55);
 }
 
+.plan-exit {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 9px;
+  background: rgba(17, 17, 17, 0.82);
+  box-shadow: 0 8px 24px rgba(23, 23, 23, 0.28);
+  backdrop-filter: blur(16px);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+  animation: fade-in 0.25s ease both;
+}
+
+.plan-exit:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(40, 40, 40, 0.92);
+}
+
 .mode-dot {
   width: 6px;
   height: 6px;
@@ -2535,6 +2579,23 @@ input[type="range"]::-webkit-slider-thumb {
 .status-chip.is-error {
   color: #ff6b6b;
   background: rgba(255, 107, 107, 0.12);
+}
+
+.status-chip.plan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 9.5px;
+}
+
+.status-chip.plan-chip:hover {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .status-center {

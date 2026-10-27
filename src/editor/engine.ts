@@ -42,6 +42,20 @@ import {
   checkWallPlacement,
 } from './validation'
 import { applyGhost, GHOST_INVALID_MATERIAL, GHOST_VALID_MATERIAL } from './visuals'
+import { createPlanRoom, isTopLevel } from './plan'
+
+const PLAN_OUTLINE_VALID = new THREE.LineBasicMaterial({
+  color: '#e8e8e8',
+  transparent: true,
+  opacity: 0.95,
+  depthTest: false,
+})
+const PLAN_OUTLINE_INVALID = new THREE.LineBasicMaterial({
+  color: '#ff5a56',
+  transparent: true,
+  opacity: 0.95,
+  depthTest: false,
+})
 
 interface EntityView {
   entity: Entity
@@ -167,6 +181,10 @@ export class EditorScene {
   private pathDraft: Vec2[] | null = null
   private pathClosed = false
   private slabDrag: SlabDrag | null = null
+  private planDrag: SlabDrag | null = null
+  private planSavedView: ViewState | null = null
+  private planActive = false
+  private planGrid: THREE.GridHelper
   private handleDrag: { ref: HandleRef; original: Entity } | null = null
   private handleDragHistory = false
   private resizeObserver: ResizeObserver
@@ -256,6 +274,19 @@ export class EditorScene {
     this.snapMarker.visible = false
     this.snapMarker.renderOrder = 45
     this.scene.add(this.snapMarker)
+
+    this.planGrid = new THREE.GridHelper(140, 140, 0x8c8c8c, 0x3f3f3f)
+    const planGridMaterials = Array.isArray(this.planGrid.material)
+      ? this.planGrid.material
+      : [this.planGrid.material]
+    planGridMaterials.forEach((material) => {
+      material.transparent = true
+      material.opacity = 0.32
+      material.depthWrite = false
+    })
+    this.planGrid.visible = false
+    this.planGrid.renderOrder = 1
+    this.scene.add(this.planGrid)
 
     this.transformControls = new TransformControls(this.camera, this.canvas)
     this.transformControls.setSize(0.78)
@@ -452,6 +483,10 @@ export class EditorScene {
     if (prev.doc !== next.doc) {
       this.syncDocument()
       this.applyVisibility()
+    }
+    if (prev.doc.activeLevelId !== next.doc.activeLevelId && next.settings.planMode) {
+      this.planGrid.position.y = this.activeElevation() + 0.01
+      this.rig.setView(this.planViewForActiveLevel())
     }
     if (prev.selectedId !== next.selectedId || prev.tool !== next.tool || prev.doc !== next.doc) {
       this.refreshSelection()
@@ -691,16 +726,19 @@ export class EditorScene {
     const active = state.doc.activeLevelId
     for (const view of this.viewMap.values()) {
       if (view.entity.kind === 'opening') continue
-      const levelVisible = !state.settings.isolateLevel || view.entity.levelId === active
-      const roofHidden = view.entity.kind === 'roof' && !state.settings.showRoofs
+      const levelVisible =
+        !(state.settings.isolateLevel || state.settings.planMode) || view.entity.levelId === active
+      const roofHidden =
+        view.entity.kind === 'roof' && (!state.settings.showRoofs || state.settings.planMode)
       view.group.visible = levelVisible && !roofHidden
     }
     if (state.selectedId) {
       const entity = state.doc.entities[state.selectedId]
       const visible = Boolean(
         entity &&
-          (!state.settings.isolateLevel || this.entityLevelId(entity) === active) &&
-          !(entity.kind === 'roof' && !state.settings.showRoofs) &&
+          (!(state.settings.isolateLevel || state.settings.planMode) ||
+            this.entityLevelId(entity) === active) &&
+          !(entity.kind === 'roof' && (!state.settings.showRoofs || state.settings.planMode)) &&
           entity.kind !== 'path',
       )
       this.selectionBox.visible = Boolean(visible && this.selectionBox.box && !this.selectionBox.box.isEmpty())
@@ -714,7 +752,9 @@ export class EditorScene {
 
   private applySettings() {
     const settings = this.state.settings
-    this.env.grid.visible = settings.showGrid
+    this.env.grid.visible = settings.showGrid && !settings.planMode
+    this.planGrid.visible = settings.planMode && settings.showGrid
+    this.planGrid.position.y = this.activeElevation() + 0.01
     const previousShadows = this.renderer.shadowMap.enabled
     this.renderer.shadowMap.enabled = settings.shadows
     this.env.sun.castShadow = settings.shadows
@@ -731,9 +771,63 @@ export class EditorScene {
       })
     }
     this.syncQuality()
+    this.applyPlanMode()
     this.applyVisibility()
     this.refreshSelection()
     this.markShadowDirty()
+  }
+
+  private applyPlanMode() {
+    const enabled = this.state.settings.planMode
+    if (enabled === this.planActive) return
+    this.planActive = enabled
+    this.rig.planLock = enabled
+    if (enabled) {
+      this.planSavedView = this.rig.getView()
+      this.rig.setView(this.planViewForActiveLevel())
+      return
+    }
+    this.rig.planLock = false
+    if (this.planSavedView) {
+      this.rig.setView(this.planSavedView)
+      this.planSavedView = null
+    } else {
+      this.rig.setView({
+        target: [0, this.activeElevation() + 0.5, 0],
+        distance: 32,
+        azimuth: 0.4,
+        polar: 1.02,
+      })
+    }
+  }
+
+  private planViewForActiveLevel(): ViewState {
+    const levelId = this.state.doc.activeLevelId
+    const box = new THREE.Box3()
+    let found = false
+    for (const view of this.viewMap.values()) {
+      if (view.entity.kind === 'opening' || view.entity.kind === 'roof') continue
+      if (this.entityLevelId(view.entity) !== levelId) continue
+      box.expandByObject(view.group)
+      found = true
+    }
+    if (!found || box.isEmpty()) {
+      return {
+        target: [0, this.activeElevation() + 0.5, 0],
+        distance: 32,
+        azimuth: 0,
+        polar: 0.16,
+      }
+    }
+    const center = box.getCenter(new THREE.Vector3())
+    const size = box.getSize(new THREE.Vector3())
+    const span = Math.max(size.x, size.z, 10)
+    return {
+      target: [center.x, this.activeElevation() + 0.5, center.z],
+      distance: clamp(span * 1.35, 14, 150),
+      azimuth: 0,
+      polar: 0.16,
+    }
   }
 
   private syncQuality() {
@@ -1071,6 +1165,11 @@ export class EditorScene {
         break
       case 'erase':
         this.baseHint = '点击构件将其删除 · 删除墙体时门窗会一并移除'
+        break
+      case 'plan':
+        this.baseHint = this.planDrag
+          ? '拖动确定房间大小 · 松开自动生成墙体/楼板/门窗 · Esc 取消'
+          : '按住左键拖出房间范围 · 自动生成墙体、楼板、门窗与可选屋顶'
         break
       case 'wall':
         this.baseHint = this.wallDraft
@@ -1951,11 +2050,122 @@ export class EditorScene {
     this.publishHint()
   }
 
+  private startPlanDrag(event: PointerEvent) {
+    const ground = this.groundPointAt(event.clientX, event.clientY)
+    if (!ground) return
+    let x = ground.x
+    let z = ground.z
+    if (this.state.settings.gridSnap && !event.shiftKey) {
+      x = snapValue(x, 0.25)
+      z = snapValue(z, 0.25)
+    }
+    this.planDrag = { start: [x, z], current: [x, z] }
+    this.capturePointer(event)
+    this.invalidReason = ''
+    this.publishHint()
+  }
+
+  private updatePlanDrag(clientX: number, clientY: number) {
+    if (!this.planDrag) return
+    const ground = this.groundPointAt(clientX, clientY)
+    if (!ground) return
+    let x = ground.x
+    let z = ground.z
+    if (this.state.settings.gridSnap && !this.shiftDown) {
+      x = snapValue(x, 0.25)
+      z = snapValue(z, 0.25)
+    }
+    this.planDrag.current = [x, z]
+    const rect = this.rectFromDrag(this.planDrag)
+    const valid = rect.w >= 2 && rect.d >= 2
+    this.invalidReason = valid ? '' : '房间最小 2.0 × 2.0 m'
+    this.snapLabel = `${rect.w.toFixed(2)} × ${rect.d.toFixed(2)} m`
+    if (rect.w > 0.2 && rect.d > 0.2) {
+      this.buildPlanGhost(rect, valid)
+    } else {
+      this.clearGhost()
+    }
+    this.hideSnapMarker()
+    this.publishHint()
+  }
+
+  private finishPlanDrag() {
+    if (!this.planDrag) return
+    const rect = this.rectFromDrag(this.planDrag)
+    const attempted = rect.w > 0.2 && rect.d > 0.2
+    const valid = rect.w >= 2 && rect.d >= 2
+    if (attempted && valid) {
+      const level = this.state.doc.levels.find((item) => item.id === this.state.doc.activeLevelId)
+      if (level) {
+        const entities = createPlanRoom(
+          rect,
+          level,
+          this.state.doc,
+          this.state.toolOptions,
+          this.state.toolOptions.plan,
+          isTopLevel(this.state.doc, level.id),
+        )
+        if (entities.length === 0) {
+          useRuntime.getState().toast('这个位置已经有完整房间', 'info')
+        } else {
+          useEditor.getState().beginHistory('平面生成房间')
+          useEditor.getState().addEntities(entities, false)
+          useRuntime.getState().toast(`已生成 ${rect.w.toFixed(2)} × ${rect.d.toFixed(2)} m 房间`, 'success')
+        }
+      }
+    } else if (attempted) {
+      useRuntime.getState().toast('房间最小 2.0 × 2.0 m', 'warn')
+    }
+    this.planDrag = null
+    this.clearGhost()
+    this.hideSnapMarker()
+    this.invalidReason = ''
+    this.snapLabel = ''
+    this.updateBaseHint()
+    this.publishHint()
+  }
+
+  private buildPlanGhost(rect: { x: number; z: number; w: number; d: number }, valid: boolean) {
+    const elevation = this.activeElevation()
+    const thickness = this.state.toolOptions.wall.thickness
+    const height = this.state.toolOptions.wall.height
+    const material = valid ? GHOST_VALID_MATERIAL : GHOST_INVALID_MATERIAL
+    const group = new THREE.Group()
+    const floor = new THREE.Mesh(new THREE.BoxGeometry(rect.w, 0.06, rect.d), material)
+    floor.position.set(rect.x, elevation + 0.03, rect.z)
+    group.add(floor)
+    const x0 = rect.x - rect.w / 2
+    const x1 = rect.x + rect.w / 2
+    const z0 = rect.z - rect.d / 2
+    const z1 = rect.z + rect.d / 2
+    const walls: [number, number, number, number, number, number][] = [
+      [rect.w, height, thickness, rect.x, elevation + height / 2, z0],
+      [rect.w, height, thickness, rect.x, elevation + height / 2, z1],
+      [thickness, height, rect.d, x0, elevation + height / 2, rect.z],
+      [thickness, height, rect.d, x1, elevation + height / 2, rect.z],
+    ]
+    for (const [w, h, d, x, y, z] of walls) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material)
+      mesh.position.set(x, y, z)
+      group.add(mesh)
+    }
+    const outline = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(rect.w + 0.02, 0.02, rect.d + 0.02)),
+      valid ? PLAN_OUTLINE_VALID : PLAN_OUTLINE_INVALID,
+    )
+    outline.position.set(rect.x, elevation + 0.08, rect.z)
+    outline.renderOrder = 6
+    group.add(outline)
+    const key = `plan|${rect.x.toFixed(2)}|${rect.z.toFixed(2)}|${rect.w.toFixed(2)}|${rect.d.toFixed(2)}|${thickness}|${height}|${valid}`
+    this.setGhostRaw(group, key, true)
+  }
+
   private refreshPreviewFromLastPointer() {
     if (!this.hasPointer) return
     const x = this.lastClient.x
     const y = this.lastClient.y
-    if (this.state.tool === 'wall') this.updateWallPreview(x, y)
+    if (this.state.tool === 'plan') this.updatePlanDrag(x, y)
+    else if (this.state.tool === 'wall') this.updateWallPreview(x, y)
     else if (this.state.tool === 'path') this.updatePathPreview(x, y)
     else if (this.state.tool === 'object') this.updateObjectPreview(x, y)
     else if (this.state.tool === 'door' || this.state.tool === 'window') this.updateOpeningPreview(x, y)
@@ -1967,6 +2177,7 @@ export class EditorScene {
     this.pathDraft = null
     this.pathClosed = false
     this.slabDrag = null
+    this.planDrag = null
     this.handleDrag = null
     this.handleDragHistory = false
     this.objectPreview = null
@@ -2337,6 +2548,10 @@ export class EditorScene {
       }
       return
     }
+    if (tool === 'plan') {
+      this.startPlanDrag(event)
+      return
+    }
     if (tool === 'wall') {
       this.onWallClick(event)
       return
@@ -2401,6 +2616,11 @@ export class EditorScene {
       this.updateSlabDrag(event)
       return
     }
+    if (this.planDrag) {
+      this.updatePointer(event)
+      this.updatePlanDrag(event.clientX, event.clientY)
+      return
+    }
     this.updatePointer(event)
     const tool = this.state.tool
     if (tool === 'select') {
@@ -2439,7 +2659,13 @@ export class EditorScene {
       this.lastCursorUpdate = now
       useRuntime.getState().setCursor([round3(ground.x), this.activeElevation(), round3(ground.z)])
     }
-    if (tool === 'wall') {
+    if (tool === 'plan') {
+      this.clearGhost()
+      this.hideSnapMarker()
+      this.invalidReason = ''
+      this.snapLabel = ''
+      this.publishHint()
+    } else if (tool === 'wall') {
       this.updateWallPreview(event.clientX, event.clientY)
     } else if (tool === 'path') {
       this.updatePathPreview(event.clientX, event.clientY)
@@ -2462,6 +2688,10 @@ export class EditorScene {
       this.finishSlabDrag()
       this.releasePointer()
     }
+    if (this.planDrag) {
+      this.finishPlanDrag()
+      this.releasePointer()
+    }
     if (this.handleDrag) {
       this.finishHandleDrag()
       this.releasePointer()
@@ -2470,7 +2700,7 @@ export class EditorScene {
   }
 
   private onPointerLeave = () => {
-    if (this.slabDrag || this.handleDrag) return
+    if (this.slabDrag || this.planDrag || this.handleDrag) return
     this.hasPointer = false
     this.clearGhost()
     this.hideSnapMarker()
@@ -2533,7 +2763,8 @@ export class EditorScene {
     }
     if (key === 'escape') {
       event.preventDefault()
-      if (this.wallDraft || this.pathDraft || this.slabDrag) this.cancelDrafts()
+      if (this.wallDraft || this.pathDraft || this.slabDrag || this.planDrag) this.cancelDrafts()
+      else if (this.state.settings.planMode) useEditor.getState().patchSettings({ planMode: false })
       else if (this.state.tool !== 'select') useEditor.getState().setTool('select')
       else useEditor.getState().select(null)
       useRuntime.getState().setHelpOpen(false)

@@ -144,9 +144,12 @@ export function stripGeometry(
   yOffset: number,
 ): THREE.BufferGeometry {
   const positions: number[] = []
+  const uvs: number[] = []
   const indices: number[] = []
+  let run = 0
   for (let i = 0; i < samples.length; i++) {
     const s = samples[i]
+    if (i > 0) run += s.pos.distanceTo(samples[i - 1].pos)
     positions.push(
       s.pos.x + s.side.x * left,
       s.pos.y + yOffset,
@@ -155,6 +158,7 @@ export function stripGeometry(
       s.pos.y + yOffset,
       s.pos.z + s.side.z * right,
     )
+    uvs.push(left, run, right, run)
     if (i < samples.length - 1) {
       const b = i * 2
       indices.push(b, b + 2, b + 1, b + 2, b + 3, b + 1)
@@ -162,7 +166,7 @@ export function stripGeometry(
   }
   const geo = new THREE.BufferGeometry()
   geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
-  geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(samples.length * 4), 2))
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
   geo.setIndex(indices)
   geo.computeVertexNormals()
   return geo

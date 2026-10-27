@@ -6,6 +6,7 @@ import {
   Columns3,
   DoorOpen,
   Eraser,
+  Grid2X2,
   Home,
   Layers,
   MousePointer2,
@@ -23,7 +24,8 @@ const ITEMS: {
   group?: number
 }[] = [
   { id: 'select', label: '选择', icon: MousePointer2 },
-  { id: 'wall', label: '墙体', icon: BrickWall, group: 1 },
+  { id: 'plan', label: '平面', icon: Grid2X2, group: 1 },
+  { id: 'wall', label: '墙体', icon: BrickWall },
   { id: 'openings', label: '门窗', icon: DoorOpen },
   { id: 'slab', label: '楼板', icon: Layers },
   { id: 'roof', label: '屋顶', icon: Home },

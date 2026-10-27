@@ -1,17 +1,19 @@
 # Civitas Studio · 城市建造工坊
 
-A desktop 3D city & building construction studio built with Tauri 2, React 19 and Three.js. Draw freeform roads, rivers and bridges, assemble walls/doors/windows/roofs, furnish interiors from a 130-piece catalog, and export the result as GLB/glTF/OBJ/STL. A built-in AI Copilot can also build and edit the scene from natural-language instructions.
+A desktop 3D city & building construction studio built with Tauri 2, React 19 and Three.js. Draw freeform roads, rivers and bridges, assemble walls/doors/windows/roofs, furnish interiors from a 166-piece catalog, and export the result as GLB/glTF/OBJ/STL. A built-in AI Copilot can also build and edit the scene from natural-language instructions.
 
 ## Highlights
 
 - **AI Copilot** — press `Ctrl+K` and describe what you want. It turns Chinese/English requests into validated editor actions: whole villas, individual furnished rooms, furniture, freeform roads/rivers/bridges/ponds, vegetation, roofs, levels, selected-object edits, and opening/closing doors to a chosen angle. The local planner works offline; an optional OpenAI-compatible provider can be configured for stronger language understanding. Every AI plan is a single undo step, and dangerous actions require confirmation.
 - **External agent API (MCP)** — the desktop build serves MCP over HTTP on `127.0.0.1` plus a plain REST mirror, exposing 27 tools (`build_room`, `place_model`, `draw_path`, `apply_actions`, `get_screenshot`, …). Any third-party agent can connect to the running app and drive AI auto-modeling end to end. Localhost-only, optional bearer token, whitelisted action schemas, and destructive calls require `confirm=true`.
+- **2D plan building** — the Plan workspace locks a top-down view and hides roofs/other floors. Drag a rectangle to generate four walls, a floor slab, a door, windows and an optional roof in one gesture; hand-drawn closed wall loops can be completed into slabs/roofs with one click. "Copy to new floor" lifts the current plan to the next elevation, so per-floor 2D plans assemble into a multi-storey 3D building. Exit the plan workspace via the top-right button, the status-bar chip, clicking the Plan rail again, or `Esc`.
 - **Freeform infrastructure** — roads, rivers, footpaths, bridges and fences are smooth Catmull-Rom curves with draggable control points. Close a river path to fill a pond; bridges get automatic railings, piers and ramps.
-- **Component library** — 130 modeled components across living, bedroom, dining, kitchen, bathroom, office, laundry, outdoor, street, vegetation, vehicles and structure categories, plus imported custom models.
+- **Component library** — 166 modeled components across living, bedroom, dining, kitchen, bathroom, office, laundry, outdoor, street, vegetation, vehicles and structure categories, plus imported custom models.
 - **Construction feedback** — valid placements use a light-grey ghost preview; invalid placements turn red with a specific reason (collision, wall fit, overlap, water, road-only/water-only rules). Walls, path endpoints and wall-backed furniture snap automatically with generous, distance-aware thresholds.
 - **Parametric building** — walls support doors/windows with real openings and frames; doors can be left closed or opened to any angle from -135° to 135° with left/right hinges (single, double and glass leaves swing around the hinge; sliding panels slide along the wall). Slabs have generated surface textures; automatic roofs recognize closed wall loops in gable/hip/flat/shed styles; multi-level floors and roof hiding make interior work easy.
 - **Project workflow** — autosave to local storage, `.civitas` JSON projects, undo/redo, copy/delete, native save/open dialogs, and GLB/glTF/OBJ/STL import & export.
 - **Performance** — shared merged geometry, a single vertex-PBR material per model batch, batched wall/path meshes, on-demand shadow updates, incremental scene sync, frustum culling and a capped pixel ratio. The bundled sample runs at ~180 FPS / ~160 draw calls in headless Chromium, ~200k triangles.
+- **Map fidelity** — 1K procedural ground with a bump map, textured asphalt and pavement with metre-based UVs, 0.32 m curve sampling for roads/rivers, and 1K floor textures for slabs. Quality still scales with the adaptive render presets.
 
 ## Run
 
@@ -100,6 +102,7 @@ The API is desktop-only: in `npm run dev` (browser) the panel reports that the M
 
 | Input | Action |
 | --- | --- |
+| Tool rail → Plan | Enter the top-down plan workspace; drag a rectangle to create a room |
 | Left click | Select / place / add path or wall point |
 | Alt + left drag | Pan camera |
 | Alt + right drag | Orbit camera |
@@ -117,7 +120,7 @@ The API is desktop-only: in `npm run dev` (browser) the panel reports that the M
 
 ## Project layout
 
-- `src/editor` — engine, interaction, snapping/validation, parametric builders, project I/O.
+- `src/editor` — engine, interaction, snapping/validation, parametric builders, 2D plan-to-3D generation (`plan.ts`), project I/O.
 - `src/models/catalog` — one module per component model, auto-registered through `src/models/registry.ts`.
 - `src/ai` — AI planner, action validation/execution, scene-building helpers, provider client and chat store.
 - `src/mcp` — tool schemas and dispatcher, the Tauri event bridge, and the MCP connection settings store.
