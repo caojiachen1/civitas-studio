@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox } from '../../kit'
+import { C, box, cyl, defineModel, rbox, torus } from '../../kit'
 
 const paint = '#e6e3d9'
 const cargo = '#eae7dd'
@@ -21,7 +21,7 @@ export default defineModel({
   name: '大型厢式货车',
   category: 'vehicles',
   tags: ['truck', 'delivery', 'van', 'cargo', '货车', '物流', '厢式货车', '配送'],
-  footprint: [2.2, 6.2],
+  footprint: [2.3, 6.35],
   height: 2.9,
   placement: 'on-road',
   parts: [
@@ -100,5 +100,24 @@ export default defineModel({
     box(0.16, 0.06, 0.04, -0.6, 2.76, 0.73, '#c99a5e', { mat: 'gloss' }),
     box(0.16, 0.06, 0.04, 0, 2.76, 0.73, '#c99a5e', { mat: 'gloss' }),
     box(0.16, 0.06, 0.04, 0.6, 2.76, 0.73, '#c99a5e', { mat: 'gloss' }),
+
+    // wiper arms on the cab screen
+    box(0.6, 0.014, 0.016, -0.4, 1.62, 2.972, dark, { mat: 'matte', rot: [-0.06, 0, 0.16] }),
+    box(0.6, 0.014, 0.016, 0.4, 1.62, 2.972, dark, { mat: 'matte', rot: [-0.06, 0, -0.16] }),
+    // cylindrical fuel tank slung under the cab with two strap bands
+    cyl(0.2, 0.2, 0.9, -0.98, 0.5, 0.85, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
+    torus(0.205, 0.012, -0.98, 0.5, 0.55, dark, { mat: 'metal' }, 18),
+    torus(0.205, 0.012, -0.98, 0.5, 1.15, dark, { mat: 'metal' }, 18),
+    // side underrun guards below the cargo floor
+    box(0.05, 0.12, 2.4, -1.0, 0.45, -0.6, C.steel, { mat: 'metal' }),
+    box(0.05, 0.12, 2.4, 1.0, 0.45, -0.6, C.steel, { mat: 'metal' }),
+    box(0.05, 0.27, 0.05, -1.0, 0.645, -1.3, dark, { mat: 'metal' }),
+    box(0.05, 0.27, 0.05, 1.0, 0.645, -1.3, dark, { mat: 'metal' }),
+    box(0.05, 0.27, 0.05, -1.0, 0.645, 0.3, dark, { mat: 'metal' }),
+    box(0.05, 0.27, 0.05, 1.0, 0.645, 0.3, dark, { mat: 'metal' }),
+    // rear loading step under the bumper
+    box(0.9, 0.06, 0.22, 0, 0.3, -3.14, dark, { mat: 'metal' }),
+    box(0.05, 0.3, 0.05, -0.36, 0.45, -3.06, dark, { mat: 'metal' }),
+    box(0.05, 0.3, 0.05, 0.36, 0.45, -3.06, dark, { mat: 'metal' }),
   ],
 })

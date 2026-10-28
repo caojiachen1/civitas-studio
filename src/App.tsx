@@ -106,7 +106,8 @@ export default function App() {
     else if (id === 'plan') {
       store.setTool('plan')
       if (!store.settings.planMode) store.patchSettings({ planMode: true })
-    } else if (id === 'wall') store.setTool('wall')
+    } else if (id === 'building') store.setTool('select')
+    else if (id === 'wall') store.setTool('wall')
     else if (id === 'openings') {
       if (store.tool !== 'door' && store.tool !== 'window') store.setTool('door')
     } else if (id === 'slab') store.setTool('slab')

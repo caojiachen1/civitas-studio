@@ -14,6 +14,14 @@ for (let i = 0; i < 15; i++) {
   const x = -1.02 + (2.04 * i) / 14
   parts.push(cyl(0.012, 0.012, 0.87, x, 0.55, 0, C.blackMetal, { mat: 'metal' }, 6))
 }
+// brass shoes seat every spindle on the bottom rail
+for (let i = 0; i < 15; i++) {
+  const x = -1.02 + (2.04 * i) / 14
+  parts.push(cyl(0.024, 0.029, 0.022, x, 0.15, 0, C.brass, { mat: 'metal' }, 10))
+}
+// turned end caps close the walnut handrail
+parts.push(cyl(0.052, 0.052, 0.02, -1.19, 1.02, 0, C.walnut, { mat: 'wood', rot: [0, 0, Math.PI / 2] }, 16))
+parts.push(cyl(0.052, 0.052, 0.02, 1.19, 1.02, 0, C.walnut, { mat: 'wood', rot: [0, 0, Math.PI / 2] }, 16))
 parts.push(box(1.98, 0.035, 0.035, 0, 0.72, 0, C.brass, { mat: 'metal' }))
 parts.push(box(0.09, 0.16, 0.18, -1.15, 0.09, 0, C.blackMetal, { mat: 'metal' }))
 parts.push(box(0.09, 0.16, 0.18, 1.15, 0.09, 0, C.blackMetal, { mat: 'metal' }))
@@ -26,6 +34,9 @@ for (const x of [-0.55, 0.55]) {
 for (const x of [-1.15, 1.15]) {
   parts.push(cyl(0.072, 0.072, 0.022, x, 0.42, 0, C.brass, { mat: 'metal' }, 16))
   parts.push(cyl(0.072, 0.072, 0.022, x, 0.96, 0, C.brass, { mat: 'metal' }, 16))
+  for (const sy of [0.42, 0.96]) {
+    parts.push(sphere(0.007, x, sy, 0.069, C.steel, { mat: 'metal' }, 6))
+  }
 }
 for (const x of [-1.15, 1.15]) {
   parts.push(box(0.13, 0.02, 0.18, x, 0.012, 0, C.graphite, { mat: 'metal' }))

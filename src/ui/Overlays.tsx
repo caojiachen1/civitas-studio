@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  Building2,
   Eye,
   Grid3X3,
   Keyboard,
@@ -15,7 +16,62 @@ import { useEditor } from '../editor/store'
 import { useRuntime } from '../editor/runtime'
 import { getEditorScene } from '../editor/engineRef'
 import { pathTypeLabel, toolLabelForState } from './labels'
-import { EmptyState } from './common'
+import { EmptyState, Segmented } from './common'
+
+function BuildingSessionBar() {
+  const session = useEditor((state) => state.buildingSession)
+  const levels = useEditor((state) => state.doc.levels)
+  const activeLevelId = useEditor((state) => state.doc.activeLevelId)
+  const setBuildingMode = useEditor((state) => state.setBuildingMode)
+  const setActiveLevel = useEditor((state) => state.setActiveLevel)
+  const exitBuilding = useEditor((state) => state.exitBuilding)
+  const toast = useRuntime((state) => state.toast)
+  if (!session) return null
+  return (
+    <div className="building-session-bar">
+      <div className="building-session-title">
+        <Building2 size={17} />
+        <span>
+          <small>正在编辑建筑</small>
+          <strong>{session.name}</strong>
+        </span>
+      </div>
+      <Segmented
+        compact
+        value={session.mode}
+        onChange={(mode) => setBuildingMode(mode)}
+        options={[
+          { value: 'shell', label: '外骨架' },
+          { value: 'interior', label: '内饰' },
+        ]}
+      />
+      <div className="building-floor-strip" role="tablist" aria-label="建筑楼层">
+        {levels.map((level) => (
+          <button
+            key={level.id}
+            type="button"
+            role="tab"
+            aria-selected={level.id === activeLevelId}
+            className={level.id === activeLevelId ? 'is-active' : ''}
+            onClick={() => setActiveLevel(level.id)}
+          >
+            {level.name}
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="building-exit"
+        onClick={() => {
+          exitBuilding()
+          toast('已退出建筑，回到城市场景', 'success')
+        }}
+      >
+        <X size={14} /> 退出建筑
+      </button>
+    </div>
+  )
+}
 
 export function SceneOverlay() {
   const tool = useEditor((state) => state.tool)
@@ -36,6 +92,7 @@ export function SceneOverlay() {
           退出平面模式
         </button>
       )}
+      <BuildingSessionBar />
       <div className={`scene-mode-chip ${invalidReason ? 'is-invalid' : ''}`}>
         <span className="mode-dot" />
         <div>
@@ -187,6 +244,15 @@ export function HelpModal() {
             </p>
             <p className="help-copy">
               退出平面模式：点击视图右上角「退出平面模式」、状态栏的平面模式按钮、再次点击左侧「平面」栏，或按 <kbd>Esc</kbd>。
+            </p>
+          </section>
+          <section>
+            <h3>建筑内外分离</h3>
+            <p className="help-copy">
+              左侧「建筑」面板点击模板即可整栋放置；建筑在城市里始终是一个整体，可拖动/旋转/复制。双击建筑或点右侧「进入建筑」进入内部。
+            </p>
+            <p className="help-copy">
+              进入后顶部栏切换「外骨架 / 内饰」：外骨架显示墙、窗、门、楼梯和屋顶；内饰会把视角放进当前楼层并剖切靠相机一侧的外墙，方便摆家具。楼层按钮可逐层切换，点「退出建筑」或空闲时按 Esc 回到城市。
             </p>
           </section>
           <section className="shortcut-section">

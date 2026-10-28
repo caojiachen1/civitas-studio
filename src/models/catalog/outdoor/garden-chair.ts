@@ -58,5 +58,14 @@ export default defineModel({
     rbox(0.55, 0.06, 0.055, 0.02, 0, 0.862, -0.262, teak, { mat: 'wood', rot: [-0.05, 0, 0] }),
     // back cushion
     rbox(0.38, 0.2, 0.06, 0.025, 0, 0.69, -0.198, C.linen, { mat: 'fabric', rot: [-0.05, 0, 0] }),
+    // piping seam wrapping the seat cushion, tufted back buttons and rubber floor glides
+    rbox(0.506, 0.016, 0.446, 0.02, 0, 0.472, 0.005, C.cream, { mat: 'fabric' }),
+    cyl(0.011, 0.011, 0.008, -0.1, 0.69, -0.166, C.cream, { mat: 'fabric' }, 10),
+    cyl(0.011, 0.011, 0.008, 0.1, 0.69, -0.166, C.cream, { mat: 'fabric' }, 10),
+    box(0.054, 0.008, 0.054, -0.26, 0.004, 0.245, C.blackMetal, { mat: 'matte' }),
+    box(0.054, 0.008, 0.054, 0.26, 0.004, 0.245, C.blackMetal, { mat: 'matte' }),
+    // brass screw heads on the armrest end caps
+    cyl(0.011, 0.011, 0.006, -0.28, 0.654, 0.248, C.brass, { mat: 'metal' }, 8),
+    cyl(0.011, 0.011, 0.006, 0.28, 0.654, 0.248, C.brass, { mat: 'metal' }, 8),
   ],
 })

@@ -56,5 +56,17 @@ export default defineModel({
     rbox(0.06, 0.03, 0.09, 0.015, 0.47, 0.945, 0.02, '#b9b3a7', { mat: 'gloss' }),
     cyl(0.005, 0.005, 0.09, 0.31, 0.906, -0.07, C.ink, { mat: 'matte', rot: [1.3, 0, 0] }, 8),
     torus(0.025, 0.005, 0.3, 0.904, -0.1, C.ink, { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 16),
+
+    // cover stitching lines across the padded surface
+    ...[-0.12, -0.04, 0.04, 0.12].map((z) =>
+      box(0.94, 0.002, 0.003, 0, 0.8995, z, C.sand, { mat: 'fabric' }),
+    ),
+    box(1.08, 0.002, 0.003, 0, 0.8995, 0.1, C.sand, { mat: 'fabric' }),
+    // iron water-level window and steam dial
+    box(0.004, 0.03, 0.022, 0.484, 0.947, 0.02, C.water, { mat: 'gloss' }),
+    cyl(0.014, 0.014, 0.008, 0.4, 0.992, 0.02, C.sage, { mat: 'gloss' }, 14),
+    // leg locking levers at the X pivots
+    box(0.026, 0.014, 0.05, -0.38, 0.398, 0.048, C.brass, { mat: 'metal' }),
+    box(0.026, 0.014, 0.05, 0.38, 0.398, 0.048, C.brass, { mat: 'metal' }),
   ],
 })

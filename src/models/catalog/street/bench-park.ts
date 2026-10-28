@@ -81,5 +81,27 @@ export default defineModel({
     rounded(0.11, 0.03, 0.14, 0.006, -0.765, 0.015, 0.27, C.graphite, { mat: 'metal' }),
     rounded(0.11, 0.03, 0.14, 0.006, 0.765, 0.015, -0.23, C.graphite, { mat: 'metal' }),
     rounded(0.11, 0.03, 0.14, 0.006, -0.765, 0.015, -0.23, C.graphite, { mat: 'metal' }),
+
+    // centre leg with its own cast shoe
+    rounded(0.05, 0.38, 0.05, 0.01, 0, 0.22, 0.24, iron, { mat: 'metal' }),
+    rounded(0.1, 0.03, 0.12, 0.006, 0, 0.015, 0.24, C.graphite, { mat: 'metal' }),
+    cyl(0.011, 0.011, 0.012, -0.03, 0.036, 0.275, C.steel, { mat: 'metal' }, 6),
+    cyl(0.011, 0.011, 0.012, 0.03, 0.036, 0.275, C.steel, { mat: 'metal' }, 6),
+
+    // anchor bolts through the four corner shoes
+    ...[
+      [0.765, 0.27],
+      [-0.765, 0.27],
+      [0.765, -0.23],
+      [-0.765, -0.23],
+    ].flatMap(([x, z]) => [
+      cyl(0.011, 0.011, 0.012, x, 0.036, z + 0.045, C.steel, { mat: 'metal' }, 6),
+      cyl(0.011, 0.011, 0.012, x, 0.036, z - 0.045, C.steel, { mat: 'metal' }, 6),
+    ]),
+
+    // brass dedication plaque screwed to the top back slat
+    rounded(0.2, 0.055, 0.005, 0.002, 0, 0.82, -0.2915, C.brass, { mat: 'metal', rot: [-0.14, 0, 0] }),
+    sphere(0.006, -0.075, 0.82, -0.2935, C.steel, { mat: 'metal' }, 8),
+    sphere(0.006, 0.075, 0.82, -0.2935, C.steel, { mat: 'metal' }, 8),
   ],
 })

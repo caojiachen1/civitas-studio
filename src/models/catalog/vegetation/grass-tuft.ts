@@ -1,4 +1,4 @@
-import { cone, cyl, defineModel, prism } from '../../kit'
+import { cone, cyl, defineModel, ico, prism } from '../../kit'
 
 const TONES = ['#52713f', '#5f7e4a', '#6c8b55', '#7b9a5f', '#8aa66c']
 const PALE = '#a8bd80'
@@ -46,6 +46,57 @@ const dried = [
   cone(0.028, h, x, h / 2, z, i % 2 === 0 ? DRY : DRY_DARK, { mat: 'foliage', rot: [0, a, 0.7] }, 5),
 )
 
+// Broad, low blades shelter the crown and hide the soil line.
+const broadBlades = [0, 1, 2].map((i) => {
+  const a = i * 2.1 + 0.55
+  const w = 0.032 + (i % 2) * 0.006
+  const h = 0.15 + (i % 2) * 0.02
+  const points: [number, number][] = [
+    [-w, 0],
+    [w, 0],
+    [w * 0.7, h * 0.6],
+    [0.008, h],
+    [-w * 0.7, h * 0.6],
+  ]
+  return prism(points, 0.011, Math.cos(a) * 0.075, 0.018, Math.sin(a) * 0.075, i % 2 === 0 ? '#5d7c49' : '#6c8b55', {
+    mat: 'foliage',
+    rot: [0.92, -(a + Math.PI / 2), 0.18],
+  })
+})
+
+// Two weathered stones sit half-buried at the edge of the tuft.
+const stones = [
+  ico(0.038, 0.2, 0.018, -0.13, '#8d897d', { mat: 'stone', rot: [0.3, 0.8, 0.2] }, 0),
+  ico(0.026, -0.17, 0.013, 0.16, '#9a968a', { mat: 'stone', rot: [0.2, -0.6, 0.15] }, 0),
+]
+
+// Wiry dry stalks with tiny seed heads.
+const dryStalks = [
+  [0.12, -0.07, 0.26, 0.18],
+  [-0.1, 0.1, 0.22, -0.14],
+].flatMap(([x, z, h, tilt], i) => [
+  cyl(0.0045, 0.007, h, x, h / 2 + 0.008, z, '#9a8e62', { mat: 'foliage', rot: [0.06, 0, tilt] }, 5),
+  cone(0.018, 0.055, x + tilt * 0.12, h + 0.038, z + 0.01, i === 0 ? '#b3a878' : '#a79c6e', {
+    mat: 'foliage',
+    rot: [0.12, i * 1.3, tilt],
+  }, 6),
+])
+
+// Small clover seedlings tucked between the blades.
+const clover = [
+  [-0.11, 0.1],
+  [0.15, -0.09],
+].flatMap(([x, z], ci) => [
+  cyl(0.003, 0.004, 0.055, x, 0.034, z, '#5f7e4a', { mat: 'foliage' }, 4),
+  ...[0, 1, 2].map((k) => {
+    const a = (k * Math.PI * 2) / 3 + ci * 0.7
+    return ico(0.012, x + Math.cos(a) * 0.016, 0.062, z + Math.sin(a) * 0.016, ci === 0 ? '#7d9a5a' : '#8aa66c', {
+      mat: 'foliage',
+      rot: [0.2, a, 0.15],
+    }, 0)
+  }),
+])
+
 // A few seed heads rise above the blades on wiry stems.
 const stalks = [
   [0.05, 0.04, 0.26],
@@ -66,5 +117,5 @@ export default defineModel({
   placement: 'outdoor',
   noCollide: true,
   shadow: false,
-  parts: [...blades, ...tips, ...dried, ...stalks],
+  parts: [...blades, ...tips, ...broadBlades, ...dried, ...stalks, ...dryStalks, ...stones, ...clover],
 })

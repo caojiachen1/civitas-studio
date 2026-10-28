@@ -73,5 +73,14 @@ export default defineModel({
     rbox(0.3, 0.02, 0.085, 0.008, 0, 1.529, 0.195, STEEL_LIGHT, { mat: 'metal' }),
     box(0.26, 0.006, 0.065, 0, 1.522, 0.198, '#3c3630', { mat: 'gloss' }),
     box(0.09, 0.014, 0.018, 0, 1.523, 0.243, STEEL_DARK, { mat: 'metal' }),
+
+    // rivets along the duct seams, a brass serial plate and filter release tabs
+    ...[1.96, 2.3].flatMap((y) => [
+      cyl(0.005, 0.005, 0.004, -0.075, y, 0.004, STEEL_LIGHT, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+      cyl(0.005, 0.005, 0.004, 0.075, y, 0.004, STEEL_LIGHT, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    ]),
+    box(0.11, 0.028, 0.003, 0, 2.32, 0.0035, C.brass, { mat: 'metal' }),
+    box(0.05, 0.008, 0.012, -0.22, 1.539, 0.196, STEEL_DARK, { mat: 'metal' }),
+    box(0.05, 0.008, 0.012, 0.22, 1.539, 0.196, STEEL_DARK, { mat: 'metal' }),
   ],
 })

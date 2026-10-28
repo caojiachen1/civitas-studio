@@ -86,5 +86,18 @@ export default defineModel({
     cyl(0.016, 0.022, 0.06, 0, 3.49, 0, C.brass, { mat: 'metal' }, 12),
     cyl(0, 0.032, 0.07, 0, 3.555, 0, C.brass, { mat: 'metal' }, 16),
     sphere(0.012, 0, 3.588, 0, C.brass, { mat: 'metal' }, 12),
+
+    // printed minute track just inside the hour markers
+    torus(0.191, 0.0025, 0, CLOCK_Y, 0.0995, C.ink, { mat: 'matte' }, 40),
+    torus(0.191, 0.0025, 0, CLOCK_Y, -0.0995, C.ink, { mat: 'matte' }, 40),
+
+    // plinth access door with hinges and keyhole
+    rounded(0.14, 0.1, 0.008, 0.004, 0, 0.15, 0.152, ironLight, { mat: 'metal' }),
+    box(0.012, 0.02, 0.006, -0.06, 0.17, 0.156, iron, { mat: 'metal' }),
+    box(0.012, 0.02, 0.006, -0.06, 0.13, 0.156, iron, { mat: 'metal' }),
+    box(0.008, 0.016, 0.004, 0.055, 0.15, 0.1565, C.ink),
+
+    // gilt band on the collar under the drum
+    torus(0.062, 0.005, 0, 2.85, 0, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 24),
   ],
 })

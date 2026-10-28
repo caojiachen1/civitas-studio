@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, sphere, torus } from '../../kit'
+import { C, box, cone, cyl, defineModel, sphere, torus } from '../../kit'
 
 export default defineModel({
   id: 'column-round',
@@ -36,6 +36,24 @@ export default defineModel({
       const a = (i * Math.PI * 2) / 8 + 0.2
       return sphere(0.026, Math.cos(a) * 0.19, 2.92, Math.sin(a) * 0.19, C.birch, { mat: 'stone' }, 10)
     }),
+    // acanthus leaves curl around the capital neck
+    ...Array.from({ length: 8 }, (_, i) => {
+      const a = (i * Math.PI * 2) / 8 + 0.18
+      return cone(
+        0.045,
+        0.17,
+        Math.cos(a) * 0.2,
+        2.865,
+        Math.sin(a) * 0.2,
+        i % 2 === 0 ? C.white : C.cream,
+        { mat: 'stone', rot: [0.5 * Math.sin(a), 0, -0.5 * Math.cos(a)] },
+        5,
+      )
+    }),
+    // subtle drum joints on the long shaft
+    torus(0.166, 0.007, 0, 1.15, 0, C.cream, { mat: 'stone', rot: [Math.PI / 2, 0, 0] }, 24),
+    torus(0.161, 0.006, 0, 2.02, 0, C.cream, { mat: 'stone', rot: [Math.PI / 2, 0, 0] }, 24),
+    box(0.5, 0.022, 0.5, 0, 0.124, 0, C.stone, { mat: 'stone' }),
     box(0.56, 0.018, 0.56, 0, 3.105, 0, C.white, { mat: 'stone' }),
     ...[-1, 1].flatMap((sx) =>
       [-1, 1].map((sz) => sphere(0.012, sx * 0.2, 0.135, sz * 0.2, C.brass, { mat: 'metal' }, 8)),

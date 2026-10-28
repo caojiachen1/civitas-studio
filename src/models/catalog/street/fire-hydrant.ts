@@ -63,5 +63,20 @@ export default defineModel({
     rounded(0.09, 0.06, 0.008, 0.003, 0, 0.3, 0.108, brass, { mat: 'metal' }),
     box(0.06, 0.008, 0.004, 0, 0.317, 0.114, C.walnut),
     box(0.045, 0.008, 0.004, 0, 0.3, 0.114, C.walnut),
+
+    // remaining bonnet flange bolts at the diagonals
+    sphere(0.01, 0.085, 0.428, 0.085, brass, { mat: 'metal' }, 8),
+    sphere(0.01, -0.085, 0.428, 0.085, brass, { mat: 'metal' }, 8),
+    sphere(0.01, 0.085, 0.428, -0.085, brass, { mat: 'metal' }, 8),
+    sphere(0.01, -0.085, 0.428, -0.085, brass, { mat: 'metal' }, 8),
+
+    // pale identification band on the upper barrel
+    cyl(0.0985, 0.0985, 0.04, 0, 0.5, 0, '#efe9dc', { mat: 'gloss' }, 24),
+
+    // automatic drain hole low on the body
+    cyl(0.012, 0.012, 0.006, 0, 0.085, 0.112, C.ink, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+
+    // caulk bed under the base flange
+    torus(0.176, 0.005, 0, 0.004, 0, '#a9a69c', { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 28),
   ],
 })

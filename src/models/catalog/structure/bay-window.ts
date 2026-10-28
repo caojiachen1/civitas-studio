@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel } from '../../kit'
+import { C, box, cyl, defineModel, sphere } from '../../kit'
 import type { Part } from '../../../editor/types'
 
 // Projecting bay window: angled three-sided glazing on a timber sill, solid
@@ -93,6 +93,36 @@ for (const sx of [-1, 1]) {
 for (const sx of [-1, 1]) {
   parts.push(cyl(0.01, 0.01, 0.012, sx * 0.5, 0.168, 0.365, HINGE, { mat: 'metal' }, 8))
   parts.push(cyl(0.01, 0.01, 0.012, sx * 0.9, 0.168, -0.2, HINGE, { mat: 'metal' }, 8))
+}
+
+// Glazing beads pinch the panes against the frame.
+parts.push(box(1.16, 0.018, 0.018, 0, 0.205, 0.372, FRAME_DARK, { mat: 'matte' }))
+parts.push(box(1.16, 0.018, 0.018, 0, 1.442, 0.372, FRAME_DARK, { mat: 'matte' }))
+for (const sx of [-1, 1]) {
+  parts.push(
+    box(0.5, 0.018, 0.018, sx * 0.78, 0.205, 0.165, FRAME_DARK, {
+      mat: 'matte',
+      rot: [0, sx * ANG, 0],
+    }),
+  )
+}
+
+// Exterior silicone seal along the sill edge.
+parts.push(box(1.3, 0.012, 0.01, 0, 0.163, 0.402, '#4b5050', { mat: 'matte' }))
+for (const sx of [-1, 1]) {
+  parts.push(
+    box(0.54, 0.012, 0.01, sx * 0.79, 0.163, 0.192, '#4b5050', {
+      mat: 'matte',
+      rot: [0, sx * ANG, 0],
+    }),
+  )
+}
+
+// Colour-matched screw caps at the casement corners.
+for (const sx of [-1, 1]) {
+  for (const hy of [0.36, 1.28]) {
+    parts.push(sphere(0.009, sx * 0.6, hy, 0.396, FRAME, { mat: 'matte' }, 8))
+  }
 }
 
 export default defineModel({

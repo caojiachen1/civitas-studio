@@ -14,6 +14,7 @@ import {
 import { buildPath } from './builders/paths'
 import { buildSlab } from './builders/slabs'
 import { buildRoof } from './builders/roofs'
+import { buildBuildingShell, cityDocWithInterior } from './buildings'
 import { createModelObject } from '../models/kit'
 import { getModel } from '../models/registry'
 import { createCustomInstance, hydrateCustomAssets, loadCustomAsset } from '../models/custom'
@@ -59,20 +60,21 @@ export function isValidDocument(value: unknown): value is EditorDocument {
 }
 
 export function getProjectPayload(engine: EditorScene | null): ProjectPayload {
+  const state = useEditor.getState()
+  const session = state.buildingSession
   return {
     app: 'civitas-studio',
     version: 1,
-    doc: structuredClone(useEditor.getState().doc),
-    view: engine?.getView(),
+    doc: session ? cityDocWithInterior(session, state.doc) : structuredClone(state.doc),
+    view: session ? undefined : engine?.getView(),
     savedAt: Date.now(),
   }
 }
 
 export async function saveProjectToFile(engine: EditorScene | null): Promise<boolean> {
   try {
-    const doc = useEditor.getState().doc
     const payload = getProjectPayload(engine)
-    const name = `${sanitizeFileName(doc.projectName)}.civitas`
+    const name = `${sanitizeFileName(payload.doc.projectName)}.civitas`
     const path = await saveFileWithDialog(name, JSON.stringify(payload, null, 2), PROJECT_FILTERS, 'application/json')
     if (!path) return false
     useEditor.getState().markClean()
@@ -87,6 +89,10 @@ export async function saveProjectToFile(engine: EditorScene | null): Promise<boo
 
 export async function openProjectFromFile(engine: EditorScene | null): Promise<boolean> {
   try {
+    if (useEditor.getState().buildingSession) {
+      useRuntime.getState().toast('请先退出当前建筑，再打开其他项目', 'warn')
+      return false
+    }
     const file = await openFileWithDialog(PROJECT_FILTERS, '.civitas,.json')
     if (!file) return false
     const text = new TextDecoder().decode(file.bytes)
@@ -308,6 +314,10 @@ export async function buildExportScene(doc: EditorDocument): Promise<THREE.Group
       object = buildSlab(entity, levels.get(entity.levelId) ?? 0)
     } else if (entity.kind === 'roof') {
       object = buildRoof(entity)
+    } else if (entity.kind === 'building') {
+      object = buildBuildingShell(entity)
+      object.position.set(entity.x, levels.get(entity.levelId) ?? 0, entity.z)
+      object.rotation.y = entity.rot
     } else if (entity.kind === 'object') {
       const builtin = getModel(entity.modelId)
       if (builtin) {

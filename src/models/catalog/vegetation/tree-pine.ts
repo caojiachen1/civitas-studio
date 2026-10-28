@@ -4,6 +4,35 @@ const NEEDLE_DARK = '#2f4a34'
 const NEEDLE_MID = '#37553b'
 const NEEDLE_LIGHT = '#41633f'
 
+// Exposed root spurs grip the needle litter.
+const roots = [0.3, 1.55, 2.8, 4.1, 5.3].map((a, i) =>
+  cyl(0.04, 0.11, 0.5, Math.cos(a) * 0.21, 0.16, Math.sin(a) * 0.21, i % 2 === 0 ? '#5a402c' : '#4f3927', {
+    mat: 'wood',
+    rot: [0, -a, 1.02],
+  }, 7),
+)
+
+// Amber resin bleeds from old wounds in the bark.
+const RESIN: [number, number, number][] = [
+  [0.224, 0.86, 0.6],
+  [0.218, 1.16, 2.4],
+  [0.212, 1.44, 4.2],
+]
+const resin = RESIN.map(([r, y, a], i) =>
+  box(0.04, 0.3 + (i % 2) * 0.14, 0.014, Math.cos(a) * r, y, Math.sin(a) * r, i % 2 === 0 ? '#a87b43' : '#91653a', {
+    mat: 'gloss',
+    rot: [0, -(a + Math.PI / 2), 0],
+  }),
+)
+
+// Two broken branch stubs below the living skirt.
+const stubs = [0.9, 3.9].map((a, i) =>
+  cyl(0.032, 0.05, 0.26, Math.cos(a) * 0.2, 1.12 + i * 0.14, Math.sin(a) * 0.2, '#6b4d34', {
+    mat: 'wood',
+    rot: [0, -a, 1.35],
+  }, 7),
+)
+
 export default defineModel({
   id: 'tree-pine',
   name: '松树',
@@ -13,8 +42,11 @@ export default defineModel({
   height: 7.2,
   placement: 'outdoor',
   parts: [
+    ...roots,
     cyl(0.16, 0.26, 2.9, 0, 1.45, 0, C.walnut, { mat: 'wood' }, 10),
     cyl(0.07, 0.14, 1.2, 0, 3.2, 0, '#5f4530', { mat: 'wood' }, 8),
+    ...resin,
+    ...stubs,
     // staggered needle tiers, each cone slightly rotated for a hand-cut silhouette
     cone(1.35, 1.55, 0, 2.25, 0, NEEDLE_DARK, { mat: 'foliage', rot: [0, 0.35, 0] }, 10),
     cone(1.2, 1.45, 0.02, 3.05, 0.01, NEEDLE_MID, { mat: 'foliage', rot: [0, -0.2, 0] }, 10),

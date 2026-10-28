@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, prism, rbox } from '../../kit'
+import { C, box, cyl, defineModel, prism, rbox, sphere } from '../../kit'
 
 // Deterministic arched profile for the mirror frame and its layers.
 function arch(halfWidth: number, straight: number): [number, number][] {
@@ -81,5 +81,14 @@ export default defineModel({
     cyl(0.004, 0.004, 0.1, -0.112, 0.9, -0.03, C.walnut, { mat: 'wood' }, 8),
     cyl(0.004, 0.004, 0.1, -0.1, 0.902, -0.01, C.walnut, { mat: 'wood' }, 8),
     cyl(0.004, 0.004, 0.1, -0.088, 0.9, -0.032, C.walnut, { mat: 'wood' }, 8),
+
+    // mirror corner rosettes, glass highlight and drawer reveals
+    sphere(0.018, -0.318, 1.2, -0.19, C.brass, { mat: 'metal' }, 10),
+    sphere(0.018, 0.318, 1.2, -0.19, C.brass, { mat: 'metal' }, 10),
+    box(0.10, 0.5, 0.002, -0.1, 1.25, -0.192, '#e3efec', { mat: 'glass', opacity: 0.16, rot: [0, 0, 0.12] }),
+    box(0.33, 0.004, 0.005, 0.345, 0.738, 0.184, '#8f6d44', { mat: 'wood' }),
+    box(0.33, 0.004, 0.005, 0.345, 0.448, 0.184, '#8f6d44', { mat: 'wood' }),
+    box(0.006, 0.56, 0.005, 0.181, 0.455, 0.184, '#8f6d44', { mat: 'wood' }),
+    box(0.006, 0.56, 0.005, 0.509, 0.455, 0.184, '#8f6d44', { mat: 'wood' }),
   ],
 })

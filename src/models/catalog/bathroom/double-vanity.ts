@@ -30,7 +30,7 @@ export default defineModel({
 
     // stone worktop, drip groove and short upstand
     rbox(1.9, 0.04, 0.6, 0.012, 0, 0.8, 0, C.stone, { mat: 'stone' }),
-    box(1.84, 0.005, 0.005, 0, 0.774, 0.297, C.graphite),
+    box(1.84, 0.005, 0.005, 0, 0.7785, 0.297, C.graphite),
     rbox(1.9, 0.07, 0.02, 0.005, 0, 0.855, -0.29, C.stone, { mat: 'stone' }),
 
     // cream door fronts
@@ -75,5 +75,12 @@ export default defineModel({
     cyl(0.015, 0.03, 0.016, 0, 0.928, 0.1, C.clay, { mat: 'gloss' }, 16),
     cyl(0.006, 0.006, 0.008, 0, 0.94, 0.1, C.steel, { mat: 'metal' }, 10),
     rbox(0.05, 0.008, 0.012, 0.004, 0.018, 0.944, 0.1, C.steel, { mat: 'metal' }),
+
+    // silicone bead sealing the upstand to the wall
+    cyl(0.005, 0.005, 1.88, 0, 0.893, -0.298, '#d8d2c4', { mat: 'matte', rot: [0, 0, Math.PI / 2] }, 8),
+    // hairline reveals closing the outer door edges
+    ...[-0.905, 0.905].map((x) => box(0.006, 0.56, 0.004, x, 0.44, 0.282, SEAM)),
+    // chrome overflow slots on the basin aprons
+    ...BASIN_X.map((x) => box(0.07, 0.008, 0.003, x, 0.882, 0.2115, C.steel, { mat: 'metal' })),
   ],
 })

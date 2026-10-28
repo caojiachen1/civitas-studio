@@ -15,10 +15,10 @@ export default defineModel({
   parts: [
     // recessed shadow plinth and levelling feet
     rbox(1.12, 0.05, 0.5, 0.2, 0, 0.025, -0.01, C.ink, { mat: 'matte' }),
-    cyl(0.026, 0.032, 0.05, -0.55, 0.025, 0.18, C.blackMetal, { mat: 'metal' }, 14),
-    cyl(0.026, 0.032, 0.05, 0.55, 0.025, 0.18, C.blackMetal, { mat: 'metal' }, 14),
-    cyl(0.026, 0.032, 0.05, -0.55, 0.025, -0.2, C.blackMetal, { mat: 'metal' }, 14),
-    cyl(0.026, 0.032, 0.05, 0.55, 0.025, -0.2, C.blackMetal, { mat: 'metal' }, 14),
+    cyl(0.026, 0.032, 0.05, -0.63, 0.025, 0.18, C.blackMetal, { mat: 'metal' }, 14),
+    cyl(0.026, 0.032, 0.05, 0.63, 0.025, 0.18, C.blackMetal, { mat: 'metal' }, 14),
+    cyl(0.026, 0.032, 0.05, -0.63, 0.025, -0.2, C.blackMetal, { mat: 'metal' }, 14),
+    cyl(0.026, 0.032, 0.05, 0.63, 0.025, -0.2, C.blackMetal, { mat: 'metal' }, 14),
 
     // stacked oval shell: wide base tapering to a slender rim
     rbox(1.46, 0.24, 0.66, 0.3, 0, 0.17, -0.01, PORCELAIN, { mat: 'gloss' }),
@@ -66,5 +66,16 @@ export default defineModel({
     box(0.068, 0.002, 0.005, -0.38, 0.6175, 0.11, INK_SEAM),
     rbox(0.1, 0.012, 0.13, 0.008, -0.28, 0.602, -0.12, C.sage, { mat: 'fabric' }),
     rbox(0.088, 0.006, 0.115, 0.008, -0.28, 0.611, -0.12, C.cream, { mat: 'fabric' }),
+
+    // bath salt jars on the tray with brass lids
+    cyl(0.034, 0.038, 0.06, -0.36, 0.626, 0.24, C.cream, { mat: 'gloss' }, 20),
+    cyl(0.036, 0.036, 0.012, -0.36, 0.662, 0.24, C.brass, { mat: 'metal' }, 20),
+    cyl(0.029, 0.032, 0.05, -0.3, 0.621, 0.28, C.sage, { mat: 'gloss' }, 20),
+    cyl(0.03, 0.03, 0.01, -0.3, 0.651, 0.28, C.brass, { mat: 'metal' }, 20),
+
+    // folded hand towel hooked over the near rim
+    rbox(0.26, 0.02, 0.12, 0.008, 0.3, 0.578, 0.345, C.linen, { mat: 'fabric' }),
+    rbox(0.26, 0.2, 0.018, 0.006, 0.3, 0.46, 0.4, C.linen, { mat: 'fabric' }),
+    box(0.25, 0.012, 0.006, 0.3, 0.38, 0.4105, C.blush),
   ],
 })

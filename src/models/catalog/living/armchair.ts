@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox, sphere } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere, torus } from '../../kit'
 
 const LEATHER = '#8a654c'
 const LEATHER_LIGHT = '#97745a'
@@ -54,5 +54,13 @@ export default defineModel({
     // sage accent pillow
     rbox(0.32, 0.28, 0.13, 0.06, 0.21, 0.63, -0.04, C.sage, { mat: 'fabric', rot: [-0.15, 0, 0.07] }),
     sphere(0.011, 0.21, 0.63, 0.03, C.brass, { mat: 'metal' }, 10),
+
+    // piped cushion sides, back channel seams and arm-roll end welts
+    box(0.012, 0.012, 0.70, -0.352, 0.545, 0.045, SEAM, { mat: 'leather' }),
+    box(0.012, 0.012, 0.70, 0.352, 0.545, 0.045, SEAM, { mat: 'leather' }),
+    box(0.006, 0.34, 0.006, -0.27, 0.67, -0.148, SEAM, { mat: 'leather', rot: [-0.12, 0, 0] }),
+    box(0.006, 0.34, 0.006, 0.27, 0.67, -0.148, SEAM, { mat: 'leather', rot: [-0.12, 0, 0] }),
+    torus(0.045, 0.006, -0.37, 0.60, 0.302, SEAM, { mat: 'leather' }, 16),
+    torus(0.045, 0.006, 0.37, 0.60, 0.302, SEAM, { mat: 'leather' }, 16),
   ],
 })

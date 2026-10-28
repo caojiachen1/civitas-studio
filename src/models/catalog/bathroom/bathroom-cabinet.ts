@@ -86,5 +86,17 @@ export default defineModel({
     rbox(0.22, 0.22, 0.012, 0.006, 0.06, 0.27, 0.213, C.linen, { mat: 'fabric' }),
     rbox(0.22, 0.018, 0.03, 0.006, 0.06, 0.383, 0.208, C.linen, { mat: 'fabric' }),
     box(0.2, 0.02, 0.002, 0.06, 0.2, 0.2195, C.sage),
+    // silicone bead sealing the stone top to the wall
+    cyl(0.006, 0.006, 0.79, 0, 0.936, -0.222, '#d8d2c4', { mat: 'matte', rot: [0, 0, Math.PI / 2] }, 8),
+    // hairline shadow reveals down the outer edges of both drawer fronts
+    ...[0.7, 0.295].flatMap((y) => [
+      box(0.004, 0.368, 0.003, -0.361, y, 0.2015, '#3c3d3a'),
+      box(0.004, 0.368, 0.003, 0.361, y, 0.2015, '#3c3d3a'),
+    ]),
+    // chamfer shadow along the front arris of the stone top
+    box(0.786, 0.0035, 0.0025, 0, 0.9025, 0.2145, '#a5a29a'),
+    // brass keyhole escutcheons tucked under each pull bar
+    cyl(0.011, 0.011, 0.004, -0.155, 0.79, 0.2005, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    cyl(0.011, 0.011, 0.004, 0.155, 0.375, 0.2005, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
   ],
 })

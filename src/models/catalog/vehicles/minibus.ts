@@ -91,5 +91,20 @@ export default defineModel({
     // roof air-conditioning pod and vent
     rbox(1.1, 0.14, 1.4, 0.04, 0, 2.33, -0.5, paintDeep, { mat: 'gloss' }),
     rbox(0.5, 0.06, 0.5, 0.02, 0, 2.31, 1.2, '#d3cfc4', { mat: 'gloss' }),
+
+    // wiper arms at the base of the windscreen
+    box(0.6, 0.014, 0.016, -0.4, 1.45, 2.44, dark, { mat: 'matte', rot: [0, 0, 0.16] }),
+    box(0.6, 0.014, 0.016, 0.4, 1.45, 2.44, dark, { mat: 'matte', rot: [0, 0, -0.16] }),
+    // raised roof hatch with a rim
+    box(0.74, 0.018, 0.54, 0, 2.335, 1.7, '#c4c0b4', { mat: 'metal' }),
+    box(0.68, 0.045, 0.48, 0, 2.35, 1.7, '#d8d4c9', { mat: 'metal' }),
+    // rubber mud flaps behind the rear wheels
+    box(0.28, 0.3, 0.03, -0.82, 0.4, -1.84, dark, { mat: 'matte' }),
+    box(0.28, 0.3, 0.03, 0.82, 0.4, -1.84, dark, { mat: 'matte' }),
+    // chrome arch eyebrows above the wheels
+    box(0.016, 0.04, 1.0, -0.986, 0.78, 1.55, chrome, { mat: 'metal' }),
+    box(0.016, 0.04, 1.0, 0.986, 0.78, 1.55, chrome, { mat: 'metal' }),
+    box(0.016, 0.04, 1.0, -0.986, 0.78, -1.45, chrome, { mat: 'metal' }),
+    box(0.016, 0.04, 1.0, 0.986, 0.78, -1.45, chrome, { mat: 'metal' }),
   ],
 })

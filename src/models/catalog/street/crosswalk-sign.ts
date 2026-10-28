@@ -59,5 +59,20 @@ export default defineModel({
 
     // pressed pole cap
     cyl(0.04, 0.045, 0.04, 0, 2.58, -0.02, C.graphite, { mat: 'metal' }, 20),
+
+    // Z-bar stiffeners bolted to the back of the panel
+    box(0.46, 0.025, 0.012, 0, 2.16, 0.014, C.graphite, { mat: 'metal' }),
+    box(0.46, 0.025, 0.012, 0, 2.44, 0.014, C.graphite, { mat: 'metal' }),
+
+    // reflective sleeve bands on the pole
+    cyl(0.038, 0.038, 0.09, 0, 1.62, -0.02, '#e8e3d7', { mat: 'gloss' }, 24),
+    cyl(0.0385, 0.0385, 0.03, 0, 1.53, -0.02, C.red, { mat: 'gloss' }, 24),
+
+    // caulk bed at the pole collar
+    torus(0.055, 0.004, 0, 0.045, -0.02, '#a9a69c', { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 20),
+
+    // instruction plate fixing screws
+    cyl(0.006, 0.006, 0.004, -0.13, 1.9, 0.0325, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    cyl(0.006, 0.006, 0.004, 0.13, 1.9, 0.0325, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
   ],
 })

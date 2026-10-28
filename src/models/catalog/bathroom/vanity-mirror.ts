@@ -67,9 +67,20 @@ export default defineModel({
     rbox(0.22, 0.034, 0.3, 0.012, -0.38, 0.852, 0.04, C.linen, { mat: 'fabric' }),
     rbox(0.21, 0.032, 0.29, 0.012, -0.385, 0.885, 0.04, C.cream, { mat: 'fabric' }),
     rbox(0.2, 0.03, 0.28, 0.012, -0.39, 0.916, 0.04, C.sand, { mat: 'fabric' }),
-    // towel ring and hand towel on right side    cyl(0.03, 0.03, 0.012, 0.578, 0.72, 0.06, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 16),
+    // towel ring and hand towel on right side
+    cyl(0.03, 0.03, 0.012, 0.578, 0.72, 0.06, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 16),
     torus(0.058, 0.008, 0.578, 0.715, 0.06, C.brass, { mat: 'metal', rot: [0, Math.PI / 2, 0] }, 24),
     rbox(0.018, 0.3, 0.19, 0.006, 0.582, 0.56, 0.06, C.linen, { mat: 'fabric' }),
     rbox(0.024, 0.032, 0.19, 0.008, 0.582, 0.715, 0.06, C.linen, { mat: 'fabric' }),
+
+    // silicone bead sealing the upstand to the wall
+    cyl(0.005, 0.005, 1.18, 0, 0.922, -0.272, '#d8d2c4', { mat: 'matte', rot: [0, 0, Math.PI / 2] }, 8),
+    // chrome overflow slot on the basin back wall
+    box(0.06, 0.007, 0.003, 0, 0.848, -0.0985, C.steel, { mat: 'metal' }),
+    // aerator screen inside the spout tip
+    cyl(0.0115, 0.0115, 0.004, 0, 0.9755, -0.073, '#6f7678', { mat: 'metal' }, 14),
+    // wall switch plate beside the mirror
+    rbox(0.09, 0.12, 0.012, 0.004, 0.52, 1.12, -0.268, C.white, { mat: 'gloss' }),
+    rbox(0.016, 0.032, 0.01, 0.004, 0.52, 1.12, -0.2585, C.brass, { mat: 'gloss' }),
   ],
 })

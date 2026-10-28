@@ -95,5 +95,15 @@ export default defineModel({
     sphere(0.032, -0.14, 0.91, 0.36, TRIM, { mat: 'wood' }, 10),
     sphere(0.032, 0.14, 0.95, 0.36, TRIM, { mat: 'wood' }, 10),
     sphere(0.032, 0.14, 0.91, 0.36, TRIM, { mat: 'wood' }, 10),
+    // shingle courses laid across both roof slopes
+    box(1.14, 0.018, 0.05, 0, 0.943, -0.2916, '#5a4a3a', { mat: 'matte', rot: [-0.5058, 0, 0] }),
+    box(1.14, 0.018, 0.05, 0, 0.943, 0.2916, '#5a4a3a', { mat: 'matte', rot: [0.5058, 0, 0] }),
+    // round porthole window on the side wall, trimmed in cream
+    cyl(0.07, 0.07, 0.012, -0.5, 0.5, -0.04, '#3c4750', { mat: 'glass', opacity: 0.5, rot: [0, 0, Math.PI / 2] }, 18),
+    torus(0.078, 0.012, -0.502, 0.5, -0.04, TRIM, { mat: 'wood', rot: [0, Math.PI / 2, 0] }, 18),
+    // coir doormat and a second water bowl beside the food bowl
+    rbox(0.32, 0.012, 0.2, 0.02, 0, 0.116, 0.37, C.sand, { mat: 'fabric' }),
+    cyl(0.055, 0.042, 0.05, 0.23, 0.135, 0.43, C.clay, { mat: 'ceramic' }, 14),
+    cyl(0.046, 0.046, 0.006, 0.23, 0.159, 0.43, C.water, { mat: 'glass', opacity: 0.75 }, 14),
   ],
 })

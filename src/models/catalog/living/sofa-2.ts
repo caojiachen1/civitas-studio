@@ -54,5 +54,13 @@ export default defineModel({
     // sage velvet cushion with a brass button
     rbox(0.46, 0.28, 0.15, 0.07, -0.34, 0.60, -0.02, C.sage, { mat: 'fabric', rot: [-0.18, -0.06, -0.06] }),
     sphere(0.011, -0.34, 0.60, 0.056, C.brass, { mat: 'metal' }, 10),
+
+    // seat side piping, back channel seams and top rail welt
+    box(0.012, 0.012, 0.66, -0.6285, 0.505, 0.05, SEAM, { mat: 'fabric' }),
+    box(0.012, 0.012, 0.66, 0.6285, 0.505, 0.05, SEAM, { mat: 'fabric' }),
+    box(0.012, 0.012, 0.66, 0, 0.505, 0.05, SEAM, { mat: 'fabric' }),
+    box(0.006, 0.34, 0.006, -0.27, 0.659, -0.148, SEAM, { mat: 'fabric', rot: [-0.1, 0, 0] }),
+    box(0.006, 0.34, 0.006, 0.27, 0.659, -0.148, SEAM, { mat: 'fabric', rot: [-0.1, 0, 0] }),
+    box(1.60, 0.008, 0.008, 0, 0.803, -0.26, SEAM, { mat: 'fabric' }),
   ],
 })

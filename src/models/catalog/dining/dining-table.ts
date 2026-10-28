@@ -99,5 +99,13 @@ export default defineModel({
     torus(0.088, 0.005, -0.68, 0.81, -0.02, C.concrete, { mat: 'stone', rot: [Math.PI / 2, 0, 0] }, 24),
     cyl(0.09, 0.06, 0.05, 0.68, 0.785, -0.02, C.stone, { mat: 'stone' }, 24),
     torus(0.088, 0.005, 0.68, 0.81, -0.02, C.concrete, { mat: 'stone', rot: [Math.PI / 2, 0, 0] }, 24),
+
+    // under-top joinery blocks and foot-plate fixing screws
+    ...LEG_X.flatMap((x) => [
+      box(0.09, 0.02, 0.09, x, 0.675, 0.355, C.walnut, { mat: 'wood' }),
+      box(0.09, 0.02, 0.09, x, 0.675, -0.355, C.walnut, { mat: 'wood' }),
+      cyl(0.012, 0.012, 0.006, x, 0.014, 0.373, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+      cyl(0.012, 0.012, 0.006, x, 0.014, -0.373, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    ]),
   ],
 })

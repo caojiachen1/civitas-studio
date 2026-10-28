@@ -1,4 +1,4 @@
-import { cone, cyl, defineModel, ico } from '../../kit'
+import { box, cone, cyl, defineModel, ico } from '../../kit'
 
 const BARK = '#6d5539'
 const BARK_DARK = '#5a4530'
@@ -40,6 +40,39 @@ const roots = [0.6, 2.7, 4.5].map((a, i) =>
     rot: [0, -a, 0.9],
   }, 8),
 )
+
+// Shaggy bark ridges on the old trunk.
+const barkRidges = Array.from({ length: 8 }, (_, i) => {
+  const a = i * 0.785 + 0.25
+  return box(0.034, 0.5 + (i % 3) * 0.08, 0.024, Math.cos(a) * 0.378, 1.05 + (i % 2) * 0.05, Math.sin(a) * 0.378, i % 2 === 0 ? '#5f4933' : '#786044', {
+    mat: 'wood',
+    rot: [0, -(a + Math.PI / 2), 0],
+  })
+})
+
+// Extra fine curtains fill the gaps in the weeping veil.
+const FINE: [number, number, number, number][] = [
+  [0.65, 2.05, 5.28, 2.15],
+  [1.4, 1.6, 5.2, 1.85],
+  [2.15, 2.1, 5.3, 2.2],
+  [2.9, 1.65, 5.15, 1.9],
+  [3.75, 2.05, 5.35, 2.25],
+  [4.55, 1.7, 5.18, 1.95],
+  [5.35, 2.1, 5.3, 2.1],
+  [6.1, 1.65, 5.2, 1.85],
+]
+const fineCurtains = FINE.flatMap(([a, r, top, len], i) => {
+  const x = Math.cos(a) * r
+  const z = Math.sin(a) * r
+  return [
+    cyl(0.014, 0.02, 0.5, x, top - 0.2, z, BARK_LIGHT, { mat: 'wood', rot: [0.05, 0, 0.04] }, 5),
+    cyl(0.16, 0.035, len, x, top - 0.45 - len / 2, z, i % 2 === 0 ? VEIL : VEIL_LIGHT, {
+      mat: 'foliage',
+      rot: [0.04 * Math.sin(a), 0, 0.04 * Math.cos(a)],
+    }, 7),
+    ico(0.14, x, top - 0.45 - len, z, VEIL_DEEP, { mat: 'foliage' }, 0),
+  ]
+})
 
 const limbs = [
   branch([0.02, 3.9, 0], [-1.55, 5.3, 0.55], 0.16, 0.06, BARK_LIGHT),
@@ -92,6 +125,25 @@ const grass = [
   cone(0.05, h, x, h / 2, z, i % 2 === 0 ? '#6f8a52' : '#7f9a5e', { mat: 'foliage', rot: [0.12, i, 0.08] }, 6),
 )
 
+// Low root spurs and fallen willow leaves around the trunk.
+const rootSpurs = [1.2, 3.3, 5.0].map((a, i) =>
+  cyl(0.04, 0.1, 0.4, Math.cos(a) * 0.28, 0.14, Math.sin(a) * 0.28, i % 2 === 0 ? BARK : BARK_DARK, {
+    mat: 'wood',
+    rot: [0, -a, 1.02],
+  }, 7),
+)
+const LITTER: [number, number, string, number][] = [
+  [0.62, 0.42, '#8f8150', 0.4],
+  [-0.56, 0.5, '#7d7046', 1.2],
+  [0.36, -0.66, '#9a8a56', 2.1],
+  [-0.72, -0.3, '#877a4b', 0.9],
+  [0.9, 0.05, '#a08f58', 1.7],
+  [-0.18, 0.82, '#8a7c4d', 2.6],
+]
+const litter = LITTER.map(([x, z, color, a], i) =>
+  cyl(0.07, 0.05, 0.006, x, 0.003 + i * 0.0004, z, color, { mat: 'foliage', rot: [0, a, 0] }, 5),
+)
+
 export default defineModel({
   id: 'tree-willow',
   name: '垂柳',
@@ -102,15 +154,19 @@ export default defineModel({
   placement: 'outdoor',
   parts: [
     ...roots,
+    ...rootSpurs,
     cyl(0.3, 0.44, 2.6, 0, 1.3, 0, BARK, { mat: 'wood' }, 12),
+    ...barkRidges,
     cyl(0.22, 0.3, 1.6, 0.05, 3.3, 0, BARK_LIGHT, { mat: 'wood', rot: [0.02, 0, 0.06] }, 10),
     ...limbs,
     ...twigs,
+    ...fineCurtains,
     // crown mass bridging the curtain tops
     ico(0.5, 0.1, 6.7, 0, VEIL, { mat: 'foliage' }, 1),
     ico(0.45, -0.55, 6.15, 0.3, VEIL_LIGHT, { mat: 'foliage' }, 1),
     ico(0.44, 0.6, 6.1, -0.35, VEIL_DEEP, { mat: 'foliage' }, 1),
     ...strands,
     ...grass,
+    ...litter,
   ],
 })

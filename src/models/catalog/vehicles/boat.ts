@@ -28,8 +28,8 @@ export default defineModel({
   name: '休闲小艇',
   category: 'vehicles',
   tags: ['boat', 'motorboat', '小艇', '游艇', '水上', '休闲'],
-  footprint: [1.7, 4.2],
-  height: 1.3,
+  footprint: [1.77, 4.2],
+  height: 1.28,
   placement: 'on-water',
   parts: [
     // hull with pointed bow, laid flat by rotating the extrusion onto the XZ plane
@@ -126,5 +126,22 @@ export default defineModel({
     // stern cleats
     rbox(0.16, 0.05, 0.06, 0.02, -0.58, 0.77, -1.85, steel, { mat: 'metal' }),
     rbox(0.16, 0.05, 0.06, 0.02, 0.58, 0.77, -1.85, steel, { mat: 'metal' }),
+
+    // port and starboard navigation lights on the bow deck
+    box(0.055, 0.03, 0.06, -0.4, 0.885, 1.4, steel, { mat: 'metal' }),
+    box(0.04, 0.028, 0.04, -0.4, 0.913, 1.4, C.red, { mat: 'gloss' }),
+    box(0.055, 0.03, 0.06, 0.4, 0.885, 1.4, steel, { mat: 'metal' }),
+    box(0.04, 0.028, 0.04, 0.4, 0.913, 1.4, '#7d9d6f', { mat: 'gloss' }),
+    // stern light on a short chrome pole
+    cyl(0.012, 0.012, 0.52, 0.55, 0.995, -2.0, steel, { mat: 'metal' }, 8),
+    cyl(0.03, 0.03, 0.035, 0.55, 1.262, -2.0, '#ffe9c2', { mat: 'emissive' }, 10),
+    // fuel filler and its chrome ring on the port gunwale
+    cyl(0.05, 0.05, 0.02, -0.62, 0.75, -0.5, steel, { mat: 'metal' }, 14),
+    torus(0.05, 0.008, -0.62, 0.762, -0.5, steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
+    // two fenders hanging from the cockpit rails
+    rbox(0.1, 0.28, 0.1, 0.045, -0.832, 0.63, -0.3, C.linen, { mat: 'fabric' }),
+    rbox(0.1, 0.28, 0.1, 0.045, 0.832, 0.63, -0.3, C.linen, { mat: 'fabric' }),
+    cyl(0.006, 0.006, 0.42, -0.793, 0.96, -0.325, C.linen, { mat: 'fabric', rot: [0, 0, -0.14] }, 6),
+    cyl(0.006, 0.006, 0.42, 0.793, 0.96, -0.325, C.linen, { mat: 'fabric', rot: [0, 0, 0.14] }, 6),
   ],
 })

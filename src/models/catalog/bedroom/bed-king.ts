@@ -93,5 +93,12 @@ export default defineModel({
     rbox(1.9, 0.026, 0.1, 0.01, 0, 0.952, 0.68, THROW_LIGHT, { mat: 'fabric' }),
     box(1.88, 0.012, 0.02, 0, 0.93, 0.62, '#79866f', { mat: 'fabric' }),
     cyl(0.016, 0.016, 1.86, 0, 0.94, 1.068, THROW_LIGHT, { mat: 'fabric', rot: [0, 0, Math.PI / 2] }, 10),
+
+    // side rail bolts and an extra duvet topstitch line
+    cyl(0.014, 0.014, 0.02, -0.9375, 0.37, 0.6, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.014, 0.014, 0.02, 0.9375, 0.37, 0.6, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.014, 0.014, 0.02, -0.9375, 0.37, -0.4, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.014, 0.014, 0.02, 0.9375, 0.37, -0.4, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    box(1.82, 0.006, 0.012, 0, 0.892, 0.64, '#b8a88e', { mat: 'fabric' }),
   ],
 })

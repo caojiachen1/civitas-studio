@@ -1,4 +1,4 @@
-import { box, cyl, defineModel } from '../../kit'
+import { box, cyl, defineModel, sphere } from '../../kit'
 import type { Part } from '../../../editor/types'
 
 // Warm limestone balustrade: continuous plinth, vase balusters between three
@@ -54,6 +54,20 @@ for (const px of POST_X) {
 for (const sx of [-0.56, 0.56]) {
   parts.push(box(0.008, 0.115, 0.245, sx, 1.02, 0, SEAM, { mat: 'stone' }))
   parts.push(box(0.008, 0.085, 0.225, sx, 0.195, 0, SEAM, { mat: 'stone' }))
+}
+
+// Carved rosettes enliven the post panels.
+for (const px of POST_X) {
+  parts.push(cyl(0.052, 0.052, 0.012, px, 0.58, 0.123, STONE_LIGHT, { mat: 'stone', rot: [Math.PI / 2, 0, 0] }, 16))
+  parts.push(sphere(0.017, px, 0.58, 0.133, STONE, { mat: 'stone' }, 10))
+}
+
+// Ground-line grime and lead caps over the rail joints.
+for (const sz of [-1, 1]) {
+  parts.push(box(2.34, 0.024, 0.006, 0, 0.012, sz * 0.162, '#6f6c63', { mat: 'stone' }))
+}
+for (const sx of [-0.56, 0.56]) {
+  parts.push(box(0.03, 0.006, 0.28, sx, 1.121, 0, '#7d7a70', { mat: 'metal' }))
 }
 
 export default defineModel({

@@ -70,5 +70,20 @@ export default defineModel({
     cyl(0.011, 0.011, 0.12, -0.05, 0.762, 0.09, C.sage, { mat: 'gloss', rot: [0, 0, Math.PI / 2] }, 12),
     rbox(0.13, 0.035, 0.055, 0.008, 0.25, 0.77, 0.09, C.ink, { mat: 'matte' }),
     rbox(0.11, 0.012, 0.045, 0.005, 0.25, 0.75, 0.09, C.cream, { mat: 'matte' }),
+
+    // marker caps at the ends of the pens
+    cyl(0.012, 0.012, 0.024, -0.29, 0.762, 0.09, C.navy, { mat: 'gloss', rot: [0, 0, Math.PI / 2] }, 12),
+    cyl(0.012, 0.012, 0.024, -0.14, 0.762, 0.09, C.red, { mat: 'gloss', rot: [0, 0, Math.PI / 2] }, 12),
+    cyl(0.012, 0.012, 0.024, 0.01, 0.762, 0.09, C.sage, { mat: 'gloss', rot: [0, 0, Math.PI / 2] }, 12),
+    // printed sheet held by two magnets
+    rbox(0.2, 0.28, 0.002, 0.002, 0.58, 1.38, 0.0285, C.white, { mat: 'matte' }),
+    ...[0.06, 0.02, -0.02].map((dy) =>
+      box(0.14, 0.004, 0.001, 0.58, 1.38 + dy, 0.0305, '#b7b0a2', { mat: 'matte' }),
+    ),
+    cyl(0.014, 0.014, 0.006, 0.52, 1.5, 0.0315, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
+    cyl(0.014, 0.014, 0.006, 0.64, 1.5, 0.0315, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
+    // brass end caps on the marker tray
+    rbox(0.012, 0.028, 0.092, 0.004, -0.624, 0.746, 0.075, C.brass, { mat: 'metal' }),
+    rbox(0.012, 0.028, 0.092, 0.004, 0.624, 0.746, 0.075, C.brass, { mat: 'metal' }),
   ],
 })

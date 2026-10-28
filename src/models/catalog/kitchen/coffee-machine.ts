@@ -94,5 +94,15 @@ export default defineModel({
     // brand badge and a steam knob
     box(0.07, 0.013, 0.003, 0, 0.105, 0.095, C.brass, { mat: 'metal' }),
     sphere(0.012, 0.197, 0.26, -0.02, STEEL_DARK, { mat: 'metal' }, 12),
+
+    // drip tray float, tank lid clips and a hot water spout beside the group head
+    cyl(0.011, 0.011, 0.012, 0.14, 0.064, 0.194, '#a64f42', { mat: 'gloss' }, 12),
+    box(0.02, 0.016, 0.014, -0.13, 0.379, -0.152, STEEL_DARK, { mat: 'metal' }),
+    box(0.02, 0.016, 0.014, 0.13, 0.379, -0.152, STEEL_DARK, { mat: 'metal' }),
+    cyl(0.009, 0.011, 0.11, -0.068, 0.245, 0.118, STEEL, { mat: 'metal' }, 12),
+    cyl(0.013, 0.01, 0.014, -0.068, 0.185, 0.118, STEEL_DARK, { mat: 'metal' }, 12),
+    // group head retaining screws
+    cyl(0.005, 0.005, 0.006, -0.042, 0.35, 0.1415, STEEL_DARK, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    cyl(0.005, 0.005, 0.006, 0.042, 0.35, 0.1415, STEEL_DARK, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
   ],
 })

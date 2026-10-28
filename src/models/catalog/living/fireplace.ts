@@ -72,5 +72,18 @@ export default defineModel({
     ico(0.007, 0.004, 1.188, 0.028, C.leafLight, { mat: 'foliage' }, 1),
     ico(0.007, 0.026, 1.188, 0.011, '#4C6D45', { mat: 'foliage' }, 1),
     cyl(0.055, 0.038, 0.035, 0.27, 1.0475, 0.03, C.ink, { mat: 'ceramic' }, 20),
+
+    // fireback brick joints and soot shadowing
+    box(0.80, 0.005, 0.004, 0, 0.26, -0.1375, '#3a342e', { mat: 'matte' }),
+    box(0.80, 0.005, 0.004, 0, 0.46, -0.1375, '#3a342e', { mat: 'matte' }),
+    box(0.80, 0.005, 0.004, 0, 0.66, -0.1375, '#3a342e', { mat: 'matte' }),
+    box(0.005, 0.60, 0.004, -0.22, 0.46, -0.1375, '#3a342e', { mat: 'matte' }),
+    box(0.005, 0.60, 0.004, 0.22, 0.46, -0.1375, '#3a342e', { mat: 'matte' }),
+    box(0.84, 0.05, 0.004, 0, 0.81, -0.1375, '#141210', { mat: 'matte' }),
+
+    // brass damper control on the right pillar and hearth edge joint
+    rbox(0.05, 0.09, 0.014, 0.006, 0.58, 0.82, 0.204, C.brass, { mat: 'metal' }),
+    cyl(0.012, 0.012, 0.016, 0.58, 0.82, 0.218, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    box(1.40, 0.005, 0.006, 0, 0.056, 0.207, '#807f77', { mat: 'stone' }),
   ],
 })

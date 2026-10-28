@@ -1,4 +1,4 @@
-import { C, cyl, defineModel, rbox, sphere, torus } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere, torus } from '../../kit'
 
 export default defineModel({
   id: 'pedestal-sink',
@@ -47,5 +47,16 @@ export default defineModel({
     cyl(0.019, 0.019, 0.01, -0.14, 0.005, -0.255, C.steel, { mat: 'metal' }, 14),
     cyl(0.005, 0.005, 0.06, 0.14, 0.16, -0.255, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
     cyl(0.005, 0.005, 0.06, -0.14, 0.16, -0.255, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    // chrome overflow cover recessed into the basin front
+    cyl(0.024, 0.024, 0.006, 0, 0.782, 0.2345, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 20),
+    box(0.026, 0.004, 0.003, 0, 0.782, 0.2385, C.blackMetal, { mat: 'metal' }),
+    // aerator screen inside the spout tip
+    cyl(0.0105, 0.0105, 0.003, 0, 0.8615, -0.105, '#6f7678', { mat: 'metal' }, 14),
+    // pop-up drain rod behind the mixer
+    cyl(0.0045, 0.0045, 0.03, -0.02, 0.888, -0.233, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, -0.02, 0.907, -0.233, C.brass, { mat: 'metal' }, 10),
+    // caulk bead around the pedestal foot and the backsplash top edge
+    torus(0.204, 0.0045, 0, 0.004, 0, '#d3cdc1', { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 32),
+    box(0.404, 0.005, 0.014, 0, 0.8745, -0.269, '#d3cdc1', { mat: 'matte' }),
   ],
 })

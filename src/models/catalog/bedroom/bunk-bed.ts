@@ -69,5 +69,15 @@ export default defineModel({
     cyl(0.018, 0.018, 0.3, -0.12, 1.0, 1.0, C.oak, { mat: 'wood', rot: [0, 0, Math.PI / 2] }, 10),
     cyl(0.018, 0.018, 0.3, -0.12, 1.25, 1.0, C.oak, { mat: 'wood', rot: [0, 0, Math.PI / 2] }, 10),
     cyl(0.018, 0.018, 0.3, -0.12, 1.5, 1.0, C.oak, { mat: 'wood', rot: [0, 0, Math.PI / 2] }, 10),
+
+    // brass post bolts, mattress foot piping and ladder rail caps
+    cyl(0.009, 0.009, 0.018, -0.552, 0.41, -1.0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.009, 0.009, 0.018, 0.552, 0.41, -1.0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.009, 0.009, 0.018, -0.552, 1.35, -1.0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.009, 0.009, 0.018, 0.552, 1.35, -1.0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    box(0.9, 0.008, 0.012, 0, 0.683, 0.924, '#ded4c5', { mat: 'fabric' }),
+    box(0.9, 0.008, 0.012, 0, 1.623, 0.924, '#ded4c5', { mat: 'fabric' }),
+    cyl(0.023, 0.023, 0.01, -0.27, 1.7225, 1.0, C.brass, { mat: 'metal' }, 10),
+    cyl(0.023, 0.023, 0.01, 0.03, 1.7225, 1.0, C.brass, { mat: 'metal' }, 10),
   ],
 })

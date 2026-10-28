@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel } from '../../kit'
+import { C, box, cyl, defineModel, torus } from '../../kit'
 import type { Part } from '../../../editor/types'
 
 const parts: Part[] = [
@@ -23,6 +23,16 @@ parts.push(cyl(0.035, 0.035, 0.65, -1.35, 0.55, 2.35, C.brass, { mat: 'metal' },
 parts.push(box(0.32, 0.18, 0.22, -1.35, 0.9, 2.35, C.blackMetal, { mat: 'metal' }))
 parts.push(box(1.4, 0.05, 0.34, -0.8, 1.4, -2.35, C.oak, { mat: 'wood' }))
 parts.push(box(0.5, 0.35, 0.3, -0.35, 1.6, -2.35, C.terracotta, { mat: 'ceramic' }))
+
+// rafters under the slatted roof, front gutter with a downspout, hose reel and wheel stop
+for (const x of [-1.1, 0, 1.1]) {
+  parts.push(box(0.08, 0.06, 5.7, x, 2.755, 0, C.walnut, { mat: 'wood' }))
+}
+parts.push(box(3.24, 0.09, 0.12, 0, 2.8, 2.74, C.graphite, { mat: 'metal' }))
+parts.push(cyl(0.035, 0.035, 2.62, 1.6, 1.44, 2.78, C.graphite, { mat: 'metal' }, 10))
+parts.push(cyl(0.035, 0.035, 0.2, 1.6, 0.16, 2.68, C.graphite, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10))
+parts.push(torus(0.15, 0.032, -1.36, 1.5, -2.6, '#3f5b52', { mat: 'matte', rot: [0, Math.PI / 2, 0] }, 18))
+parts.push(box(1.6, 0.1, 0.16, 0, 0.14, 2.36, C.concrete, { mat: 'stone' }))
 
 export default defineModel({
   id: 'carport',

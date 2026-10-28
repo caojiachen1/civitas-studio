@@ -44,5 +44,18 @@ export default defineModel({
 
     // Small brass badge
     box(0.055, 0.012, 0.003, 0.2, 0.13, 0.307, C.brass, { mat: 'metal' }),
+
+    // drum seal lip and hinge knuckles
+    torus(0.155, 0.004, 0, 0.445, 0.314, C.graphite, { mat: 'matte' }, 32),
+    cyl(0.012, 0.012, 0.03, 0.255, 0.52, 0.316, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.012, 0.012, 0.03, 0.255, 0.37, 0.316, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    // drain pump filter hatch with a twist cap
+    rbox(0.1, 0.08, 0.008, 0.006, -0.17, 0.12, 0.3055, C.white, { mat: 'gloss' }),
+    cyl(0.022, 0.022, 0.008, -0.17, 0.12, 0.311, C.graphite, { mat: 'gloss', rot: [Math.PI / 2, 0, 0] }, 16),
+    box(0.03, 0.004, 0.003, -0.17, 0.12, 0.3155, C.ink, { mat: 'matte' }),
+    // cycle indicator LEDs under the display
+    ...[0.055, 0.075, 0.095].map((x) =>
+      cyl(0.004, 0.004, 0.004, x, 0.742, 0.319, C.leafLight, { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 8),
+    ),
   ],
 })

@@ -2,6 +2,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js'
 import { OBJExporter } from 'three/addons/exporters/OBJExporter.js'
 import { STLExporter } from 'three/addons/exporters/STLExporter.js'
 import { createBlankDocument, useEditor } from '../editor/store'
+import { BUILDING_TEMPLATES } from '../editor/buildings'
 import { createSampleDocument, SAMPLE_VIEW } from '../editor/sample'
 import { getEditorScene } from '../editor/engineRef'
 import { isTauriHost } from '../editor/platform'
@@ -12,7 +13,7 @@ import { executePlan, planHasDestructive, planShouldFocus } from '../ai/executor
 import { parsePlanContent } from '../ai/planParse'
 import type { AiAction, AiActionPlan, AiExecutionResult, AiRoomType } from '../ai/types'
 import { ROOM_TYPE_LABELS } from '../ai/types'
-import type { Entity } from '../editor/types'
+import type { BuildingTemplateId, Entity } from '../editor/types'
 
 export interface McpToolSpec {
   name: string
@@ -117,6 +118,15 @@ function entitySummary(entity: Entity) {
     base.points = entity.points
     base.width = entity.width
     base.closed = entity.closed
+  } else if (entity.kind === 'building') {
+    base.name = entity.name
+    base.templateId = entity.templateId
+    base.x = entity.x
+    base.z = entity.z
+    base.rot = entity.rot
+    base.floors = entity.floors
+    base.width = entity.width
+    base.depth = entity.depth
   } else if (entity.kind === 'opening') {
     base.type = entity.type
     base.wallId = entity.wallId
@@ -478,6 +488,59 @@ export const MCP_TOOLS: McpToolSpec[] = [
     },
   },
   {
+    name: 'list_building_templates',
+    title: '建筑模板列表',
+    description: 'List the built-in whole-building templates (villa, townhouse, office, tower) with size and floor count.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'place_building',
+    title: '放置整栋建筑',
+    description: 'Place a whole building as one entity. It can be moved/rotated as a unit and entered for shell/interior editing.',
+    inputSchema: {
+      type: 'object',
+      required: ['templateId'],
+      properties: {
+        templateId: { type: 'string', enum: ['villa', 'townhouse', 'office', 'tower'] },
+        x: { type: 'number' },
+        z: { type: 'number' },
+        rot: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'enter_building',
+    title: '进入建筑内部',
+    description: 'Enter a building instance and switch the editor to its own floors (shell/interior editing).',
+    inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
+  },
+  {
+    name: 'exit_building',
+    title: '退出建筑内部',
+    description: 'Save the current building interior and return to the city scene.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'set_building_mode',
+    title: '切换建筑编辑模式',
+    description: 'Inside a building, switch between shell (walls/windows/doors/stairs) and interior (furniture) views.',
+    inputSchema: {
+      type: 'object',
+      required: ['mode'],
+      properties: { mode: { type: 'string', enum: ['shell', 'interior'] } },
+    },
+  },
+  {
+    name: 'set_visual_style',
+    title: '设置画面风格',
+    description: 'Switch the scene visual style: mono, daylight, sunset or blueprint.',
+    inputSchema: {
+      type: 'object',
+      required: ['style'],
+      properties: { style: { type: 'string', enum: ['mono', 'daylight', 'sunset', 'blueprint'] } },
+    },
+  },
+  {
     name: 'apply_actions',
     title: '执行动作计划',
     description:
@@ -773,6 +836,61 @@ export async function runMcpTool(name: string, args: Args): Promise<unknown> {
         return runSingle({ type: 'redo' }, 'MCP redo')
       case 'focus_all':
         return runSingle({ type: 'focus_all' }, 'MCP focus_all')
+      case 'list_building_templates':
+        return toolResult({
+          templates: BUILDING_TEMPLATES.map((template) => ({
+            id: template.id,
+            name: template.name,
+            subtitle: template.subtitle,
+            width: template.width,
+            depth: template.depth,
+            floors: template.floors,
+            floorHeight: template.floorHeight,
+          })),
+        })
+      case 'place_building': {
+        const templateId = str(args.templateId)
+        if (!BUILDING_TEMPLATES.some((template) => template.id === templateId)) {
+          return errorResult('未知建筑模板。')
+        }
+        const x = num(args.x, 0, -400, 400)
+        const z = num(args.z, 0, -400, 400)
+        const rot = num(args.rot, 0, -Math.PI * 2, Math.PI * 2)
+        const id = useEditor.getState().placeBuilding(templateId as BuildingTemplateId, x, z, rot)
+        if (!id) return errorResult('当前楼层无法放置建筑。')
+        window.requestAnimationFrame(() => getEditorScene()?.focusEntityIds([id]))
+        return toolResult({ id, templateId, scene: sceneSummary() }, `已放置建筑 ${templateId}`)
+      }
+      case 'enter_building': {
+        const id = str(args.id)
+        if (!id) return errorResult('必须提供建筑 id。')
+        useEditor.getState().enterBuilding(id)
+        const session = useEditor.getState().buildingSession
+        if (!session || session.buildingId !== id) {
+          return errorResult(useEditor.getState().buildingSession ? '请先退出当前建筑。' : '未找到该建筑。')
+        }
+        return toolResult({ session: { buildingId: session.buildingId, name: session.name, floors: session.floors, mode: session.mode, levels: useEditor.getState().doc.levels }, scene: sceneSummary() }, `已进入「${session.name}」`)
+      }
+      case 'exit_building': {
+        if (!useEditor.getState().buildingSession) return errorResult('当前不在建筑内部。')
+        useEditor.getState().exitBuilding()
+        return toolResult({ scene: sceneSummary() }, '已退出建筑')
+      }
+      case 'set_building_mode': {
+        if (!useEditor.getState().buildingSession) return errorResult('当前不在建筑内部。')
+        const mode = str(args.mode, 'interior')
+        if (!['shell', 'interior'].includes(mode)) return errorResult('mode 必须是 shell 或 interior。')
+        useEditor.getState().setBuildingMode(mode as 'shell' | 'interior')
+        return toolResult({ mode })
+      }
+      case 'set_visual_style': {
+        const style = str(args.style, 'mono')
+        if (!['mono', 'daylight', 'sunset', 'blueprint'].includes(style)) {
+          return errorResult('style 必须是 mono/daylight/sunset/blueprint。')
+        }
+        useEditor.getState().patchSettings({ visualStyle: style as 'mono' | 'daylight' | 'sunset' | 'blueprint' })
+        return toolResult({ style })
+      }
       case 'set_quality': {
         const quality = str(args.quality, 'auto')
         if (!['auto', 'high', 'balanced', 'low'].includes(quality)) {

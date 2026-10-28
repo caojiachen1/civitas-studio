@@ -49,6 +49,45 @@ const plates = [-1, 1].flatMap((side) =>
   ),
 )
 
+// Short ends get the same clipped leaf texture as the long faces.
+const END_PLATES: [number, number, number][] = [
+  [-0.742, 0.44, 0.14],
+  [-0.742, 0.72, -0.1],
+  [0.742, 0.5, -0.16],
+  [0.742, 0.78, 0.12],
+]
+const endPlates = END_PLATES.map(([x, y, z], i) =>
+  box(0.03, 0.12, 0.1, x, y, z, i % 2 === 0 ? PALE : LIGHT, {
+    mat: 'foliage',
+    rot: [0.06 * Math.sign(x), i * 0.5, 0.1 * Math.sign(x)],
+  }),
+)
+
+// Deeper clumps fill the shaded corners and the base shadow line.
+const CORNER_CLUMPS: [number, number, number, string][] = [
+  [-0.6, 0.19, 0.28, DEEP],
+  [0.6, 0.21, -0.28, DEEP],
+  [-0.18, 0.25, 0.3, MID],
+  [0.2, 0.24, -0.3, MID],
+]
+const cornerClumps = CORNER_CLUMPS.map(([x, y, z, color], i) =>
+  ico(0.125 + (i % 2) * 0.012, x, y, z, color, { mat: 'foliage', rot: [0.2, i * 0.9, -0.15] }, 0),
+)
+
+// Clippings dropped on the ground during the last trim.
+const FALLEN_CLIPPINGS: [number, number, number][] = [
+  [-0.52, 0.37, 0.4],
+  [-0.2, -0.37, 1.1],
+  [0.26, 0.38, 0.8],
+  [0.56, -0.37, 1.8],
+]
+const fallenClippings = FALLEN_CLIPPINGS.map(([x, z, a], i) =>
+  box(0.1, 0.008, 0.05, x, 0.008, z, i % 2 === 0 ? LIGHT : MID, {
+    mat: 'foliage',
+    rot: [0, a, 0.04],
+  }),
+)
+
 // Bare stems show where the foliage has thinned at the base.
 const twigs = [
   [0.62, 0.2, 0.9],
@@ -77,6 +116,8 @@ export default defineModel({
     ...crown,
     ...ends,
     ...plates,
+    ...endPlates,
+    ...cornerClumps,
     // flat clipped crown with a few loose shoots
     rbox(1.44, 0.045, 0.6, 0.03, 0, 1.045, 0, DEEP, { mat: 'foliage' }),
     ...[0, 1, 2, 3, 4, 5].map((i) =>
@@ -86,5 +127,6 @@ export default defineModel({
       }),
     ),
     ...twigs,
+    ...fallenClippings,
   ],
 })

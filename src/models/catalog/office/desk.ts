@@ -69,5 +69,16 @@ export default defineModel({
     cyl(0.04, 0.038, 0.085, 0.3, 0.8025, 0.16, C.cream, { mat: 'ceramic' }, 20),
     cyl(0.034, 0.034, 0.004, 0.3, 0.84, 0.16, '#4a3426', { mat: 'gloss' }, 20),
     torus(0.027, 0.007, 0.337, 0.804, 0.16, C.cream, { mat: 'ceramic', rot: [0, Math.PI / 2, 0] }, 18),
+
+    // brass keyhole lock on the top drawer and a maker's plate behind the kneehole
+    cyl(0.012, 0.012, 0.005, 0.45, 0.7, 0.2995, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
+    box(0.004, 0.012, 0.004, 0.45, 0.696, 0.3035, C.ink),
+    rbox(0.1, 0.018, 0.004, 0.002, -0.04, 0.55, -0.3075, C.brass, { mat: 'metal' }),
+    // brass pen cup with pencils on the desk mat
+    cyl(0.036, 0.032, 0.09, -0.24, 0.81, 0.03, C.brass, { mat: 'metal' }, 20),
+    cyl(0.03, 0.03, 0.004, -0.24, 0.768, 0.03, C.ink, { mat: 'matte' }, 16),
+    cyl(0.005, 0.005, 0.15, -0.25, 0.9, 0.025, C.ink, { mat: 'gloss' }, 8),
+    cyl(0.005, 0.005, 0.14, -0.23, 0.895, 0.04, C.brass, { mat: 'metal' }, 8),
+    cyl(0.005, 0.005, 0.145, -0.245, 0.898, 0.018, C.red, { mat: 'gloss' }, 8),
   ],
 })

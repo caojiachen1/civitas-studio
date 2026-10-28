@@ -66,5 +66,22 @@ export default defineModel({
     ico(0.055, 0.16, 0.365, 0.1, C.leaf, { mat: 'foliage' }, 0),
     ico(0.045, 0.36, 0.36, -0.12, C.leafDeep, { mat: 'foliage' }, 0),
     ico(0.04, -0.05, 0.355, -0.14, C.leafLight, { mat: 'foliage' }, 0),
+    // black steel corner brackets tying the slats to the posts
+    box(0.075, 0.055, 0.008, -0.54, 0.15, 0.252, C.blackMetal, { mat: 'metal' }),
+    box(0.075, 0.055, 0.008, 0.54, 0.15, 0.252, C.blackMetal, { mat: 'metal' }),
+    box(0.075, 0.055, 0.008, -0.54, 0.04, 0.252, C.blackMetal, { mat: 'metal' }),
+    box(0.075, 0.055, 0.008, 0.54, 0.04, 0.252, C.blackMetal, { mat: 'metal' }),
+    // a few more blooms tucked between the existing plantings
+    cyl(0.006, 0.007, 0.12, 0.3, 0.42, 0.18, C.leafDeep, { mat: 'foliage' }, 6),
+    ico(0.03, 0.3, 0.49, 0.18, C.white, { mat: 'foliage' }, 0),
+    cyl(0.006, 0.007, 0.1, -0.05, 0.41, 0.16, C.leafDeep, { mat: 'foliage' }, 6),
+    ico(0.028, -0.05, 0.47, 0.16, '#d9a0b4', { mat: 'foliage' }, 0),
+    cyl(0.006, 0.007, 0.1, 0.38, 0.41, -0.18, C.leafDeep, { mat: 'foliage' }, 6),
+    ico(0.028, 0.38, 0.47, -0.18, '#e0b46b', { mat: 'foliage' }, 0),
+    // wooden plant labels pushed into the soil
+    cyl(0.003, 0.003, 0.13, -0.35, 0.42, 0.03, C.birch, { mat: 'wood' }, 4),
+    box(0.04, 0.05, 0.005, -0.35, 0.5, 0.03, C.cream, { mat: 'wood' }),
+    cyl(0.003, 0.003, 0.11, 0.14, 0.41, -0.14, C.birch, { mat: 'wood' }, 4),
+    box(0.04, 0.05, 0.005, 0.14, 0.48, -0.14, C.cream, { mat: 'wood' }),
   ],
 })

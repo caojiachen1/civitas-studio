@@ -82,5 +82,18 @@ export default defineModel({
 
     // roof antenna fin
     rbox(0.06, 0.08, 0.18, 0.02, 0, 1.405, -0.95, dark),
+    // wiper arms resting at the base of the windscreen
+    box(0.48, 0.012, 0.014, -0.36, 0.95, 1.052, dark, { mat: 'matte', rot: [-0.45, 0, 0.2] }),
+    box(0.48, 0.012, 0.014, 0.36, 0.95, 1.052, dark, { mat: 'matte', rot: [-0.45, 0, -0.2] }),
+    // shut lines for the front and rear doors
+    box(0.006, 0.5, 0.014, -0.879, 0.63, 0.05, dark),
+    box(0.006, 0.5, 0.014, 0.879, 0.63, 0.05, dark),
+    box(0.006, 0.5, 0.014, -0.879, 0.63, -0.88, dark),
+    box(0.006, 0.5, 0.014, 0.879, 0.63, -0.88, dark),
+    // fuel filler flap behind the rear door
+    cyl(0.058, 0.058, 0.014, 0.879, 0.7, -1.38, paintDeep, { mat: 'gloss', rot: [0, 0, Math.PI / 2] }, 14),
+    // round fog lamps in the front bumper
+    cyl(0.048, 0.048, 0.04, -0.6, 0.5, 2.152, '#f3e2bb', { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 14),
+    cyl(0.048, 0.048, 0.04, 0.6, 0.5, 2.152, '#f3e2bb', { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 14),
   ],
 })

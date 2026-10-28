@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, torus } from '../../kit'
+import { C, box, cyl, defineModel, sphere, torus } from '../../kit'
 import type { Part } from '../../../editor/types'
 
 // Low-saturation clay brick chimney with concrete footing, corbelled cap,
@@ -39,6 +39,13 @@ for (const cy of [0.54, 1.1, 1.66]) {
     parts.push(box(0.008, 0.12, 0.006, ox, cy, sz * 0.283, MORTAR, { mat: 'stone' }))
   }
 }
+// Matching joints on the side faces.
+for (const cy of [0.54, 1.1]) {
+  const oz = cy === 0.54 ? 0.1 : -0.12
+  for (const sx of [-1, 1]) {
+    parts.push(box(0.006, 0.12, 0.008, sx * 0.283, cy, oz, MORTAR, { mat: 'stone' }))
+  }
+}
 
 // Corbelled shoulders, cap slab and crown.
 parts.push(box(0.64, 0.06, 0.64, 0, 2.25, 0, BRICK_DARK, { mat: 'stone' }))
@@ -50,6 +57,19 @@ parts.push(box(0.62, 0.05, 0.62, 0, 2.455, 0, CAP, { mat: 'stone' }))
 parts.push(cyl(0.115, 0.135, 0.12, 0, 2.54, 0, C.terracotta, { mat: 'ceramic' }, 18))
 parts.push(torus(0.11, 0.008, 0, 2.592, 0, C.terracotta, { mat: 'ceramic', rot: [Math.PI / 2, 0, 0] }, 20))
 parts.push(cyl(0.09, 0.09, 0.01, 0, 2.594, 0, '#3b3733', { mat: 'matte' }, 16))
+
+// 防鸟罩: four galvanised legs, a rain cap and a rivet at the centre.
+for (let i = 0; i < 4; i++) {
+  const a = (i * Math.PI) / 2 + Math.PI / 4
+  parts.push(cyl(0.005, 0.005, 0.1, Math.cos(a) * 0.075, 2.65, Math.sin(a) * 0.075, METAL, { mat: 'metal' }, 6))
+}
+parts.push(cyl(0.095, 0.095, 0.012, 0, 2.703, 0, METAL, { mat: 'metal' }, 16))
+parts.push(sphere(0.01, 0, 2.713, 0, '#9aa1a4', { mat: 'metal' }, 8))
+
+// Soldier bricks over the clean-out opening.
+for (let i = 0; i < 5; i++) {
+  parts.push(box(0.042, 0.09, 0.014, -0.1 + i * 0.05, 1.075, 0.281, i % 2 === 0 ? BRICK_DARK : BRICK, { mat: 'stone' }))
+}
 
 // Galvanised strap bands with rivets.
 for (const sy of [0.72, 1.32, 1.92]) {
@@ -85,7 +105,7 @@ export default defineModel({
   category: 'structure',
   tags: ['chimney', 'flue', 'brick', '烟囱', '烟道', '砖砌', '检修门'],
   footprint: [0.8, 0.8],
-  height: 2.6,
+  height: 2.72,
   placement: 'any',
   parts,
 })

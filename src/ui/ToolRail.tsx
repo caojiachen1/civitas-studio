@@ -25,6 +25,7 @@ const ITEMS: {
 }[] = [
   { id: 'select', label: '选择', icon: MousePointer2 },
   { id: 'plan', label: '平面', icon: Grid2X2, group: 1 },
+  { id: 'building', label: '建筑', icon: Building2 },
   { id: 'wall', label: '墙体', icon: BrickWall },
   { id: 'openings', label: '门窗', icon: DoorOpen },
   { id: 'slab', label: '楼板', icon: Layers },

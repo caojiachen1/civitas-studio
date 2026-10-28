@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, ico, prism, rbox } from '../../kit'
+import { C, box, cyl, defineModel, ico, prism, rbox, torus } from '../../kit'
 
 const FRAME = '#b6bdb4'
 const FRAME_DARK = '#8f988f'
@@ -10,7 +10,7 @@ export default defineModel({
   name: '玻璃温室',
   category: 'outdoor',
   tags: ['greenhouse', 'glasshouse', 'garden', '玻璃温室', '温室', '花房'],
-  footprint: [3.0, 2.4],
+  footprint: [3.07, 2.42],
   height: 2.6,
   placement: 'outdoor',
   parts: [
@@ -99,5 +99,18 @@ export default defineModel({
     cyl(0.075, 0.06, 0.14, -1.05, 0.995, -0.9, C.terracotta, { mat: 'ceramic' }, 12),
     ico(0.1, -1.05, 1.11, -0.9, C.leaf, { mat: 'foliage' }, 1),
     box(0.3, 0.2, 0.22, -0.3, 1.025, -0.8, C.sand, { mat: 'matte' }),
+    // eaves gutters and a downpipe on the right corner
+    box(0.09, 0.09, 2.34, -1.49, 1.7, 0, FRAME_DARK, { mat: 'metal' }),
+    box(0.09, 0.09, 2.34, 1.49, 1.7, 0, FRAME_DARK, { mat: 'metal' }),
+    cyl(0.032, 0.032, 1.5, 1.485, 0.92, -1.06, FRAME_DARK, { mat: 'metal' }, 10),
+    cyl(0.032, 0.032, 0.16, 1.485, 0.2, -1.14, FRAME_DARK, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    // galvanised watering can on the potting bench
+    cyl(0.075, 0.068, 0.13, -0.72, 0.99, -0.95, C.steel, { mat: 'metal' }, 14),
+    cyl(0.011, 0.016, 0.2, -0.63, 1.03, -0.95, C.steel, { mat: 'metal', rot: [0, 0, -1.0] }, 8),
+    torus(0.055, 0.009, -0.79, 1.055, -0.95, C.steel, { mat: 'metal', rot: [0, 0, 0] }, 14),
+    // wall thermometer clipped to the centre stud
+    box(0.012, 0.16, 0.06, 1.478, 1.32, 0, C.cream, { mat: 'matte' }),
+    box(0.005, 0.1, 0.008, 1.485, 1.31, 0, C.red, { mat: 'matte' }),
+    cyl(0.018, 0.018, 0.012, 1.484, 1.4, 0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
   ],
 })

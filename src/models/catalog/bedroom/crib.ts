@@ -83,5 +83,14 @@ export default defineModel({
     ico(0.024, -0.03, 0.865, -0.28, C.cream, { mat: 'fabric' }, 1),
     sphere(0.019, 0.03, 0.865, -0.2, '#7f947a', { mat: 'fabric' }, 14),
     ico(0.021, -0.02, 0.865, -0.12, C.clay, { mat: 'fabric' }, 1),
+
+    // teething rail, post bolt caps and blanket fold seams
+    rbox(1.24, 0.028, 0.06, 0.014, 0, 0.868, 0.36, '#c9a882', { mat: 'wood' }),
+    sphere(0.008, -0.645, 0.9, 0.391, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, 0.645, 0.9, 0.391, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, -0.645, 0.9, -0.391, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, 0.645, 0.9, -0.391, C.brass, { mat: 'metal' }, 8),
+    box(0.56, 0.006, 0.012, 0, 0.653, 0.18, '#a9b8a1', { mat: 'fabric' }),
+    box(0.56, 0.006, 0.012, 0, 0.653, 0.02, '#a9b8a1', { mat: 'fabric' }),
   ],
 })

@@ -63,5 +63,17 @@ export default defineModel({
       box(0.46, 0.012, 0.022, x, 0.628, -0.07, SEAT_DARK, { mat: 'wood' }),
       box(0.46, 0.012, 0.022, x, 0.628, 0.07, SEAT_DARK, { mat: 'wood' }),
     ]),
+    // chain collars where the links pass through the hanger plates
+    ...swings.flatMap((x) => [
+      torus(0.016, 0.005, x - 0.066, 1.5, 0, CHAIN, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+      torus(0.016, 0.005, x + 0.066, 1.5, 0, CHAIN, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    ]),
+    // bolt heads fixing the seat boards to the steel hangers
+    ...swings.flatMap((x) => [
+      cyl(0.009, 0.009, 0.012, x - 0.16, 0.6, 0.105, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+      cyl(0.009, 0.009, 0.012, x + 0.16, 0.6, 0.105, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    ]),
+    // galvanised anchor plates bolted over the ground sleeves
+    ...legs.map(([x, z]) => box(0.13, 0.02, 0.13, x, 0.07, z * 0.97, C.steel, { mat: 'metal' })),
   ],
 })

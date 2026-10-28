@@ -61,5 +61,15 @@ export default defineModel({
     ...[0.19, -0.19].flatMap((x) =>
       [0.19, -0.19].map((z) => cyl(0.012, 0.012, 0.004, x, 0.038, z, castIron, { mat: 'metal' }, 12)),
     ),
+
+    // tar joint sealing the frame into the asphalt
+    torus(0.345, 0.012, 0, 0.006, 0, '#4b4c47', { mat: 'stone', rot: [Math.PI / 2, 0, 0] }, 40),
+
+    // machined seating chamfer on the cover face
+    torus(0.29, 0.004, 0, 0.036, 0, castIronLight, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 32),
+
+    // hinge pin caps flush with the rim
+    cyl(0.011, 0.011, 0.006, 0.08, 0.038, -0.315, castIronLight, { mat: 'metal' }, 10),
+    cyl(0.011, 0.011, 0.006, -0.08, 0.038, -0.315, castIronLight, { mat: 'metal' }, 10),
   ],
 })

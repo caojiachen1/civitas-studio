@@ -60,5 +60,15 @@ export default defineModel({
     cyl(0.013, 0.013, 0.014, 0.338, 0.32, 0.6, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
     cyl(0.013, 0.013, 0.014, -0.338, 0.32, -0.05, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
     cyl(0.013, 0.013, 0.014, 0.338, 0.32, -0.05, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    // folded bath towel laid along the mattress, with two woven stripes
+    rbox(0.42, 0.022, 0.5, 0.02, 0.01, 0.446, 0.62, C.white, { mat: 'fabric' }),
+    box(0.42, 0.003, 0.045, 0.01, 0.458, 0.55, C.water, { mat: 'fabric' }),
+    box(0.42, 0.003, 0.045, 0.01, 0.458, 0.7, C.water, { mat: 'fabric' }),
+    // paperback with its cover on the side tray
+    box(0.085, 0.018, 0.12, 0.3075, 0.484, 0.4, C.cream, { mat: 'matte' }),
+    box(0.088, 0.005, 0.125, 0.3075, 0.495, 0.4, C.navy, { mat: 'matte' }),
+    // steel backrest hinge plates
+    box(0.016, 0.12, 0.07, -0.344, 0.33, -0.19, C.steel, { mat: 'metal' }),
+    box(0.016, 0.12, 0.07, 0.344, 0.33, -0.19, C.steel, { mat: 'metal' }),
   ],
 })

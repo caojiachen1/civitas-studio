@@ -57,5 +57,14 @@ export default defineModel({
     // linen lumbar pillow with a brass button
     rbox(0.52, 0.30, 0.16, 0.075, 0.42, 0.60, -0.02, C.cream, { mat: 'fabric', rot: [-0.18, 0.05, 0.06] }),
     sphere(0.012, 0.42, 0.60, 0.062, C.brass, { mat: 'metal' }, 10),
+
+    // seat cushion side piping, back channel seams and top rail welt
+    box(0.012, 0.012, 0.66, -0.8965, 0.505, 0.05, SEAM, { mat: 'fabric' }),
+    box(0.012, 0.012, 0.66, 0.8965, 0.505, 0.05, SEAM, { mat: 'fabric' }),
+    box(0.012, 0.012, 0.66, -0.3115, 0.505, 0.05, SEAM, { mat: 'fabric' }),
+    box(0.012, 0.012, 0.66, 0.3115, 0.505, 0.05, SEAM, { mat: 'fabric' }),
+    box(0.006, 0.34, 0.006, -0.86, 0.659, -0.148, SEAM, { mat: 'fabric', rot: [-0.1, 0, 0] }),
+    box(0.006, 0.34, 0.006, 0.86, 0.659, -0.148, SEAM, { mat: 'fabric', rot: [-0.1, 0, 0] }),
+    box(2.18, 0.008, 0.008, 0, 0.803, -0.26, SEAM, { mat: 'fabric' }),
   ],
 })

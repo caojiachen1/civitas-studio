@@ -169,7 +169,40 @@ export interface PathEntity {
   closed?: boolean
 }
 
-export type Entity = WallEntity | OpeningEntity | ObjectEntity | SlabEntity | RoofEntity | PathEntity
+export type BuildingTemplateId = 'villa' | 'townhouse' | 'office' | 'tower'
+export type BuildingMode = 'shell' | 'interior'
+
+export interface BuildingInterior {
+  levels: Level[]
+  entities: Record<string, Entity>
+  entityOrder: string[]
+  shellWallIds: string[]
+}
+
+export interface BuildingEntity {
+  id: string
+  kind: 'building'
+  levelId: string
+  x: number
+  z: number
+  rot: number
+  templateId: BuildingTemplateId
+  name: string
+  width: number
+  depth: number
+  floors: number
+  floorHeight: number
+  interior: BuildingInterior
+}
+
+export type Entity =
+  | WallEntity
+  | OpeningEntity
+  | ObjectEntity
+  | SlabEntity
+  | RoofEntity
+  | PathEntity
+  | BuildingEntity
 
 export interface CustomAsset {
   id: string
@@ -196,6 +229,22 @@ export interface ViewState {
   polar: number
 }
 
+export interface BuildingSession {
+  buildingId: string
+  name: string
+  templateId: BuildingTemplateId
+  cityDoc: EditorDocument
+  cityLevelId: string
+  baseElevation: number
+  center: Vec2
+  width: number
+  depth: number
+  floors: number
+  floorHeight: number
+  shellWallIds: string[]
+  mode: BuildingMode
+}
+
 export interface ProjectFile {
   app: 'civitas-studio'
   version: 1
@@ -215,6 +264,7 @@ export interface PathOptions {
 }
 
 export type RenderQuality = 'auto' | 'high' | 'balanced' | 'low'
+export type VisualStyle = 'mono' | 'daylight' | 'sunset' | 'blueprint'
 
 export interface EditorSettings {
   gridSnap: boolean
@@ -225,6 +275,7 @@ export interface EditorSettings {
   planMode: boolean
   shadows: boolean
   quality: RenderQuality
+  visualStyle: VisualStyle
 }
 
 export interface WallDefaults {

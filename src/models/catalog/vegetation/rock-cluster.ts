@@ -1,4 +1,4 @@
-import { cone, defineModel, ico, rbox } from '../../kit'
+import { cone, defineModel, ico, rbox, sphere } from '../../kit'
 
 const ROCK_MID = '#918d82'
 const ROCK_LIGHT = '#a29e92'
@@ -55,6 +55,51 @@ const grass = [
   cone(0.05, 0.24, 0.5, 0.12, -0.7, '#7d915c', { mat: 'foliage', rot: [-0.1, 1.2, 0.05] }, 6),
 ]
 
+// Dark mineral seams and weather pits pit the boulder faces.
+const SEAMS: [number, number, number, number][] = [
+  [-0.28, 0.37, 0.56, 0.062],
+  [0.06, 0.34, 0.42, 0.05],
+  [-0.3, 0.78, 0.3, 0.045],
+  [-0.82, 0.34, 0.1, 0.055],
+  [0.56, 0.22, 0.5, 0.042],
+  [-0.6, 0.08, 0.42, 0.05],
+]
+const seams = SEAMS.map(([x, y, z, r], i) =>
+  ico(r, x, y, z, i % 2 === 0 ? '#6b675d' : '#5f5b52', { mat: 'stone', rot: [0.3, i, 0.2] }, 0),
+)
+
+// Sedum rosettes have rooted in the seams between stones.
+const sedum = [
+  [-0.4, 0.04, 0.55],
+  [0.42, 0.5, 0.36],
+  [-0.02, 0.04, -0.62],
+].flatMap(([x, y, z], ri) =>
+  [0, 1, 2].map((k) => {
+    const a = (k * Math.PI * 2) / 3 + ri * 0.8
+    return cone(0.035, 0.09, x + Math.cos(a) * 0.035, y + 0.045, z + Math.sin(a) * 0.035, k === 1 ? '#7f8d5f' : MOSS_LIGHT, {
+      mat: 'foliage',
+      rot: [0.5, a, 0.3],
+    }, 5)
+  }),
+)
+
+// Extra grit and moss pockets at the shadow line.
+const grit = [
+  [0.34, 0.8, 0.06],
+  [-0.44, 0.78, 0.05],
+  [1.0, -0.02, 0.045],
+  [-0.05, -0.76, 0.04],
+  [0.12, 0.72, 0.035],
+  [-0.72, -0.45, 0.04],
+  [0.72, 0.46, 0.045],
+].map(([x, z, r], i) =>
+  ico(r, x, r * 0.6, z, i % 2 === 0 ? GRAVEL : GRAVEL_LIGHT, { mat: 'stone', rot: [0.2, i, 0.1] }, 0),
+)
+const mossPockets = [
+  sphere(0.05, 0.14, 0.06, 0.46, MOSS, { mat: 'foliage' }, 8),
+  sphere(0.04, -0.6, 0.035, 0.3, MOSS_LIGHT, { mat: 'foliage' }, 8),
+]
+
 export default defineModel({
   id: 'rock-cluster',
   name: '景观石组',
@@ -68,10 +113,14 @@ export default defineModel({
     rbox(2.2, 0.06, 1.5, 0.08, 0, 0.03, 0, GRAVEL, { mat: 'stone' }),
     rbox(1.7, 0.045, 1.1, 0.06, 0.05, 0.065, -0.03, GRAVEL_LIGHT, { mat: 'stone' }),
     ...mainRocks,
+    ...seams,
     ...satellites,
     ...moss,
     ...lichen,
+    ...mossPockets,
+    ...sedum,
     ...pebbles,
+    ...grit,
     ...grass,
   ],
 })

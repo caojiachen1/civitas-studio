@@ -39,5 +39,12 @@ export default defineModel({
       [-1, 1].map((sz) => sphere(0.011, sx * 0.16, 0.095, sz * 0.16, C.brass, { mat: 'metal' }, 8)),
     ),
     box(0.32, 0.012, 0.32, 0, 3.175, 0, C.cream, { mat: 'stone' }),
+    // rounded corner beads and two crisp capital bands
+    ...[-1, 1].flatMap((sx) =>
+      [-1, 1].map((sz) => box(0.016, 2.78, 0.016, sx * 0.145, 1.6, sz * 0.145, '#e6e2d7', { mat: 'stone' })),
+    ),
+    box(0.38, 0.022, 0.38, 0, 3.045, 0, C.cream, { mat: 'stone' }),
+    box(0.4, 0.018, 0.4, 0, 3.128, 0, C.cream, { mat: 'stone' }),
+    box(0.32, 0.028, 0.32, 0, 0.186, 0, C.cream, { mat: 'stone' }),
   ],
 })

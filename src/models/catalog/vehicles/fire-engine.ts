@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox } from '../../kit'
+import { C, box, cyl, defineModel, rbox, torus } from '../../kit'
 
 const paint = C.red
 const paintDeep = '#94463c'
@@ -19,7 +19,7 @@ export default defineModel({
   name: '消防车',
   category: 'vehicles',
   tags: ['fire', 'engine', 'emergency', 'rescue', '消防车', '救火', '云梯', '救援'],
-  footprint: [2.4, 7.6],
+  footprint: [2.44, 7.67],
   height: 3.2,
   placement: 'on-road',
   parts: [
@@ -100,5 +100,24 @@ export default defineModel({
     rbox(0.16, 0.46, 0.05, 0.02, 0.95, 0.95, -3.73, C.red, { mat: 'emissive' }),
     rbox(2.34, 0.26, 0.2, 0.06, 0, 0.58, -3.68, bumper, { mat: 'metal' }),
     box(0.46, 0.13, 0.02, 0, 0.62, -3.79, C.white),
+
+    // wiper arms at the base of the screen
+    box(0.62, 0.014, 0.016, -0.42, 1.8, 3.66, dark, { mat: 'matte', rot: [-0.18, 0, 0.16] }),
+    box(0.62, 0.014, 0.016, 0.42, 1.8, 3.66, dark, { mat: 'matte', rot: [-0.18, 0, -0.16] }),
+    // pump panel gauges on the left flank
+    cyl(0.055, 0.055, 0.03, -1.19, 1.95, -0.55, chrome, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 16),
+    cyl(0.043, 0.043, 0.032, -1.212, 1.95, -0.55, C.cream, { mat: 'matte', rot: [0, 0, Math.PI / 2] }, 16),
+    box(0.004, 0.03, 0.006, -1.231, 1.96, -0.55, C.red, { mat: 'matte' }),
+    cyl(0.055, 0.055, 0.03, -1.19, 1.95, -0.78, chrome, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 16),
+    cyl(0.043, 0.043, 0.032, -1.212, 1.95, -0.78, C.cream, { mat: 'matte', rot: [0, 0, Math.PI / 2] }, 16),
+    box(0.004, 0.03, 0.006, -1.231, 1.96, -0.78, C.red, { mat: 'matte' }),
+    // red pump valve handwheels
+    torus(0.07, 0.012, -1.205, 1.72, -1.0, C.red, { mat: 'metal', rot: [0, Math.PI / 2, 0] }, 14),
+    cyl(0.014, 0.014, 0.06, -1.195, 1.72, -1.0, chrome, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    torus(0.07, 0.012, -1.205, 1.72, -1.25, C.red, { mat: 'metal', rot: [0, Math.PI / 2, 0] }, 14),
+    cyl(0.014, 0.014, 0.06, -1.195, 1.72, -1.25, chrome, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    // front suction inlet on the bumper
+    cyl(0.09, 0.09, 0.12, 0.55, 0.62, 3.79, chrome, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
+    cyl(0.07, 0.07, 0.014, 0.55, 0.62, 3.855, dark, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
   ],
 })

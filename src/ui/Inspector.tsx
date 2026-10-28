@@ -3,6 +3,7 @@ import {
   Armchair,
   Box,
   BrickWall,
+  Building2,
   Copy,
   DoorOpen,
   Focus,
@@ -18,12 +19,14 @@ import {
 import { useEditor } from '../editor/store'
 import { useRuntime } from '../editor/runtime'
 import { getEditorScene } from '../editor/engineRef'
+import { BUILDING_TEMPLATES } from '../editor/buildings'
 import { getModel } from '../models/registry'
 import {
   DOOR_STYLES,
   SLAB_STYLES,
   WALL_COLORS,
   WINDOW_STYLES,
+  type BuildingEntity,
   type Entity,
   type OpeningEntity,
   type PathEntity,
@@ -58,6 +61,7 @@ function entityIcon(entity: Entity) {
   if (entity.kind === 'path') return entity.pathType === 'river' ? Waves : Route
   if (entity.kind === 'slab') return Layers
   if (entity.kind === 'roof') return Home
+  if (entity.kind === 'building') return Building2
   return Armchair
 }
 
@@ -67,6 +71,7 @@ function kindEyebrow(entity: Entity): string {
   if (entity.kind === 'path') return 'PATH'
   if (entity.kind === 'slab') return 'FLOOR'
   if (entity.kind === 'roof') return 'ROOF'
+  if (entity.kind === 'building') return 'BUILDING'
   return 'OBJECT'
 }
 
@@ -283,6 +288,42 @@ function OpeningFields({
         >
           <BrickWall size={14} /> 选中所属墙体
         </button>
+      </Section>
+    </>
+  )
+}
+
+function BuildingFields({ building }: { building: BuildingEntity }) {
+  const enterBuilding = useEditor((state) => state.enterBuilding)
+  const template = BUILDING_TEMPLATES.find((item) => item.id === building.templateId) ?? BUILDING_TEMPLATES[0]
+  const interiorCount = Object.keys(building.interior.entities).length
+  return (
+    <>
+      <Section title="建筑信息">
+        <div className="readout-row">
+          <span>模板</span>
+          <strong>{template.name}</strong>
+        </div>
+        <div className="readout-row">
+          <span>尺寸</span>
+          <strong className="mono">
+            {building.width} × {building.depth} m
+          </strong>
+        </div>
+        <div className="readout-row">
+          <span>层数 / 层高</span>
+          <strong className="mono">
+            {building.floors} 层 · {building.floorHeight.toFixed(1)} m
+          </strong>
+        </div>
+        <div className="readout-row">
+          <span>内部构件</span>
+          <strong className="mono">{interiorCount}</strong>
+        </div>
+        <button type="button" className="soft-button wide" onClick={() => enterBuilding(building.id)}>
+          <Building2 size={14} /> 进入建筑（外骨架 / 内饰）
+        </button>
+        <p className="micro-hint">也可以直接双击城市中的建筑进入；进入后顶部栏切换骨架/内饰与楼层。</p>
       </Section>
     </>
   )
@@ -587,10 +628,11 @@ function InspectorEmpty() {
       else if (entity.kind === 'opening') result.openings++
       else if (entity.kind === 'path') result.paths++
       else if (entity.kind === 'slab' || entity.kind === 'roof') result.surfaces++
+      else if (entity.kind === 'building') result.buildings++
       else result.objects++
       return result
     },
-    { walls: 0, openings: 0, paths: 0, surfaces: 0, objects: 0 },
+    { walls: 0, openings: 0, paths: 0, surfaces: 0, objects: 0, buildings: 0 },
   )
 
   return (
@@ -631,6 +673,7 @@ function InspectorEmpty() {
             <div className="metric-cell"><span>门窗</span><strong>{counts.openings}</strong></div>
             <div className="metric-cell"><span>路径</span><strong>{counts.paths}</strong></div>
             <div className="metric-cell"><span>屋顶 / 楼板</span><strong>{counts.surfaces}</strong></div>
+            <div className="metric-cell"><span>整栋建筑</span><strong>{counts.buildings}</strong></div>
             <div className="metric-cell"><span>楼层</span><strong>{doc.levels.length}</strong></div>
           </div>
         </Section>
@@ -696,7 +739,9 @@ export function Inspector() {
         ? slabStyleLabel(entity.style)
         : entity.kind === 'object'
           ? '场景物件'
-          : entityDisplayName(entity)
+          : entity.kind === 'building'
+            ? '整栋建筑'
+            : entityDisplayName(entity)
 
   return (
     <aside className="inspector">
@@ -733,6 +778,7 @@ export function Inspector() {
         {entity.kind === 'slab' && <SlabFields slab={entity} update={update} />}
         {entity.kind === 'roof' && <RoofFields roof={entity} update={update} />}
         {entity.kind === 'object' && <ObjectFields entity={entity} update={update} />}
+        {entity.kind === 'building' && <BuildingFields building={entity} />}
 
         <div className="inspector-footer">
           <button type="button" className="soft-button" onClick={() => duplicateSelected()} disabled={entity.kind === 'opening'}>

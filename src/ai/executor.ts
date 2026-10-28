@@ -951,13 +951,21 @@ function modifySelected(action: Extract<AiAction, { type: 'modify_selected' }>):
   if (!selected) throw new Error('当前没有选中的构件，请先选中要修改的对象。')
   const patch: Record<string, unknown> = {}
   if (typeof action.rotateByDeg === 'number' && Number.isFinite(action.rotateByDeg)) {
-    if (selected.kind === 'object' || selected.kind === 'slab' || selected.kind === 'roof') {
+    if (
+      selected.kind === 'object' ||
+      selected.kind === 'slab' ||
+      selected.kind === 'roof' ||
+      selected.kind === 'building'
+    ) {
       patch.rot = selected.rot + (action.rotateByDeg * Math.PI) / 180
     }
   }
   if (
     (action.x !== undefined || action.z !== undefined) &&
-    (selected.kind === 'object' || selected.kind === 'slab' || selected.kind === 'roof')
+    (selected.kind === 'object' ||
+      selected.kind === 'slab' ||
+      selected.kind === 'roof' ||
+      selected.kind === 'building')
   ) {
     if (action.x !== undefined) patch.x = num(action.x, 0, -270, 270)
     if (action.z !== undefined) patch.z = num(action.z, 0, -270, 270)

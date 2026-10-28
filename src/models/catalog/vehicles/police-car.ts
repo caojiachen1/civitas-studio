@@ -95,5 +95,18 @@ export default defineModel({
     box(0.46, 0.13, 0.02, 0, 0.62, -2.245, C.white),
     cyl(0.045, 0.045, 0.12, -0.45, 0.38, -2.18, chrome, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
     cyl(0.045, 0.045, 0.12, 0.45, 0.38, -2.18, chrome, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+
+    // driver's spotlight on the A-pillar base
+    box(0.08, 0.06, 0.08, -0.91, 1.05, 1.0, dark, { mat: 'metal' }),
+    cyl(0.045, 0.045, 0.07, -0.94, 1.06, 1.0, dark, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
+    cyl(0.036, 0.036, 0.008, -0.94, 1.06, 1.038, '#e8e1c8', { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 14),
+    // wiper arms
+    box(0.48, 0.012, 0.014, -0.34, 1.05, 1.09, dark, { mat: 'matte', rot: [-0.5, 0, 0.2] }),
+    box(0.48, 0.012, 0.014, 0.34, 1.05, 1.09, dark, { mat: 'matte', rot: [-0.5, 0, -0.2] }),
+    // mirror glass faces
+    box(0.004, 0.1, 0.15, -0.952, 1.0, 0.82, C.glass, { mat: 'glass', opacity: 0.55 }),
+    box(0.004, 0.1, 0.15, 0.952, 1.0, 0.82, C.glass, { mat: 'glass', opacity: 0.55 }),
+    // boot-lid shut line
+    box(1.5, 0.006, 0.01, 0, 1.122, -2.14, dark),
   ],
 })

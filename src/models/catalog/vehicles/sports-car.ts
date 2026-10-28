@@ -96,5 +96,21 @@ export default defineModel({
     box(0.44, 0.11, 0.02, 0, 0.5, 2.055, C.white),
     box(0.44, 0.11, 0.02, 0, 0.55, -2.035, C.white),
     box(0.05, 0.06, 0.14, 0, 1.22, -0.95, dark),
+
+    // chrome strakes framing each side intake
+    box(0.024, 0.01, 0.5, -0.914, 0.61, -0.35, C.steel, { mat: 'metal' }),
+    box(0.024, 0.01, 0.5, -0.914, 0.675, -0.35, C.steel, { mat: 'metal' }),
+    box(0.024, 0.01, 0.5, 0.914, 0.61, -0.35, C.steel, { mat: 'metal' }),
+    box(0.024, 0.01, 0.5, 0.914, 0.675, -0.35, C.steel, { mat: 'metal' }),
+    // louvre slats in the bonnet vents
+    box(0.3, 0.004, 0.012, -0.35, 0.842, 1.35, C.steel, { mat: 'metal' }),
+    box(0.3, 0.004, 0.012, -0.35, 0.842, 1.44, C.steel, { mat: 'metal' }),
+    box(0.3, 0.004, 0.012, 0.35, 0.842, 1.35, C.steel, { mat: 'metal' }),
+    box(0.3, 0.004, 0.012, 0.35, 0.842, 1.44, C.steel, { mat: 'metal' }),
+    // fuel filler cap on the rear quarter
+    cyl(0.05, 0.05, 0.014, 0.912, 0.6, -0.95, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
+    // slim reversing lamps either side of the plate
+    box(0.12, 0.045, 0.04, -0.72, 0.62, -2.048, C.white, { mat: 'emissive' }),
+    box(0.12, 0.045, 0.04, 0.72, 0.62, -2.048, C.white, { mat: 'emissive' }),
   ],
 })

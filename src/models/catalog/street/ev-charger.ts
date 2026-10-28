@@ -76,7 +76,7 @@ export default defineModel({
     box(0.1, 0.01, 0.004, 0, 0.19, 0.095, C.ink),
 
     // service lock, side handle and rating label
-    cyl(0.012, 0.012, 0.01, -0.08, 0.4, 0.1, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    cyl(0.012, 0.012, 0.01, -0.08, 0.4, 0.095, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
     rounded(0.015, 0.08, 0.02, 0.005, -0.121, 1.0, 0.02, C.graphite, { mat: 'metal' }),
     rounded(0.1, 0.045, 0.004, 0.003, 0, 0.42, 0.099, C.cream, { mat: 'matte' }),
     box(0.08, 0.008, 0.002, 0, 0.43, 0.102, C.ink),
@@ -84,5 +84,23 @@ export default defineModel({
 
     // rear cable conduit
     rounded(0.12, 0.3, 0.03, 0.012, 0, 0.25, -0.1, C.graphite, { mat: 'metal' }),
+
+    // QR code sticker between reader and screen
+    rounded(0.055, 0.055, 0.006, 0.002, 0, 1.035, 0.101, C.cream, { mat: 'matte' }),
+    ...[
+      [-0.014, 1.049],
+      [0.014, 1.049],
+      [-0.014, 1.021],
+      [0.014, 1.021],
+      [0, 1.035],
+    ].map(([x, y]) => box(0.012, 0.012, 0.002, x, y, 0.1045, C.ink, { mat: 'matte' })),
+
+    // faceplate corner screws
+    ...[
+      [-0.088, 0.64],
+      [0.088, 0.64],
+      [-0.088, 1.34],
+      [0.088, 1.34],
+    ].map(([x, y]) => cyl(0.005, 0.005, 0.005, x, y, 0.1005, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8)),
   ],
 })

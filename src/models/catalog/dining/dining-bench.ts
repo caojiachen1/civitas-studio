@@ -57,5 +57,13 @@ export default defineModel({
       rbox(0.014, 0.06, 0.008, 0.004, x - 0.29, 0.412, -0.18, C.linen, { mat: 'fabric' }),
       rbox(0.014, 0.06, 0.008, 0.004, x + 0.29, 0.412, -0.18, C.linen, { mat: 'fabric' }),
     ]),
+
+    // brass apron bolt heads, a maker's plate and floor glides under each ferrule
+    ...[-0.58, 0.58].flatMap((x) => [
+      cyl(0.009, 0.009, 0.006, x, 0.325, 0.189, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+      cyl(0.009, 0.009, 0.006, x, 0.325, -0.189, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    ]),
+    box(0.1, 0.018, 0.004, 0, 0.325, 0.1895, C.brass, { mat: 'metal' }),
+    ...LEGS.map(([x, z]) => cyl(0.036, 0.036, 0.004, x, 0.002, z, C.graphite, { mat: 'matte' }, 14)),
   ],
 })

@@ -75,5 +75,21 @@ export default defineModel({
     ]),
     // concrete saw-cut seam across the pad
     box(1.56, 0.002, 0.006, 0, 0.051, -0.02, C.stone),
+
+    // galvanised collars where the hoop legs land on the base rails
+    ...hoopCenters.flatMap((x) => [
+      cyl(0.032, 0.032, 0.02, x, 0.1, 0.2, C.graphite, { mat: 'metal' }, 12),
+      cyl(0.032, 0.032, 0.02, x, 0.1, -0.2, C.graphite, { mat: 'metal' }, 12),
+    ]),
+
+    // pressed end caps closing the base rails
+    ...[
+      [0.725, 0.17],
+      [-0.725, 0.17],
+      [0.725, -0.17],
+      [-0.725, -0.17],
+    ].map(([x, z]) =>
+      cyl(0.022, 0.022, 0.02, x, 0.07, z, C.graphite, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 12),
+    ),
   ],
 })

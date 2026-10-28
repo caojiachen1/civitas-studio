@@ -1,4 +1,4 @@
-import { C, cyl, defineModel, ico } from '../../kit'
+import { C, box, cyl, defineModel, ico } from '../../kit'
 
 const BARK = '#7a5a42'
 const BARK_LIGHT = '#8c6a4d'
@@ -9,6 +9,46 @@ const CRIMSON = '#a8452f'
 const RED = '#943b2c'
 const ORANGE = '#c4713a'
 
+// Surface roots lift the trunk out of the lawn.
+const roots = [0.35, 1.95, 3.5, 5.1].map((a, i) =>
+  cyl(0.05, 0.15, 0.62, Math.cos(a) * 0.24, 0.19, Math.sin(a) * 0.24, i % 2 === 0 ? BARK : BARK_LIGHT, {
+    mat: 'wood',
+    rot: [0, -a, 0.98],
+  }, 8),
+)
+
+// Rough bark strips spiral up the clear lower trunk.
+const barkPlates = Array.from({ length: 7 }, (_, i) => {
+  const a = i * 0.85 + 0.2
+  const r = 0.208 - (i % 2) * 0.006
+  return box(0.028, 0.5 + (i % 2) * 0.12, 0.016, Math.cos(a) * r, 0.86 + (i % 3) * 0.14, Math.sin(a) * r, i % 2 === 0 ? '#694b34' : '#5f432e', {
+    mat: 'wood',
+    rot: [0, -(a + Math.PI / 2), 0.02],
+  })
+})
+
+// Slender twigs reach past the crown edge, holding next year's buds.
+const twigs = [
+  cyl(0.012, 0.026, 0.92, 1.28, 5.05, 0.42, BARK, { mat: 'wood', rot: [0.25, 0, -0.48] }, 6),
+  cyl(0.011, 0.024, 0.86, -1.24, 4.98, -0.32, BARK_LIGHT, { mat: 'wood', rot: [-0.18, 0, 0.52] }, 6),
+  cyl(0.01, 0.022, 0.74, 0.42, 5.72, -0.86, BARK, { mat: 'wood', rot: [-0.4, 0, -0.12] }, 6),
+  cyl(0.009, 0.02, 0.68, -0.58, 5.62, 0.72, BARK_LIGHT, { mat: 'wood', rot: [0.42, 0, 0.1] }, 6),
+]
+
+// Fallen autumn leaves drift onto the grass around the root collar.
+const LEAF_FALL: [number, number, string, number][] = [
+  [0.85, 0.42, RED, 0.4],
+  [-0.74, 0.58, AMBER, 1.2],
+  [0.34, -0.9, CRIMSON, 2.1],
+  [-0.95, -0.42, ORANGE, 0.8],
+  [1.18, -0.28, AMBER, 2.7],
+  [-0.2, 1.02, GOLD, 1.7],
+  [0.62, 1.18, RED, 0.2],
+]
+const fallenLeaves = LEAF_FALL.map(([x, z, color, a], i) =>
+  cyl(0.085, 0.06, 0.008, x, 0.008, z, color, { mat: 'foliage', rot: [0, a + i * 0.3, 0] }, 5),
+)
+
 export default defineModel({
   id: 'tree-maple',
   name: '枫树',
@@ -18,8 +58,10 @@ export default defineModel({
   height: 6.5,
   placement: 'outdoor',
   parts: [
+    ...roots,
     // low root collar and slender, slightly leaning trunk
     cyl(0.22, 0.38, 0.34, 0, 0.17, 0, BARK, { mat: 'wood' }, 12),
+    ...barkPlates,
     cyl(0.17, 0.24, 1.75, 0, 1.15, 0, BARK, { mat: 'wood' }, 12),
     cyl(0.12, 0.18, 1.6, -0.05, 2.78, 0.02, BARK_LIGHT, { mat: 'wood', rot: [0.02, 0, 0.12] }, 10),
     // upright, elegant branching
@@ -45,5 +87,7 @@ export default defineModel({
     ico(0.55, -0.15, 5.3, -0.55, CRIMSON, { mat: 'foliage' }, 1),
     ico(0.46, 0.42, 5.62, -0.28, RUST, { mat: 'foliage' }, 0),
     ico(0.36, -0.02, 5.86, 0.14, GOLD, { mat: 'foliage' }, 0),
+    ...twigs,
+    ...fallenLeaves,
   ],
 })

@@ -58,5 +58,18 @@ export default defineModel({
 
     // Small brass badge
     box(0.055, 0.012, 0.003, -0.2, 0.13, 0.307, C.brass, { mat: 'metal' }),
+
+    // drum seal lip, door-lock lamp and hinge knuckles
+    torus(0.155, 0.004, 0, 0.445, 0.314, C.graphite, { mat: 'matte' }, 32),
+    cyl(0.009, 0.009, 0.008, 0.245, 0.585, 0.314, C.leafLight, { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 12),
+    cyl(0.011, 0.011, 0.03, 0.255, 0.52, 0.316, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.011, 0.011, 0.03, 0.255, 0.37, 0.316, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    // condensate tank drawer seam under the control strip
+    box(0.17, 0.004, 0.004, -0.19, 0.706, 0.308, '#6f777c', { mat: 'matte' }),
+    box(0.004, 0.03, 0.004, -0.105, 0.721, 0.308, '#6f777c', { mat: 'matte' }),
+    // lint screen mesh hint inside the filter hatch
+    ...[-0.012, 0, 0.012].map((dy) =>
+      box(0.11, 0.003, 0.003, -0.19, 0.685 + dy, 0.3185, C.graphite, { mat: 'matte' }),
+    ),
   ],
 })

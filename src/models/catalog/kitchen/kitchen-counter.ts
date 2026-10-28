@@ -49,5 +49,18 @@ export default defineModel({
     cyl(0.152, 0.1, 0.038, 0.44, 0.899, 0.06, C.white, { mat: 'ceramic' }, 24),
     torus(0.15, 0.006, 0.44, 0.917, 0.06, C.cream, { mat: 'ceramic', rot: [Math.PI / 2, 0, 0] }, 24),
     cyl(0.128, 0.128, 0.004, 0.44, 0.901, 0.06, C.sand, { mat: 'ceramic' }, 24),
+
+    // concealed hinges at the door stiles
+    ...[-0.856, 0.271, 0.856].flatMap((x) => [
+      rbox(0.014, 0.05, 0.028, 0.005, x, 0.2, 0.28, C.graphite, { mat: 'metal' }),
+      rbox(0.014, 0.05, 0.028, 0.005, x, 0.52, 0.28, C.graphite, { mat: 'metal' }),
+    ]),
+    // tea towel draped over the centre handle rail
+    rbox(0.18, 0.22, 0.012, 0.006, 0, 0.47, 0.296, C.linen, { mat: 'fabric' }),
+    box(0.18, 0.006, 0.004, 0, 0.395, 0.303, C.sand, { mat: 'fabric' }),
+    // shadow gap and adjuster feet at the toe kick
+    box(1.6, 0.004, 0.004, 0, 0.101, 0.212, C.ink, { mat: 'matte' }),
+    cyl(0.016, 0.018, 0.02, -0.7, 0.01, 0.19, C.graphite, { mat: 'metal' }, 10),
+    cyl(0.016, 0.018, 0.02, 0.7, 0.01, 0.19, C.graphite, { mat: 'metal' }, 10),
   ],
 })

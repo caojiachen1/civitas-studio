@@ -51,6 +51,20 @@ export default defineModel({
     box(0.115, 0.014, 0.32, 0, 5.842, 0.69, GLOW, { mat: 'emissive' }),
     cyl(0.012, 0.012, 0.02, 0.086, 5.9, 0.7, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
     cyl(0.012, 0.012, 0.02, -0.086, 5.9, 0.7, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
-    rounded(0.05, 0.035, 0.06, 0.01, 0, 5.965, 0.4, C.graphite, { mat: 'metal' }),
+    rounded(0.05, 0.035, 0.06, 0.01, 0, 5.955, 0.4, C.graphite, { mat: 'metal' }),
+
+    // photovoltaic photocell on the luminaire canopy
+    cyl(0.026, 0.026, 0.02, 0, 6.008, 0.64, C.graphite, { mat: 'metal' }, 14),
+    sphere(0.019, 0, 6.02, 0.64, '#c9d7d0', { mat: 'gloss' }, 14),
+
+    // washers bedding the four anchor bolts
+    ...[0.12, -0.12].flatMap((x) =>
+      [0.12, -0.12].map((z) => cyl(0.019, 0.019, 0.004, x, 0.052, z, C.graphite, { mat: 'metal' }, 8)),
+    ),
+
+    // hatch hinges and a warning label
+    box(0.012, 0.018, 0.006, -0.028, 1.05, 0.081, C.graphite, { mat: 'metal' }),
+    box(0.012, 0.018, 0.006, 0.028, 1.05, 0.081, C.graphite, { mat: 'metal' }),
+    box(0.03, 0.04, 0.003, 0.02, 0.9, 0.0835, '#d9b25f', { mat: 'matte' }),
   ],
 })

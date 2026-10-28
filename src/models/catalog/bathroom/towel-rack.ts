@@ -33,6 +33,13 @@ export default defineModel({
     cyl(0.017, 0.017, 0.022, -0.255, 1.15, 0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
     cyl(0.017, 0.017, 0.022, -0.255, 0.85, 0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
     cyl(0.017, 0.017, 0.022, -0.255, 1.42, 0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
+    cyl(0.017, 0.017, 0.022, 0.255, 1.15, 0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
+    cyl(0.017, 0.017, 0.022, 0.255, 0.85, 0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
+    cyl(0.017, 0.017, 0.022, 0.255, 1.42, 0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
+    // lower crossbar bracing both uprights
+    cyl(0.009, 0.009, 0.5, 0, 0.36, 0, C.blackMetal, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
+    cyl(0.013, 0.013, 0.016, -0.22, 0.36, 0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 12),
+    cyl(0.013, 0.013, 0.016, 0.22, 0.36, 0, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 12),
     // folded linen towel on top rail
     rbox(0.38, 0.03, 0.104, 0.012, 0, 1.436, 0, C.linen, { mat: 'fabric' }),
     rbox(0.38, 0.24, 0.022, 0.008, 0, 1.3, 0.052, C.linen, { mat: 'fabric' }),

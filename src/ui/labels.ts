@@ -63,6 +63,8 @@ export function entityDisplayName(entity: Entity): string {
       return `${slabStyleLabel(entity.style)}楼板`
     case 'roof':
       return ROOF_STYLE_LABELS[entity.style]
+    case 'building':
+      return entity.name
     case 'object': {
       const model = getModel(entity.modelId)
       if (model) return model.name

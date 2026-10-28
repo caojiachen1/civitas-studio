@@ -8,6 +8,7 @@ import {
   DOOR_STYLES,
   WINDOW_STYLES,
   type EditorDocument,
+  type BuildingSession,
   type Entity,
   type ModelDef,
   type ObjectEntity,
@@ -19,6 +20,7 @@ import {
   type ViewState,
   type WallEntity,
   type RenderQuality,
+  type VisualStyle,
 } from './types'
 import { buildWall } from './builders/walls'
 import { buildPath, tickWater } from './builders/paths'
@@ -43,6 +45,7 @@ import {
 } from './validation'
 import { applyGhost, GHOST_INVALID_MATERIAL, GHOST_VALID_MATERIAL } from './visuals'
 import { createPlanRoom, isTopLevel } from './plan'
+import { buildBuildingShell } from './buildings'
 
 const PLAN_OUTLINE_VALID = new THREE.LineBasicMaterial({
   color: '#e8e8e8',
@@ -184,6 +187,7 @@ export class EditorScene {
   private planDrag: SlabDrag | null = null
   private planSavedView: ViewState | null = null
   private planActive = false
+  private buildingSavedView: ViewState | null = null
   private planGrid: THREE.GridHelper
   private handleDrag: { ref: HandleRef; original: Entity } | null = null
   private handleDragHistory = false
@@ -210,6 +214,7 @@ export class EditorScene {
   private activePointerId: number | null = null
   private effectiveQuality: Exclude<RenderQuality, 'auto'> = 'balanced'
   private appliedQuality: Exclude<RenderQuality, 'auto'> | null = null
+  private appliedVisualStyle: VisualStyle | null = null
   private qualityCooldownUntil = performance.now() + 2500
   private highFpsWindows = 0
   private pointerMoveFrame = 0
@@ -346,7 +351,7 @@ export class EditorScene {
         this.tcHistoryPushed = true
       }
       this.tcMoved = true
-      if (entity.kind === 'object' || entity.kind === 'slab') {
+      if (entity.kind === 'object' || entity.kind === 'slab' || entity.kind === 'building') {
         object.position.y = this.levelElevation(entity.levelId)
       } else if (entity.kind === 'roof') {
         object.position.y = entity.eaveY
@@ -377,7 +382,7 @@ export class EditorScene {
     this.tcPendingEntityId = null
     if (!entity || !object || !pendingId || entity.id !== pendingId) return
     if (entity.kind === 'opening') return
-    if (entity.kind === 'object' || entity.kind === 'slab') {
+    if (entity.kind === 'object' || entity.kind === 'slab' || entity.kind === 'building') {
       object.position.y = this.levelElevation(entity.levelId)
     } else if (entity.kind === 'roof') {
       object.position.y = entity.eaveY
@@ -492,6 +497,28 @@ export class EditorScene {
       this.refreshSelection()
     }
     if (prev.settings !== next.settings) this.applySettings()
+    const prevSession = prev.buildingSession
+    const nextSession = next.buildingSession
+    if (!prevSession && nextSession) {
+      this.buildingSavedView = this.rig.getView()
+      this.focusBuilding(nextSession)
+      this.applyVisibility()
+    } else if (prevSession && !nextSession) {
+      if (this.buildingSavedView) {
+        this.rig.setView(this.buildingSavedView)
+        this.buildingSavedView = null
+      } else {
+        this.rig.setView({ target: [0, 0.5, 0], distance: 32, azimuth: 0.4, polar: 1.02 })
+      }
+      this.applyVisibility()
+    } else if (prevSession && nextSession) {
+      if (prevSession.mode !== nextSession.mode || prevSession.buildingId !== nextSession.buildingId) {
+        this.focusBuilding(nextSession)
+      } else if (prev.doc.activeLevelId !== next.doc.activeLevelId) {
+        this.focusBuilding(nextSession)
+      }
+      this.applyVisibility()
+    }
     this.updateBaseHint()
     this.publishHint()
     if (this.wallDraft || this.pathDraft) this.refreshDraftMarkers()
@@ -584,6 +611,10 @@ export class EditorScene {
       group.position.set(entity.x, elevation, entity.z)
       group.rotation.y = entity.rot
       group.scale.setScalar(entity.scale)
+    } else if (entity.kind === 'building') {
+      group = buildBuildingShell(entity)
+      group.position.set(entity.x, elevation, entity.z)
+      group.rotation.y = entity.rot
     } else {
       return null
     }
@@ -638,6 +669,17 @@ export class EditorScene {
         prev.overhang === next.overhang
       )
     }
+    if (next.kind === 'building' && prev.kind === 'building') {
+      return (
+        prev.levelId === next.levelId &&
+        prev.templateId === next.templateId &&
+        prev.width === next.width &&
+        prev.depth === next.depth &&
+        prev.floors === next.floors &&
+        prev.floorHeight === next.floorHeight &&
+        prev.interior === next.interior
+      )
+    }
     return false
   }
 
@@ -653,6 +695,9 @@ export class EditorScene {
       view.group.rotation.y = entity.rot
     } else if (entity.kind === 'roof') {
       view.group.position.set(entity.x, entity.eaveY, entity.z)
+      view.group.rotation.y = entity.rot
+    } else if (entity.kind === 'building' && view.entity.kind === 'building') {
+      view.group.position.set(entity.x, elevation, entity.z)
       view.group.rotation.y = entity.rot
     }
     view.entity = entity
@@ -721,27 +766,40 @@ export class EditorScene {
     return entity.levelId
   }
 
-  private applyVisibility() {
+  private isEntityVisible(entity: Entity): boolean {
     const state = this.state
     const active = state.doc.activeLevelId
+    const session = state.buildingSession
+    if (session) {
+      if (session.mode === 'interior') {
+        if (entity.kind === 'roof') return false
+        if (entity.kind === 'slab') return true
+        return this.entityLevelId(entity) === active
+      }
+      return !(entity.kind === 'roof' && !state.settings.showRoofs)
+    }
+    return (
+      (!(state.settings.isolateLevel || state.settings.planMode) ||
+        this.entityLevelId(entity) === active) &&
+      !(entity.kind === 'roof' && (!state.settings.showRoofs || state.settings.planMode))
+    )
+  }
+
+  private applyVisibility() {
     for (const view of this.viewMap.values()) {
       if (view.entity.kind === 'opening') continue
-      const levelVisible =
-        !(state.settings.isolateLevel || state.settings.planMode) || view.entity.levelId === active
-      const roofHidden =
-        view.entity.kind === 'roof' && (!state.settings.showRoofs || state.settings.planMode)
-      view.group.visible = levelVisible && !roofHidden
+      view.group.visible = this.isEntityVisible(view.entity)
     }
+    const state = this.state
     if (state.selectedId) {
       const entity = state.doc.entities[state.selectedId]
-      const visible = Boolean(
-        entity &&
-          (!(state.settings.isolateLevel || state.settings.planMode) ||
-            this.entityLevelId(entity) === active) &&
-          !(entity.kind === 'roof' && (!state.settings.showRoofs || state.settings.planMode)) &&
-          entity.kind !== 'path',
+      const visible = Boolean(entity && this.isEntityVisible(entity))
+      this.selectionBox.visible = Boolean(
+        visible &&
+          entity?.kind !== 'path' &&
+          this.selectionBox.box &&
+          !this.selectionBox.box.isEmpty(),
       )
-      this.selectionBox.visible = Boolean(visible && this.selectionBox.box && !this.selectionBox.box.isEmpty())
       this.handleGroup.visible = Boolean(visible)
       if (!visible) {
         this.transformControls.detach()
@@ -752,6 +810,10 @@ export class EditorScene {
 
   private applySettings() {
     const settings = this.state.settings
+    if (this.appliedVisualStyle !== settings.visualStyle) {
+      this.appliedVisualStyle = settings.visualStyle
+      this.env.applyStyle(settings.visualStyle)
+    }
     this.env.grid.visible = settings.showGrid && !settings.planMode
     this.planGrid.visible = settings.planMode && settings.showGrid
     this.planGrid.position.y = this.activeElevation() + 0.01
@@ -828,6 +890,35 @@ export class EditorScene {
       azimuth: 0,
       polar: 0.16,
     }
+  }
+
+  private focusBuilding(session: BuildingSession) {
+    const level = this.state.doc.levels.find((item) => item.id === this.state.doc.activeLevelId)
+    const floorY = level?.elevation ?? session.baseElevation
+    if (session.mode === 'interior') {
+      const tx = session.center[0] - session.width * 0.22
+      const tz = session.center[1] - session.depth * 0.28
+      const camX = session.center[0] - session.width * 0.4
+      const camZ = session.center[1] + session.depth * 0.34
+      const dx = camX - tx
+      const dz = camZ - tz
+      const horizontal = Math.hypot(dx, dz)
+      const vertical = 1.3
+      const distance = Math.hypot(horizontal, vertical)
+      this.rig.setView({
+        target: [tx, floorY + 1.2, tz],
+        distance: clamp(distance, 4, 16),
+        azimuth: Math.atan2(dx, dz),
+        polar: Math.acos(clamp(vertical / Math.max(0.01, distance), -1, 1)),
+      })
+      return
+    }
+    this.rig.setView({
+      target: [session.center[0], floorY + session.floorHeight * 0.5, session.center[1]],
+      distance: Math.max(16, Math.max(session.width, session.depth) * 1.7 + 8),
+      azimuth: 0.6,
+      polar: 1.0,
+    })
   }
 
   private syncQuality() {
@@ -931,7 +1022,11 @@ export class EditorScene {
       this.addPathHandles(entity)
     }
 
-    const transformable = entity.kind === 'object' || entity.kind === 'slab' || entity.kind === 'roof'
+    const transformable =
+      entity.kind === 'object' ||
+      entity.kind === 'slab' ||
+      entity.kind === 'roof' ||
+      entity.kind === 'building'
     if (transformable && this.state.tool === 'select') {
       if (this.transformControls.object !== view.group) this.transformControls.attach(view.group)
       this.transformControls.setMode(this.transformMode)
@@ -1222,6 +1317,7 @@ export class EditorScene {
     this.lastFrameTime = now
     const elapsed = now / 1000
     this.rig.update(dt)
+    this.updateInteriorCutaway()
     if (this.rig.target.distanceToSquared(this.shadowTarget) > 2.25) {
       this.shadowTarget.copy(this.rig.target)
       this.env.update(this.rig.target)
@@ -1251,6 +1347,27 @@ export class EditorScene {
       })
       this.fpsFrames = 0
       this.fpsElapsed = 0
+    }
+  }
+
+  private updateInteriorCutaway() {
+    const session = this.state.buildingSession
+    if (!session || session.mode !== 'interior') return
+    const active = this.state.doc.activeLevelId
+    const cx = session.center[0]
+    const cz = session.center[1]
+    const dx = this.camera.position.x - cx
+    const dz = this.camera.position.z - cz
+    for (const view of this.viewMap.values()) {
+      if (view.entity.kind !== 'wall' || !session.shellWallIds.includes(view.entity.id)) continue
+      if (view.entity.levelId !== active) {
+        view.group.visible = false
+        continue
+      }
+      const wall = view.entity
+      const mx = (wall.a[0] + wall.b[0]) / 2 - cx
+      const mz = (wall.a[1] + wall.b[1]) / 2 - cz
+      view.group.visible = mx * dx + mz * dz < 0.1
     }
   }
 
@@ -2717,8 +2834,12 @@ export class EditorScene {
     if (this.state.tool === 'select') {
       const picked = this.pickEntityAt(event.clientX, event.clientY)
       if (picked) {
-        useEditor.getState().select(picked.entity.id)
-        window.requestAnimationFrame(() => this.focusSelection())
+        if (picked.entity.kind === 'building') {
+          useEditor.getState().enterBuilding(picked.entity.id)
+        } else {
+          useEditor.getState().select(picked.entity.id)
+          window.requestAnimationFrame(() => this.focusSelection())
+        }
       }
     }
   }
@@ -2765,7 +2886,11 @@ export class EditorScene {
       event.preventDefault()
       if (this.wallDraft || this.pathDraft || this.slabDrag || this.planDrag) this.cancelDrafts()
       else if (this.state.settings.planMode) useEditor.getState().patchSettings({ planMode: false })
-      else if (this.state.tool !== 'select') useEditor.getState().setTool('select')
+      else if (this.state.buildingSession) {
+        if (this.state.selectedId) useEditor.getState().select(null)
+        else if (this.state.tool !== 'select') useEditor.getState().setTool('select')
+        else useEditor.getState().exitBuilding()
+      } else if (this.state.tool !== 'select') useEditor.getState().setTool('select')
       else useEditor.getState().select(null)
       useRuntime.getState().setHelpOpen(false)
       return
@@ -2818,7 +2943,13 @@ export class EditorScene {
     if (key === 'r') {
       event.preventDefault()
       const selected = this.selectedEntity()
-      if (selected && (selected.kind === 'object' || selected.kind === 'slab' || selected.kind === 'roof')) {
+      if (
+        selected &&
+        (selected.kind === 'object' ||
+          selected.kind === 'slab' ||
+          selected.kind === 'roof' ||
+          selected.kind === 'building')
+      ) {
         useEditor.getState().beginHistory('旋转构件')
         useEditor
           .getState()

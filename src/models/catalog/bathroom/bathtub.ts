@@ -1,4 +1,4 @@
-import { C, cyl, defineModel, rbox, sphere, torus } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere, torus } from '../../kit'
 
 export default defineModel({
   id: 'bathtub',
@@ -53,5 +53,18 @@ export default defineModel({
     rbox(0.085, 0.012, 0.05, 0.012, -0.35, 0.594, 0.07, C.cream, { mat: 'matte' }),
     rbox(0.1, 0.014, 0.14, 0.01, -0.32, 0.588, -0.14, C.sage, { mat: 'fabric' }),
     rbox(0.085, 0.008, 0.12, 0.008, -0.32, 0.595, -0.14, C.sage, { mat: 'fabric' }),
+    // silicone bead around the shadow plinth where it meets the floor
+    box(1.345, 0.006, 0.012, 0, 0.003, 0.253, '#cfc9bd', { mat: 'matte' }),
+    box(1.345, 0.006, 0.012, 0, 0.003, -0.253, '#cfc9bd', { mat: 'matte' }),
+    box(0.012, 0.006, 0.5, -0.673, 0.003, 0, '#cfc9bd', { mat: 'matte' }),
+    box(0.012, 0.006, 0.5, 0.673, 0.003, 0, '#cfc9bd', { mat: 'matte' }),
+    // folded bath towel left over the front rim
+    rbox(0.34, 0.024, 0.15, 0.01, 0.5, 0.566, 0.365, C.linen, { mat: 'fabric' }),
+    rbox(0.34, 0.3, 0.02, 0.008, 0.5, 0.41, 0.405, C.linen, { mat: 'fabric' }),
+    rbox(0.34, 0.022, 0.026, 0.006, 0.5, 0.548, 0.405, C.linen, { mat: 'fabric' }),
+    box(0.33, 0.014, 0.006, 0.5, 0.31, 0.4175, C.sage),
+    // filler wall plate retaining screws
+    cyl(0.005, 0.005, 0.005, -0.028, 0.566, -0.385, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    cyl(0.005, 0.005, 0.005, 0.028, 0.566, -0.385, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
   ],
 })

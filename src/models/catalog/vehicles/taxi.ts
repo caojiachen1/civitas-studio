@@ -99,5 +99,17 @@ export default defineModel({
     rbox(1.8, 0.24, 0.22, 0.08, 0, 0.45, -2.03, bumper, { mat: 'metal' }),
     box(0.44, 0.12, 0.02, 0, 0.52, -2.145, C.white),
     cyl(0.04, 0.04, 0.1, -0.5, 0.34, -2.1, chrome, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+
+    // wiper arms at the base of the windscreen
+    box(0.44, 0.012, 0.014, -0.32, 0.92, 0.996, dark, { mat: 'matte', rot: [-0.48, 0, 0.2] }),
+    box(0.44, 0.012, 0.014, 0.32, 0.92, 0.996, dark, { mat: 'matte', rot: [-0.48, 0, -0.2] }),
+    // brass taxi plaques on the rear doors
+    box(0.016, 0.06, 0.16, -0.888, 0.82, -0.2, C.brass, { mat: 'metal' }),
+    box(0.016, 0.06, 0.16, 0.888, 0.82, -0.2, C.brass, { mat: 'metal' }),
+    // chrome rocker strips below the doors
+    box(0.016, 0.025, 2.0, -0.884, 0.41, 0.0, chrome, { mat: 'metal' }),
+    box(0.016, 0.025, 2.0, 0.884, 0.41, 0.0, chrome, { mat: 'metal' }),
+    // fuel filler flap on the rear quarter
+    cyl(0.055, 0.055, 0.014, 0.881, 0.72, -1.2, paint, { mat: 'gloss', rot: [0, 0, Math.PI / 2] }, 14),
   ],
 })

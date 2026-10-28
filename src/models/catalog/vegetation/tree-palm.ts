@@ -1,4 +1,5 @@
 import { C, box, cone, cyl, defineModel, sphere } from '../../kit'
+import type { Part } from '../../../editor/types'
 
 const TRUNK_H = 5.27
 const BEND = 0.32
@@ -133,6 +134,78 @@ const fibers = Array.from({ length: 18 }, (_, i) => {
   )
 })
 
+// Stalks tie the coconut cluster back to the crown.
+const stalk = (tx: number, ty: number, tz: number) => {
+  const dx = tx - CROWN_X
+  const dy = ty - 5.12
+  const dz = tz
+  const h = Math.hypot(dx, dz)
+  const len = Math.hypot(h, dy)
+  return cyl(
+    0.022,
+    0.032,
+    len,
+    CROWN_X + dx / 2,
+    5.12 + dy / 2,
+    dz / 2,
+    '#8a6a43',
+    { mat: 'wood', rot: [0, Math.atan2(dz, -dx), Math.atan2(h, dy)] },
+    6,
+  )
+}
+const coconutStalks = [
+  stalk(CROWN_X + 0.14, 4.82, 0.1),
+  stalk(CROWN_X - 0.02, 4.76, 0.16),
+  stalk(CROWN_X + 0.18, 4.8, -0.08),
+  stalk(CROWN_X + 0.02, 4.72, -0.16),
+  stalk(CROWN_X + 0.24, 4.9, 0.02),
+]
+
+// Two spent fronds droop down the trunk, leaflets folded along the rachis.
+const deadFronds: Part[] = []
+const DEAD_FROND_ANGLES = [0.72, 3.82]
+DEAD_FROND_ANGLES.forEach((a, fi) => {
+  for (let k = 0; k < 4; k++) {
+    const t = k / 3
+    const r = 0.24 + t * 0.82
+    const y = CROWN_Y - 0.06 - t * 0.78
+    deadFronds.push(
+      box(
+        0.34,
+        0.026,
+        0.05,
+        CROWN_X + Math.cos(a) * r,
+        y,
+        Math.sin(a) * r,
+        k % 2 === 0 ? '#8a6a43' : '#775a39',
+        { mat: 'wood', rot: [0, -a, -0.9 + k * 0.1] },
+      ),
+    )
+    if (k < 3) {
+      deadFronds.push(
+        box(
+          0.24,
+          0.012,
+          0.11,
+          CROWN_X + Math.cos(a + fi * 0.3) * (r + 0.1),
+          y - 0.05,
+          Math.sin(a + fi * 0.3) * (r + 0.1),
+          '#94714a',
+          { mat: 'wood', rot: [0, -a - 0.3, -0.7] },
+        ),
+      )
+    }
+  }
+})
+
+// Buttress roots grip the ground at the foot of the trunk.
+const palmRoots = [0.5, 2.1, 3.7, 5.2].map((a, i) =>
+  cyl(0.05, 0.12, 0.4, Math.cos(a) * 0.15, 0.12, Math.sin(a) * 0.15, i % 2 === 0 ? '#8d6c4a' : '#775a3c', {
+    mat: 'wood',
+    rot: [0, -a, 1.05],
+  }, 7),
+)
+
 // Old fronds hang below the crown as a ragged skirt.
 const skirt = Array.from({ length: 6 }, (_, i) => {
   const a = i * 1.047 + 0.3
@@ -175,6 +248,7 @@ export default defineModel({
   height: 6.0,
   placement: 'outdoor',
   parts: [
+    ...palmRoots,
     ...trunk,
     ...rings,
     ...fibers,
@@ -187,6 +261,8 @@ export default defineModel({
     sphere(0.14, CROWN_X + 0.18, 4.76, -0.08, '#7c5a38', {}, 10),
     sphere(0.12, CROWN_X + 0.02, 4.68, -0.16, C.walnut, {}, 10),
     sphere(0.13, CROWN_X + 0.24, 4.86, 0.02, C.walnut, {}, 10),
+    ...coconutStalks,
+    ...deadFronds,
     ...fronds,
     // young upright spear leaves reaching the full height
     cone(0.06, 0.6, CROWN_X + 0.02, 5.7, 0.04, '#7fa95c', { mat: 'foliage', rot: [0.12, 0, -0.08] }, 6),

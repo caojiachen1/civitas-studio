@@ -53,6 +53,19 @@ export default defineModel({
     rbox(1.62, 0.09, 0.02, 0.004, 0, 0.845, 0.222, C.oak, { mat: 'wood' }),
     box(1.58, 0.004, 0.004, 0, 0.81, 0.233, C.brass, { mat: 'metal' }),
 
+    // concealed hinges on the outer door stiles
+    ...DOOR_X.flatMap((x) => {
+      const outer = x < 0 ? -0.783 : 0.783
+      return [0.28, 0.68].map((y) =>
+        rbox(0.016, 0.052, 0.03, 0.005, outer, y, 0.218, C.graphite, { mat: 'metal' }),
+      )
+    }),
+    // brass keyhole escutcheon on the right door
+    cyl(0.012, 0.012, 0.005, 0.36, 0.34, 0.234, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
+    box(0.004, 0.012, 0.004, 0.36, 0.335, 0.239, C.ink),
+    // maker's plate centred on the top rail
+    rbox(0.11, 0.016, 0.005, 0.003, 0, 0.845, 0.2335, C.brass, { mat: 'metal' }),
+
     // stone tray with three wine glasses
     rbox(0.34, 0.012, 0.2, 0.01, 0.5, 0.946, 0, C.stone, { mat: 'stone' }),
     ...TRAY_X.flatMap((x) => [

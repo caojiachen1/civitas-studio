@@ -73,6 +73,20 @@ for (let i = 0; i < VOUSSOIRS; i++) {
 // Keystone with a slightly wider head, dropping into the frieze.
 parts.push(box(0.17, 0.36, 0.54, 0, 2.74, 0, STONE_LIGHT, { mat: 'stone' }))
 parts.push(box(0.21, 0.07, 0.56, 0, 2.895, 0, STONE_LIGHT, { mat: 'stone' }))
+// Mortar shadows either side of the keystone.
+for (const z of [-0.271, 0.271]) {
+  for (const x of [-0.1, 0.1]) {
+    parts.push(box(0.008, 0.28, 0.004, x, 2.75, z, MORTAR, { mat: 'stone' }))
+  }
+}
+
+// Ashlar joints in the spandrel wings, front and back.
+for (const z of [-0.221, 0.221]) {
+  for (const x of [-1.17, 1.17]) {
+    parts.push(box(0.008, 0.88, 0.006, x, 2.38, z, MORTAR, { mat: 'stone' }))
+    parts.push(box(0.3, 0.008, 0.006, x, 2.55, z, MORTAR, { mat: 'stone' }))
+  }
+}
 
 // Frieze, recessed panels, medallion, dentils.
 parts.push(box(2.6, 0.13, 0.46, 0, 2.985, 0, STONE, { mat: 'stone' }))
@@ -89,8 +103,14 @@ parts.push(box(2.7, 0.1, 0.55, 0, 3.1, 0, STONE_LIGHT, { mat: 'stone' }))
 parts.push(box(2.62, 0.06, 0.52, 0, 3.18, 0, STONE, { mat: 'stone' }))
 parts.push(box(2.54, 0.09, 0.48, 0, 3.255, 0, STONE_LIGHT, { mat: 'stone' }))
 
-// Threshold slab between the piers.
+// Threshold slab between the piers, worn into shallow cart grooves.
 parts.push(box(1.66, 0.05, 0.47, 0, 0.025, 0, STONE_DARK, { mat: 'stone' }))
+for (const x of [-0.52, 0, 0.52]) {
+  parts.push(box(0.3, 0.004, 0.05, x, 0.052, 0.1, MORTAR, { mat: 'stone' }))
+}
+for (const z of [-0.2, 0.2]) {
+  parts.push(box(1.62, 0.006, 0.008, 0, 0.052, z, '#6c6a62', { mat: 'stone' }))
+}
 
 export default defineModel({
   id: 'archway',

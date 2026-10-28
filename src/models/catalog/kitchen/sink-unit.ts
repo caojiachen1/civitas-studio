@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox, torus } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere, torus } from '../../kit'
 
 const BASIN_X = -0.02
 const BASIN_Z = -0.035
@@ -69,5 +69,16 @@ export default defineModel({
     box(0.022, 0.022, 0.016, 0.19, 0.74, 0.284, C.brass, { mat: 'metal' }),
     box(0.022, 0.022, 0.016, 0.39, 0.74, 0.284, C.brass, { mat: 'metal' }),
     box(1.16, 0.022, 0.02, 0, 0.812, 0.272, C.cream, { mat: 'matte' }),
+
+    // concealed door hinges
+    ...[-0.572, 0.572].flatMap((x) => [
+      rbox(0.014, 0.05, 0.028, 0.005, x, 0.26, 0.278, C.graphite, { mat: 'metal' }),
+      rbox(0.014, 0.05, 0.028, 0.005, x, 0.68, 0.278, C.graphite, { mat: 'metal' }),
+    ]),
+    // hot / cold index dots on the faucet base and a basin overflow cover
+    sphere(0.006, 0.007, 0.915, -0.173, C.red, { mat: 'gloss' }, 8),
+    sphere(0.006, 0.033, 0.915, -0.173, C.water, { mat: 'gloss' }, 8),
+    cyl(0.016, 0.016, 0.004, -0.02, 0.8, -0.1605, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
+    box(0.014, 0.003, 0.003, -0.02, 0.8, -0.158, C.ink, { mat: 'metal' }),
   ],
 })

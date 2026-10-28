@@ -83,6 +83,52 @@ const buds = [
   sphere(0.018, x, y, z, i % 3 === 0 ? '#c45a5a' : '#e8b95e', { mat: 'gloss' }, 8),
 )
 
+// Tall accent spikes lift the back of the border.
+const SPIKES: [number, number, string, string][] = [
+  [-0.58, 0.14, '#8f7fb8', '#6f6290'],
+  [-0.2, -0.16, '#d98fa6', '#b47287'],
+  [0.3, 0.15, '#e8b95e', '#b98f42'],
+  [0.6, -0.1, '#f0ece2', '#c9c3b3'],
+]
+const spikes = SPIKES.flatMap(([x, z, color, stemColor], i) => {
+  const h = 0.17 + (i % 2) * 0.015
+  return [
+    cyl(0.005, 0.008, h, x, 0.17 + h / 2, z, stemColor, { mat: 'foliage', rot: [0, 0, i % 2 === 0 ? 0.04 : -0.05] }, 5),
+    cone(0.026, 0.06, x + (i % 2 === 0 ? 0.006 : -0.006), 0.355, z, color, {
+      mat: 'foliage',
+      rot: [0.04, i * 0.8, 0],
+    }, 7),
+  ]
+})
+
+// Fallen petals rest on the mounded soil.
+const PETALS: [number, number, string][] = [
+  [-0.42, 0.06, '#e8c0c8'],
+  [-0.05, 0.2, '#f0ece2'],
+  [0.22, -0.12, '#e3b1be'],
+  [0.5, 0.14, '#f0ece2'],
+  [-0.3, -0.18, '#d9a8b6'],
+]
+const fallenPetals = PETALS.map(([x, z, color], i) =>
+  cyl(0.022, 0.014, 0.004, x, 0.178 + i * 0.0006, z, color, { mat: 'matte', rot: [0, i * 1.2, 0] }, 6),
+)
+
+// Low rosettes knit the planting together.
+const ROSETTES: [number, number, string][] = [
+  [-0.5, -0.14, '#5d7c4a'],
+  [0.08, -0.02, '#68884f'],
+  [0.46, 0.16, '#547243'],
+]
+const rosettes = ROSETTES.flatMap(([x, z, color], ri) =>
+  [0, 1, 2].map((k) => {
+    const a = (k * Math.PI * 2) / 3 + ri * 0.6
+    return ico(0.045 + (k % 2) * 0.008, x + Math.cos(a) * 0.04, 0.195, z + Math.sin(a) * 0.03, k === 1 ? '#6f8e5e' : color, {
+      mat: 'foliage',
+      rot: [0.2, a, 0.1],
+    }, 0)
+  }),
+)
+
 export default defineModel({
   id: 'flower-bed',
   name: '花坛',
@@ -116,5 +162,8 @@ export default defineModel({
     ...pebbles,
     ...mulch,
     ...buds,
+    ...spikes,
+    ...fallenPetals,
+    ...rosettes,
   ],
 })

@@ -18,7 +18,7 @@ export default defineModel({
   name: '有轨电车',
   category: 'vehicles',
   tags: ['tram', 'streetcar', 'rail', 'transit', '有轨电车', '电车', '轨道', '公共交通'],
-  footprint: [2.6, 9.0],
+  footprint: [2.74, 9.16],
   height: 3.4,
   placement: 'on-road',
   parts: [
@@ -92,5 +92,20 @@ export default defineModel({
     box(0.07, 0.04, 0.04, 1.265, 2.2, 4.08, dark, { mat: 'metal' }),
     rbox(0.05, 0.3, 0.16, 0.02, -1.275, 2.1, 4.11, dark),
     rbox(0.05, 0.3, 0.16, 0.02, 1.275, 2.1, 4.11, dark),
+
+    // wiper arms at the base of the cab screen
+    box(0.6, 0.014, 0.016, -0.44, 2.05, 4.405, dark, { mat: 'matte', rot: [0, 0, 0.15] }),
+    box(0.6, 0.014, 0.016, 0.44, 2.05, 4.405, dark, { mat: 'matte', rot: [0, 0, -0.15] }),
+    // fold-out door steps on both sides
+    box(0.18, 0.03, 1.08, -1.28, 0.33, 2.75, '#4a5054', { mat: 'metal' }),
+    box(0.18, 0.03, 1.08, 1.28, 0.33, 2.75, '#4a5054', { mat: 'metal' }),
+    box(0.18, 0.03, 1.08, -1.28, 0.33, -1.5, '#4a5054', { mat: 'metal' }),
+    box(0.18, 0.03, 1.08, 1.28, 0.33, -1.5, '#4a5054', { mat: 'metal' }),
+    // front coupler with its draw bar
+    box(0.28, 0.16, 0.2, 0, 0.5, 4.47, C.graphite, { mat: 'metal' }),
+    cyl(0.05, 0.05, 0.12, 0, 0.5, 4.6, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    // roof-mounted equipment boxes
+    box(0.7, 0.08, 0.6, 0, 3.0, 2.6, paintDeep, { mat: 'gloss' }),
+    box(0.7, 0.08, 0.5, 0, 3.0, -3.0, paintDeep, { mat: 'gloss' }),
   ],
 })

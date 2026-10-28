@@ -48,5 +48,16 @@ export default defineModel({
     // hinge covers
     box(0.05, 0.028, 0.014, -0.25, 0.77, 0.3, C.graphite, { mat: 'metal' }),
     box(0.05, 0.028, 0.014, 0.25, 0.77, 0.3, C.graphite, { mat: 'metal' }),
+
+    // levelling feet in the toe recess, plinth vent slots and hinge screws
+    cyl(0.017, 0.019, 0.042, -0.24, 0.021, 0.226, C.graphite, { mat: 'metal' }, 12),
+    cyl(0.017, 0.019, 0.042, 0.24, 0.021, 0.226, C.graphite, { mat: 'metal' }, 12),
+    ...[-0.015, -0.005, 0.005, 0.015].map((y) =>
+      box(0.42, 0.005, 0.004, 0, 0.032 + y, 0.2165, C.ink, { mat: 'matte' }),
+    ),
+    cyl(0.006, 0.006, 0.005, -0.25, 0.77, 0.3075, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    cyl(0.006, 0.006, 0.005, 0.25, 0.77, 0.3075, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    // gasket shadow line under the control strip
+    box(0.55, 0.005, 0.004, 0, 0.788, 0.301, C.ink, { mat: 'matte' }),
   ],
 })

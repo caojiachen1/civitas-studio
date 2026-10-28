@@ -1,17 +1,94 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import type { VisualStyle } from './types'
 
-function makeSkyTexture(): THREE.Texture {
+interface StylePreset {
+  sky: string[]
+  fog: string
+  fogNear: number
+  fogFar: number
+  hemiSky: string
+  hemiGround: string
+  hemiIntensity: number
+  sun: string
+  sunIntensity: number
+  fill: string
+  fillIntensity: number
+  groundTint: string
+  exposure: number
+}
+
+const STYLE_PRESETS: Record<VisualStyle, StylePreset> = {
+  mono: {
+    sky: ['#2c2c2c', '#262626', '#222222', '#1d1d1d', '#191919'],
+    fog: '#202020',
+    fogNear: 70,
+    fogFar: 280,
+    hemiSky: '#b8b8b8',
+    hemiGround: '#262626',
+    hemiIntensity: 1.2,
+    sun: '#ffffff',
+    sunIntensity: 2.35,
+    fill: '#b0b0b0',
+    fillIntensity: 0.6,
+    groundTint: '#ffffff',
+    exposure: 1,
+  },
+  daylight: {
+    sky: ['#eef5f8', '#d8e5ec', '#c1d2dc', '#a6bac7', '#8d9faa'],
+    fog: '#c6d1d8',
+    fogNear: 95,
+    fogFar: 380,
+    hemiSky: '#f1f7f8',
+    hemiGround: '#5f6a63',
+    hemiIntensity: 1.5,
+    sun: '#fff2d8',
+    sunIntensity: 2.8,
+    fill: '#cfe0ea',
+    fillIntensity: 0.75,
+    groundTint: '#ddd9cd',
+    exposure: 1.05,
+  },
+  sunset: {
+    sky: ['#6d5f72', '#a86f68', '#d4946b', '#8c5f58', '#3d3947'],
+    fog: '#8a6a5e',
+    fogNear: 65,
+    fogFar: 310,
+    hemiSky: '#d9b79e',
+    hemiGround: '#3a3130',
+    hemiIntensity: 1.15,
+    sun: '#ffb877',
+    sunIntensity: 2.7,
+    fill: '#6f7f96',
+    fillIntensity: 0.5,
+    groundTint: '#c8ad93',
+    exposure: 1.1,
+  },
+  blueprint: {
+    sky: ['#102532', '#0c1d28', '#091721', '#061019', '#040b10'],
+    fog: '#0a1a24',
+    fogNear: 60,
+    fogFar: 260,
+    hemiSky: '#a8cee4',
+    hemiGround: '#0a1820',
+    hemiIntensity: 1.15,
+    sun: '#d6ecff',
+    sunIntensity: 2.0,
+    fill: '#4c7d9c',
+    fillIntensity: 0.65,
+    groundTint: '#66808f',
+    exposure: 1,
+  },
+}
+
+function makeSkyTexture(style: VisualStyle): THREE.Texture {
   const canvas = document.createElement('canvas')
   canvas.width = 128
   canvas.height = 1024
   const ctx = canvas.getContext('2d')!
   const gradient = ctx.createLinearGradient(0, 0, 0, 1024)
-  gradient.addColorStop(0, '#2c2c2c')
-  gradient.addColorStop(0.32, '#262626')
-  gradient.addColorStop(0.58, '#222222')
-  gradient.addColorStop(0.82, '#1d1d1d')
-  gradient.addColorStop(1, '#191919')
+  const stops = STYLE_PRESETS[style].sky
+  stops.forEach((color, index) => gradient.addColorStop(index / (stops.length - 1), color))
   ctx.fillStyle = gradient
   ctx.fillRect(0, 0, 128, 1024)
   const texture = new THREE.CanvasTexture(canvas)
@@ -158,11 +235,15 @@ export interface EnvironmentRig {
   grid: THREE.Mesh
   sun: THREE.DirectionalLight
   sunTarget: THREE.Object3D
+  hemi: THREE.HemisphereLight
+  fill: THREE.DirectionalLight
+  groundMaterial: THREE.MeshStandardMaterial
+  applyStyle(style: VisualStyle): void
   update(target: THREE.Vector3): void
 }
 
 export function setupEnvironment(scene: THREE.Scene, renderer: THREE.WebGLRenderer): EnvironmentRig {
-  scene.background = makeSkyTexture()
+  scene.background = makeSkyTexture('mono')
   scene.fog = new THREE.Fog('#202020', 70, 280)
 
   const pmrem = new THREE.PMREMGenerator(renderer)
@@ -196,17 +277,15 @@ export function setupEnvironment(scene: THREE.Scene, renderer: THREE.WebGLRender
   fill.position.set(-30, 24, -20)
   scene.add(fill)
 
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(700, 700),
-    new THREE.MeshStandardMaterial({
-      map: makeGroundTexture(),
-      bumpMap: makeGroundBumpTexture(),
-      bumpScale: 0.055,
-      color: '#ffffff',
-      roughness: 0.98,
-      metalness: 0,
-    }),
-  )
+  const groundMaterial = new THREE.MeshStandardMaterial({
+    map: makeGroundTexture(),
+    bumpMap: makeGroundBumpTexture(),
+    bumpScale: 0.055,
+    color: '#ffffff',
+    roughness: 0.98,
+    metalness: 0,
+  })
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), groundMaterial)
   ground.rotation.x = -Math.PI / 2
   ground.position.y = -0.015
   ground.receiveShadow = true
@@ -226,5 +305,27 @@ export function setupEnvironment(scene: THREE.Scene, renderer: THREE.WebGLRender
   }
   update(new THREE.Vector3(0, 0, 0))
 
-  return { grid, sun, sunTarget, update }
+  const applyStyle = (style: VisualStyle) => {
+    const preset = STYLE_PRESETS[style]
+    const previous = scene.background
+    scene.background = makeSkyTexture(style)
+    if (previous instanceof THREE.Texture) previous.dispose()
+    if (scene.fog instanceof THREE.Fog) {
+      scene.fog.color.set(preset.fog)
+      scene.fog.near = preset.fogNear
+      scene.fog.far = preset.fogFar
+    }
+    hemi.color.set(preset.hemiSky)
+    hemi.groundColor.set(preset.hemiGround)
+    hemi.intensity = preset.hemiIntensity
+    sun.color.set(preset.sun)
+    sun.intensity = preset.sunIntensity
+    fill.color.set(preset.fill)
+    fill.intensity = preset.fillIntensity
+    groundMaterial.color.set(preset.groundTint)
+    renderer.toneMappingExposure = preset.exposure
+  }
+  applyStyle('mono')
+
+  return { grid, sun, sunTarget, hemi, fill, groundMaterial, applyStyle, update }
 }

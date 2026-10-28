@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, prism, rbox, torus } from '../../kit'
+import { C, box, cyl, defineModel, prism, rbox, sphere, torus } from '../../kit'
 
 // Rounded boxes are non-indexed; double-siding them keeps them in their own
 // material bucket so the kit never merges indexed and non-indexed geometry.
@@ -14,7 +14,7 @@ export default defineModel({
   category: 'street',
   tags: ['billboard', 'sign', 'advert', '广告牌', '户外广告'],
   footprint: [3.6, 0.8],
-  height: 5.2,
+  height: 5.25,
   placement: 'outdoor',
   parts: [
     // concrete footings and anchor plates
@@ -99,5 +99,22 @@ export default defineModel({
     ].map(([x, y]) =>
       rounded(0.08, 0.08, 0.03, 0.008, x, y, 0.12, C.steel, { mat: 'metal' }),
     ),
+
+    // photocell on the left post cap
+    cyl(0.018, 0.018, 0.025, -1.1, 5.212, -0.08, C.graphite, { mat: 'metal' }, 10),
+    sphere(0.017, -1.1, 5.232, -0.08, '#c9d7d0', { mat: 'gloss' }, 10),
+
+    // climbing rungs welded to the back of the right post
+    ...[1.2, 1.7, 2.2, 2.7, 3.2].map((y) =>
+      cyl(0.008, 0.008, 0.15, 1.1, y, -0.166, C.graphite, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    ),
+
+    // anchor nuts at the front corners of both base plates
+    ...[
+      [1.005, -0.185],
+      [1.195, -0.185],
+      [-1.005, -0.185],
+      [-1.195, -0.185],
+    ].map(([x, z]) => cyl(0.016, 0.016, 0.01, x, 0.215, z, C.graphite, { mat: 'metal' }, 6)),
   ],
 })

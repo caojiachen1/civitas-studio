@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Box,
   BrickWall,
+  Building2,
   Check,
   CircleDot,
   Construction,
@@ -43,6 +44,7 @@ import { getEditorScene } from '../editor/engineRef'
 import { createBlankDocument } from '../editor/store'
 import { createSampleDocument, SAMPLE_VIEW } from '../editor/sample'
 import { completeLevelRooms, detectedRoomCount, roomCompletionSummary } from '../editor/plan'
+import { BUILDING_TEMPLATES } from '../editor/buildings'
 import { CatalogPanel } from './CatalogPanel'
 import { NumberField, Section, Segmented, Slider, Swatch, Toggle } from './common'
 import type { PanelId } from './panels'
@@ -291,13 +293,14 @@ function SelectPanel() {
   const [mode, setMode] = useState<'translate' | 'rotate'>('translate')
 
   const counts = useMemo(() => {
-    const result = { objects: 0, walls: 0, openings: 0, paths: 0, surfaces: 0 }
+    const result = { objects: 0, walls: 0, openings: 0, paths: 0, surfaces: 0, buildings: 0 }
     for (const entity of Object.values(entities)) {
       if (entity.kind === 'object') result.objects++
       else if (entity.kind === 'wall') result.walls++
       else if (entity.kind === 'opening') result.openings++
       else if (entity.kind === 'path') result.paths++
       else if (entity.kind === 'slab' || entity.kind === 'roof') result.surfaces++
+      else if (entity.kind === 'building') result.buildings++
     }
     return result
   }, [entities])
@@ -401,6 +404,20 @@ function SelectPanel() {
         <Toggle checked={settings.showRoofs} onChange={(value) => patchSettings({ showRoofs: value })} label="显示屋顶" hint="隐藏屋顶后可查看并布置室内" />
       </Section>
 
+      <Section title="画面风格">
+        <Segmented
+          compact
+          value={settings.visualStyle}
+          onChange={(visualStyle) => patchSettings({ visualStyle })}
+          options={[
+            { value: 'mono', label: '单色' },
+            { value: 'daylight', label: '日光' },
+            { value: 'sunset', label: '黄昏' },
+            { value: 'blueprint', label: '蓝图' },
+          ]}
+        />
+        <p className="micro-hint">只调整天空、雾、光照与地面色调，不改建筑材质；可随时切换。</p>
+      </Section>
       <Section title="性能">
         <div className="quality-block">
           <div className="quality-head">
@@ -453,6 +470,10 @@ function SelectPanel() {
             <strong>{counts.surfaces}</strong>
           </div>
           <div className="metric-cell">
+            <span>整栋建筑</span>
+            <strong>{counts.buildings}</strong>
+          </div>
+          <div className="metric-cell">
             <span>楼层</span>
             <strong>{levels.length}</strong>
           </div>
@@ -465,6 +486,107 @@ function SelectPanel() {
           <span>R 旋转 · Delete 删除 · F 聚焦 · Ctrl+D 复制</span>
         </div>
         <kbd>?</kbd>
+      </div>
+    </div>
+  )
+}
+
+function BuildingPanel() {
+  const placeBuilding = useEditor((state) => state.placeBuilding)
+  const placeSkyline = useEditor((state) => state.placeSkyline)
+  const buildingCount = useEditor(
+    (state) => Object.values(state.doc.entities).filter((entity) => entity.kind === 'building').length,
+  )
+  const session = useEditor((state) => state.buildingSession)
+  const toast = useRuntime((state) => state.toast)
+  const [skylineCount, setSkylineCount] = useState<'4' | '6' | '8'>('6')
+
+  const viewTarget = () => {
+    const view = getEditorScene()?.getView()
+    return { x: view?.target[0] ?? 0, z: view?.target[2] ?? 0 }
+  }
+
+  const place = (templateId: (typeof BUILDING_TEMPLATES)[number]['id']) => {
+    const { x, z } = viewTarget()
+    const id = placeBuilding(templateId, x, z, 0)
+    if (id) {
+      toast('建筑已放置：选中后可整体移动/旋转，双击进入内部', 'success')
+      window.requestAnimationFrame(() => getEditorScene()?.focusSelection())
+    }
+  }
+
+  const skyline = () => {
+    const { x, z } = viewTarget()
+    const placed = placeSkyline(x, z, Number(skylineCount))
+    if (placed) {
+      toast(`已生成 ${placed} 栋建筑的天际线`, 'success')
+      window.requestAnimationFrame(() => getEditorScene()?.focusAll())
+    }
+  }
+
+  return (
+    <div className="panel-scroll">
+      <PanelHeading
+        eyebrow="BUILDINGS"
+        title="整栋建筑"
+        subtitle="先以整栋模型放置，再双击进入内部做外骨架和精装内饰；建筑在城市里始终是一个整体。"
+        icon={Building2}
+      />
+      <Section title="建筑模板">
+        <div className="style-choice-list">
+          {BUILDING_TEMPLATES.map((template) => (
+            <button
+              key={template.id}
+              type="button"
+              className="style-choice building-choice"
+              disabled={Boolean(session)}
+              onClick={() => place(template.id)}
+            >
+              <span className="choice-swatch building" />
+              <span className="choice-copy">
+                <strong>{template.name}</strong>
+                <small>
+                  {template.floors} 层 · {template.width} × {template.depth} m
+                </small>
+                <small className="building-subtitle">{template.subtitle}</small>
+              </span>
+              <Building2 size={16} />
+            </button>
+          ))}
+        </div>
+        <p className="micro-hint">
+          {session ? '正在编辑「' + session.name + '」内部，请先退出建筑再放置新建筑。' : '点击模板即放在当前视角中心；选中后拖动三轴或按 R 整体移动/旋转。'}
+        </p>
+      </Section>
+      <Section title="天际线排布">
+        <Segmented
+          compact
+          value={skylineCount}
+          onChange={setSkylineCount}
+          options={[
+            { value: '4', label: '4 栋' },
+            { value: '6', label: '6 栋' },
+            { value: '8', label: '8 栋' },
+          ]}
+        />
+        <button type="button" className="soft-button wide" disabled={Boolean(session)} onClick={skyline}>
+          <Sparkles size={14} /> 一键生成天际线
+        </button>
+        <p className="micro-hint">沿当前视角中心横向排布不同高度的塔楼与办公楼，可整体继续移动。</p>
+      </Section>
+      <Section title="建筑内外">
+        <TipList
+          items={[
+            `当前城市已有 ${buildingCount} 栋建筑。`,
+            '单击选中整栋建筑，双击或右侧「进入建筑」进入内部。',
+            '外骨架模式编辑墙、窗、门、楼梯；内饰模式自动把视角放进楼内。',
+            '内部顶部栏可按楼层切换，退出后整栋建筑回到城市。',
+          ]}
+        />
+      </Section>
+      <div className="panel-footnote">
+        <span className="legend-dot valid" /> 点击模板放置
+        <span className="footnote-sep">·</span> 双击进入内部
       </div>
     </div>
   )
@@ -1218,6 +1340,7 @@ export function LeftPanel({ activePanel }: { activePanel: PanelId }) {
     <aside className="side-panel">
       {activePanel === 'select' && <SelectPanel />}
       {activePanel === 'plan' && <PlanPanel />}
+      {activePanel === 'building' && <BuildingPanel />}
       {activePanel === 'wall' && <WallPanel />}
       {activePanel === 'openings' && <OpeningsPanel />}
       {activePanel === 'slab' && <SlabPanel />}

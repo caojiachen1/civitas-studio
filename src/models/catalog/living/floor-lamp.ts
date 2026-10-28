@@ -46,5 +46,11 @@ export default defineModel({
     // weighted base plate and braided cord
     cyl(0.055, 0.062, 0.012, 0, 0.01, 0, C.brass, { mat: 'metal' }, 18),
     cyl(0.0055, 0.0055, 0.22, 0, 0.011, 0.11, '#4a4038', { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 6),
+
+    // inner shade ring, socket collar, cord clip and a felt floor pad
+    torus(0.169, 0.005, 0, 1.463, 0, '#c9bda9', { mat: 'fabric', rot: [Math.PI / 2, 0, 0] }, 28),
+    torus(0.03, 0.004, 0, 1.455, 0, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
+    cyl(0.008, 0.008, 0.014, 0, 0.011, 0.06, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    cyl(0.066, 0.066, 0.005, 0, 0.0025, 0, '#2f2b27', { mat: 'matte' }, 20),
   ],
 })

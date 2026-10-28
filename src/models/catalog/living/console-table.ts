@@ -81,5 +81,14 @@ export default defineModel({
     sphere(0.017, -0.38, 0.8, 0.02, C.stone, { mat: 'stone' }, 12),
     sphere(0.015, -0.33, 0.802, 0.05, '#8c8a80', { mat: 'stone' }, 12),
     sphere(0.014, -0.31, 0.801, -0.02, C.concrete, { mat: 'stone' }, 12),
+
+    // drawer reveals, keyhole escutcheons and an extra grain line
+    box(0.6, 0.004, 0.005, -0.34, 0.7225, 0.172, '#7d5c39', { mat: 'wood' }),
+    box(0.6, 0.004, 0.005, 0.34, 0.7225, 0.172, '#7d5c39', { mat: 'wood' }),
+    box(0.6, 0.004, 0.005, -0.34, 0.5975, 0.172, '#7d5c39', { mat: 'wood' }),
+    box(0.6, 0.004, 0.005, 0.34, 0.5975, 0.172, '#7d5c39', { mat: 'wood' }),
+    cyl(0.009, 0.009, 0.004, -0.56, 0.63, 0.172, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    cyl(0.009, 0.009, 0.004, 0.56, 0.63, 0.172, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    box(1.34, 0.002, 0.005, 0, 0.7805, -0.18, '#a9814f', { mat: 'wood' }),
   ],
 })

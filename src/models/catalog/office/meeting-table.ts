@@ -98,5 +98,27 @@ export default defineModel({
     box(0.005, 0.002, 0.26, 0.07, 0.726, 0.4, '#b7b0a2', { mat: 'matte' }),
     cyl(0.004, 0.004, 0.15, 0.1, 0.727, 0.47, C.ink, { mat: 'gloss', rot: [Math.PI / 2, 0, 0.06] }, 8),
     cyl(0.004, 0.004, 0.15, 0.19, 0.727, 0.46, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, -0.06] }, 8),
+
+    // conference speakerphone sitting on the cable box
+    cyl(0.085, 0.09, 0.022, 0, 0.7365, 0, C.graphite, { mat: 'matte' }, 32),
+    torus(0.077, 0.004, 0, 0.7485, 0, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 32),
+    cyl(0.068, 0.068, 0.005, 0, 0.75, 0, C.ink, { mat: 'matte' }, 28),
+    ...[0, (Math.PI * 2) / 3, (Math.PI * 4) / 3].map((a) =>
+      cyl(0.006, 0.006, 0.003, Math.cos(a) * 0.05, 0.7525, Math.sin(a) * 0.05, C.blackMetal, { mat: 'metal' }, 10),
+    ),
+    cyl(0.004, 0.004, 0.003, 0, 0.7525, 0.06, C.leafLight, { mat: 'emissive' }, 8),
+    // leg plate screws and cable grommets at both ends of the top
+    ...[
+      [-1.03, 0.471],
+      [1.03, 0.471],
+      [-1.03, -0.471],
+      [1.03, -0.471],
+    ].map(([x, z]) =>
+      cyl(0.007, 0.007, 0.005, x, 0.665, z, METAL_LIGHT, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    ),
+    ...[-1.02, 1.02].flatMap((x) => [
+      cyl(0.032, 0.032, 0.004, x, 0.7215, 0, '#1f2326', { mat: 'matte' }, 24),
+      torus(0.032, 0.004, x, 0.7225, 0, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 24),
+    ]),
   ],
 })

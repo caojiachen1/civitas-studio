@@ -1,8 +1,14 @@
-import { C, box, cyl, defineModel, rbox } from '../../kit'
+import { C, box, cyl, defineModel, rbox, torus } from '../../kit'
 
 const SHELF_Y = [0.32, 0.75, 1.18, 1.61]
 const POST_X = [-0.44, 0.44]
 const POST_Z = [-0.17, 0.17]
+const LABELS: [number, number][] = [
+  [-0.28, 0.75],
+  [0.02, 0.75],
+  [-0.28, 1.18],
+  [0.02, 1.18],
+]
 
 export default defineModel({
   id: 'laundry-shelf',
@@ -70,5 +76,21 @@ export default defineModel({
     // anti-tip wall straps
     box(0.03, 0.08, 0.03, -0.44, 1.86, -0.185, C.blackMetal, { mat: 'metal' }),
     box(0.03, 0.08, 0.03, 0.44, 1.86, -0.185, C.blackMetal, { mat: 'metal' }),
+
+    // brass clip-on labels on the shelf lips
+    ...LABELS.flatMap(([x, y]) => [
+      rbox(0.1, 0.02, 0.004, 0.002, x, y + 0.006, 0.1765, C.brass, { mat: 'metal' }),
+      box(0.07, 0.008, 0.002, x, y + 0.006, 0.1795, C.white, { mat: 'matte' }),
+    ]),
+    // hanging utility brush on the right post
+    torus(0.016, 0.004, 0.44, 1.0, 0.183, C.brass, { mat: 'metal' }, 14),
+    cyl(0.007, 0.007, 0.16, 0.45, 0.912, 0.186, C.birch, { mat: 'wood' }, 8),
+    rbox(0.046, 0.05, 0.02, 0.008, 0.45, 0.81, 0.186, C.sage, { mat: 'matte' }),
+    box(0.042, 0.03, 0.012, 0.45, 0.79, 0.186, C.graphite, { mat: 'matte' }),
+    // top rail screws
+    ...[-0.3, 0.3].flatMap((x) => [
+      cyl(0.006, 0.006, 0.005, x, 1.93, 0.1835, C.graphite, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+      cyl(0.006, 0.006, 0.005, x, 1.93, -0.1835, C.graphite, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    ]),
   ],
 })

@@ -85,5 +85,18 @@ export default defineModel({
     rbox(0.72, 0.028, 0.1, 0.01, 0.9, 0.534, 0.72, '#d8cbb6', { mat: 'fabric' }),
     rbox(0.72, 0.2, 0.028, 0.012, 0.9, 0.42, 1.0, C.sand, { mat: 'fabric' }),
     box(0.6, 0.006, 0.008, 0.9, 0.543, 0.66, '#b5a68e', { mat: 'fabric' }),
+
+    // missing brass ferrules on the rear legs and back cushion stitch lines
+    cyl(0.021, 0.021, 0.016, 0.55, 0.008, -0.83, C.brass, { mat: 'metal' }, 10),
+    cyl(0.021, 0.021, 0.016, 1.3, 0.008, -0.83, C.brass, { mat: 'metal' }, 10),
+    box(0.52, 0.005, 0.008, -1.02, 0.72, -0.726, SEAM, { mat: 'fabric', rot: [-0.12, 0, 0] }),
+    box(0.52, 0.005, 0.008, -0.44, 0.72, -0.726, SEAM, { mat: 'fabric', rot: [-0.12, 0, 0] }),
+    box(0.52, 0.005, 0.008, 0.14, 0.72, -0.726, SEAM, { mat: 'fabric', rot: [-0.12, 0, 0] }),
+
+    // brass nailhead trim on the outer face of the long arm
+    sphere(0.008, 1.404, 0.43, -0.65, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, 1.404, 0.43, -0.25, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, 1.404, 0.43, 0.15, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, 1.404, 0.43, 0.55, C.brass, { mat: 'metal' }, 8),
   ],
 })

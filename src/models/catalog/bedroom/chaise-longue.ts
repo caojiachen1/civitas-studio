@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox, sphere } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere, torus } from '../../kit'
 
 const CLAY = '#b98f7d'
 const CLAY_LIGHT = '#c69d8b'
@@ -79,5 +79,14 @@ export default defineModel({
     box(0.5, 0.006, 0.008, -0.1, 0.53, 0.735, '#7f8f78', { mat: 'fabric' }),
     // small brass maker's plate on the side rail
     box(0.006, 0.028, 0.09, -0.383, 0.3, 0.5, C.brass, { mat: 'metal' }),
+
+    // base rail nailheads, bolster end seams and plate screws
+    sphere(0.008, -0.382, 0.28, 0.35, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, -0.382, 0.28, 0.12, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, -0.382, 0.28, -0.11, C.brass, { mat: 'metal' }, 8),
+    sphere(0.005, -0.386, 0.3, 0.53, C.brass, { mat: 'metal' }, 8),
+    sphere(0.005, -0.386, 0.3, 0.47, C.brass, { mat: 'metal' }, 8),
+    torus(0.085, 0.003, -0.291, 0.615, -0.42, SEAM, { mat: 'fabric', rot: [0, Math.PI / 2, 0] }, 20),
+    torus(0.085, 0.003, 0.191, 0.615, -0.42, SEAM, { mat: 'fabric', rot: [0, Math.PI / 2, 0] }, 20),
   ],
 })

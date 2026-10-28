@@ -60,5 +60,15 @@ export default defineModel({
     // front bolts
     cyl(0.011, 0.011, 0.012, -0.2, 0.64, 0.222, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
     cyl(0.011, 0.011, 0.012, 0.1, 0.64, 0.222, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    // lid hinge barrels along the rear rim
+    cyl(0.016, 0.016, 0.055, -0.16, 0.878, -0.245, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.016, 0.016, 0.055, 0.06, 0.878, -0.245, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    // chimney vent with damper disc and tab
+    cyl(0.016, 0.02, 0.04, -0.05, 1.045, -0.035, C.blackMetal, { mat: 'metal' }, 12),
+    cyl(0.028, 0.028, 0.008, -0.05, 1.068, -0.035, C.steel, { mat: 'metal' }, 12),
+    box(0.026, 0.008, 0.012, -0.05, 1.068, -0.008, C.steel, { mat: 'metal' }),
+    // spatula resting on the side shelf
+    box(0.075, 0.008, 0.12, 0.2725, 0.683, -0.13, C.steel, { mat: 'metal', rot: [0, 0.12, 0] }),
+    box(0.022, 0.014, 0.11, 0.2725, 0.686, -0.005, C.walnut, { mat: 'wood', rot: [0, 0.12, 0] }),
   ],
 })

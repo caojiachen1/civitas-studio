@@ -61,5 +61,13 @@ export default defineModel({
       cyl(0.036, 0.024, 0.07, x, 1.5685, 0, C.glass, { mat: 'glass', opacity: 0.75 }, 20),
       torus(0.036, 0.0025, x, 1.6035, 0, C.glass, { mat: 'glass', opacity: 0.75, rot: [Math.PI / 2, 0, 0] }, 20),
     ]),
+
+    // brass row tags on the left upright, shelf nameplate and wall screws
+    ...ROWS.map((y) => rbox(0.03, 0.024, 0.005, 0.002, -0.325, y + 0.012, 0.023, C.brass, { mat: 'metal' })),
+    rbox(0.12, 0.02, 0.005, 0.003, 0, 1.456, 0.1555, C.brass, { mat: 'metal' }),
+    ...[-0.24, 0.24].flatMap((x) => [
+      cyl(0.008, 0.008, 0.006, x, 1.63, -0.153, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+      cyl(0.008, 0.008, 0.006, x, 0.1, -0.153, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    ]),
   ],
 })

@@ -75,5 +75,15 @@ export default defineModel({
     ...Array.from({ length: 5 }, (_, i) =>
       box(0.005, 0.075, 0.002, -0.13 + i * 0.065, 0.6, -0.198, C.ink, { mat: 'matte' }),
     ),
+
+    // rubber tread on the foot pedal
+    box(0.13, 0.008, 0.07, 0, 0.049, 0.21, '#2c3033', { mat: 'matte' }),
+
+    // caulk bead bedding the base on the paving
+    torus(0.213, 0.005, 0, 0.004, 0, '#a9a69c', { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 28),
+
+    // hinge barrels through the lid hinge blocks
+    cyl(0.007, 0.007, 0.07, 0.08, 0.842, -0.222, metal, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.007, 0.007, 0.07, -0.08, 0.842, -0.222, metal, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
   ],
 })

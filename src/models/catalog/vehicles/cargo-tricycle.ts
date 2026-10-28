@@ -88,5 +88,18 @@ export default defineModel({
     box(0.4, 0.3, 0.32, 0, 0.49, -0.3, dark, { mat: 'metal' }),
     cyl(0.09, 0.09, 0.16, 0, 0.27, -0.62, dark, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
     cyl(0.011, 0.011, 0.45, -0.12, 0.21, 0.28, dark, { mat: 'metal', rot: [0, 0, -0.4] }, 8),
+    // canvas load straps with steel buckles
+    box(0.98, 0.018, 0.04, 0, 0.99, -0.35, '#8a7a5c', { mat: 'fabric' }),
+    box(0.06, 0.03, 0.055, 0.3, 0.995, -0.35, C.steel, { mat: 'metal' }),
+    box(0.98, 0.018, 0.04, 0, 0.99, -0.9, '#8a7a5c', { mat: 'fabric' }),
+    box(0.06, 0.03, 0.055, 0.3, 0.995, -0.9, C.steel, { mat: 'metal' }),
+    // tailgate hinges
+    box(0.07, 0.04, 0.022, -0.35, 0.68, -1.168, chrome, { mat: 'metal' }),
+    box(0.07, 0.04, 0.022, 0.35, 0.68, -1.168, chrome, { mat: 'metal' }),
+    // rear-view mirrors on both bar ends
+    cyl(0.008, 0.008, 0.16, -0.33, 1.09, 0.63, chrome, { mat: 'metal', rot: [0, 0, 0.4] }, 8),
+    rbox(0.1, 0.07, 0.02, 0.02, -0.37, 1.16, 0.63, dark),
+    cyl(0.008, 0.008, 0.16, 0.33, 1.09, 0.63, chrome, { mat: 'metal', rot: [0, 0, -0.4] }, 8),
+    rbox(0.1, 0.07, 0.02, 0.02, 0.37, 1.16, 0.63, dark),
   ],
 })

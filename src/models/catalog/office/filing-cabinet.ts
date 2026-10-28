@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox } from '../../kit'
+import { C, box, cyl, defineModel, rbox, torus } from '../../kit'
 
 export default defineModel({
   id: 'filing-cabinet',
@@ -53,5 +53,13 @@ export default defineModel({
     rbox(0.2, 0.022, 0.29, 0.005, 0.11, 1.306, -0.02, C.sand, { mat: 'matte' }),
     rbox(0.075, 0.032, 0.004, 0.002, 0.11, 1.23, 0.121, C.white, { mat: 'matte' }),
     rbox(0.055, 0.014, 0.006, 0.003, 0.11, 1.18, 0.122, C.graphite, { mat: 'matte' }),
+
+    // key left in the cam lock, side vents and a maker's plate on the top edge
+    cyl(0.005, 0.005, 0.018, 0.15, 0.958, 0.291, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    torus(0.013, 0.004, 0.15, 0.958, 0.305, C.brass, { mat: 'metal' }, 16),
+    ...[0.25, 0.4, 0.55, 0.7].map((y) =>
+      box(0.003, 0.008, 0.1, -0.2215, y, -0.1, C.graphite, { mat: 'matte' }),
+    ),
+    rbox(0.11, 0.016, 0.004, 0.003, 0, 1.1125, 0.2765, C.brass, { mat: 'metal' }),
   ],
 })

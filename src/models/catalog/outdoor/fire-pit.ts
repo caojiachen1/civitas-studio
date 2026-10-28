@@ -1,4 +1,4 @@
-import { C, box, cone, cyl, defineModel, ico, torus } from '../../kit'
+import { C, box, cone, cyl, defineModel, ico, rbox, torus } from '../../kit'
 
 const stoneDark = '#7c7a72'
 const stoneLight = '#8d8a80'
@@ -50,5 +50,14 @@ export default defineModel({
     ico(0.055, -0.09, 0.33, 0.04, '#b04a17', { mat: 'emissive' }, 0),
     ico(0.05, 0.08, 0.335, -0.05, '#b04a17', { mat: 'emissive' }, 0),
     ico(0.04, 0.03, 0.34, 0.09, '#c9611f', { mat: 'emissive' }, 0),
+    // chrome cooking grate resting on the bowl lip
+    torus(0.225, 0.008, 0, 0.32, 0, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 24),
+    box(0.52, 0.008, 0.01, 0, 0.32, 0, C.steel, { mat: 'metal' }),
+    box(0.5, 0.008, 0.01, 0, 0.32, -0.12, C.steel, { mat: 'metal' }),
+    box(0.5, 0.008, 0.01, 0, 0.32, 0.12, C.steel, { mat: 'metal' }),
+    // brass maker's plaque on the front stone, leather gloves resting on the kerb
+    box(0.12, 0.055, 0.008, 0, 0.16, 0.451, C.brass, { mat: 'metal' }),
+    rbox(0.075, 0.03, 0.16, 0.012, -0.07, 0.278, 0.37, C.leather, { mat: 'leather', rot: [0, 0.14, 0] }),
+    rbox(0.075, 0.03, 0.16, 0.012, 0.06, 0.278, 0.375, C.leather, { mat: 'leather', rot: [0, -0.1, 0] }),
   ],
 })

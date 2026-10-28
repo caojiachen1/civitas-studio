@@ -19,7 +19,7 @@ export default defineModel({
   name: '皮卡',
   category: 'vehicles',
   tags: ['pickup', 'truck', 'utility', '皮卡', '货车', '工具车', '载货'],
-  footprint: [1.95, 5.3],
+  footprint: [2.1, 5.35],
   height: 1.9,
   placement: 'on-road',
   parts: [
@@ -101,5 +101,19 @@ export default defineModel({
     rbox(0.16, 0.34, 0.06, 0.02, 0.82, 0.98, -2.62, C.red, { mat: 'emissive' }),
     box(0.44, 0.12, 0.02, 0, 0.7, -2.64, C.white),
     cyl(0.045, 0.045, 0.12, -0.55, 0.32, -2.56, chrome, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+
+    // bed tie-down hooks
+    box(0.05, 0.025, 0.04, -0.835, 0.91, -1.0, chrome, { mat: 'metal' }),
+    box(0.05, 0.025, 0.04, 0.835, 0.91, -1.0, chrome, { mat: 'metal' }),
+    box(0.05, 0.025, 0.04, -0.835, 0.91, -2.3, chrome, { mat: 'metal' }),
+    box(0.05, 0.025, 0.04, 0.835, 0.91, -2.3, chrome, { mat: 'metal' }),
+    // tailgate release handle
+    box(0.18, 0.035, 0.02, 0, 1.02, -2.66, chrome, { mat: 'metal' }),
+    // wiper arms on the windscreen
+    box(0.5, 0.012, 0.014, -0.34, 1.45, 1.55, dark, { mat: 'matte', rot: [-0.42, 0, 0.18] }),
+    box(0.5, 0.012, 0.014, 0.34, 1.45, 1.55, dark, { mat: 'matte', rot: [-0.42, 0, -0.18] }),
+    // rubber mud flaps behind the rear wheels
+    box(0.3, 0.3, 0.03, -0.82, 0.42, -2.04, dark, { mat: 'matte' }),
+    box(0.3, 0.3, 0.03, 0.82, 0.42, -2.04, dark, { mat: 'matte' }),
   ],
 })

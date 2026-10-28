@@ -78,5 +78,14 @@ export default defineModel({
     // service door hinge and lock barrel
     cyl(0.009, 0.009, 0.05, 0.122, 1.34, 0.03, metal, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
     cyl(0.017, 0.017, 0.02, -0.124, 1.12, 0.03, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 12),
+
+    // coin return cup with its dark opening
+    rounded(0.05, 0.036, 0.016, 0.004, -0.055, 1.14, 0.094, C.graphite, { mat: 'metal' }),
+    box(0.034, 0.014, 0.008, -0.055, 1.14, 0.105, C.ink, { mat: 'matte' }),
+
+    // collar clamping the head onto the pedestal, with set screws
+    torus(0.034, 0.008, 0, 1.075, 0, C.graphite, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 20),
+    cyl(0.004, 0.004, 0.01, 0.045, 1.075, 0, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 6),
+    cyl(0.004, 0.004, 0.01, -0.045, 1.075, 0, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 6),
   ],
 })

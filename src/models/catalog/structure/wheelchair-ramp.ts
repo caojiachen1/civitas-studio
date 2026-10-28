@@ -102,6 +102,35 @@ for (const ez of [-1.774, 1.924]) {
   }
 }
 
+// Hazard edges along the kerbs and warning bars on the landing.
+for (const side of [-1, 1]) {
+  parts.push(
+    box(0.045, 0.006, SLOPE_LEN - 0.1, side * 0.94, DECK_Y + 0.126, MID_Z, TACTILE, {
+      mat: 'matte',
+      rot: [ANGLE, 0, 0],
+    }),
+  )
+}
+for (const x of [-0.6, 0, 0.6]) {
+  parts.push(box(0.36, 0.008, 0.05, x, 0.499, -1.9, TACTILE, { mat: 'matte' }))
+}
+
+// End plates close the timber handrail caps.
+const railEnds = [
+  [-1.86, ANGLE],
+  [1.9, -ANGLE],
+]
+for (const side of [-1, 1]) {
+  for (const [ez, tilt] of railEnds) {
+    parts.push(
+      box(0.08, 0.07, 0.03, side * RAIL_X, topAt(ez) + 0.577, ez, METAL_LIGHT, {
+        mat: 'metal',
+        rot: [tilt, 0, 0],
+      }),
+    )
+  }
+}
+
 // Anchor bolts at the ramp feet.
 for (const lz of LEG_Z) {
   for (const side of [-1, 1]) {

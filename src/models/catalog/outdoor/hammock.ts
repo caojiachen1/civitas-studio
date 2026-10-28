@@ -90,5 +90,16 @@ export default defineModel({
     rbox(0.42, 0.12, 0.3, 0.05, 0, 0.575, 0, C.linen, { mat: 'fabric', rot: [0, 0.18, 0] }),
     cyl(0.012, 0.012, 0.012, -0.09, 0.638, 0.02, C.cream, { mat: 'fabric' }, 8),
     cyl(0.012, 0.012, 0.012, 0.09, 0.638, -0.02, C.cream, { mat: 'fabric' }, 8),
+    // whipped cord bindings at each end of the spreader bars
+    torus(0.026, 0.007, -1.06, 0.79, -0.44, ROPE, { mat: 'fabric' }, 12),
+    torus(0.026, 0.007, -1.06, 0.79, 0.44, ROPE, { mat: 'fabric' }, 12),
+    torus(0.026, 0.007, 1.06, 0.79, -0.44, ROPE, { mat: 'fabric' }, 12),
+    torus(0.026, 0.007, 1.06, 0.79, 0.44, ROPE, { mat: 'fabric' }, 12),
+    // spare cord tails hanging from the post lashings
+    strut([-1.53, 1.26, 0.02], [-1.57, 1.1, 0.06], 0.008, ROPE, 'fabric'),
+    strut([1.53, 1.26, -0.02], [1.57, 1.09, -0.07], 0.008, ROPE, 'fabric'),
+    // forged rings where the centre rope meets the spreader bar
+    torus(0.024, 0.006, -1.06, 0.79, 0, C.steel, { mat: 'metal' }, 12),
+    torus(0.024, 0.006, 1.06, 0.79, 0, C.steel, { mat: 'metal' }, 12),
   ],
 })

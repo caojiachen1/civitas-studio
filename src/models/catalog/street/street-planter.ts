@@ -91,5 +91,23 @@ export default defineModel({
 
     // small brass maker plaque
     rounded(0.09, 0.04, 0.004, 0.002, 0, 0.36, 0.2515, C.brass, { mat: 'metal' }),
+
+    // drip irrigation line lying on the soil with two emitters
+    cyl(0.007, 0.007, 1.0, 0, 0.566, -0.12, C.graphite, { mat: 'matte', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.006, 0.006, 0.022, 0.3, 0.573, -0.12, C.ink, { mat: 'matte' }, 8),
+    cyl(0.006, 0.006, 0.022, -0.3, 0.573, -0.12, C.ink, { mat: 'matte' }, 8),
+
+    // brass slat screws along the front face
+    ...[
+      [-0.52, 0.13],
+      [0.52, 0.13],
+      [-0.52, 0.44],
+      [0.52, 0.44],
+    ].map(([x, y]) => cyl(0.008, 0.008, 0.004, x, y, 0.2515, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8)),
+
+    // pebbles scattered at the soil edge
+    ico(0.018, 0.28, 0.572, 0.12, C.stone, { mat: 'stone' }, 0),
+    ico(0.015, -0.28, 0.568, -0.1, C.stone, { mat: 'stone' }, 0),
+    ico(0.013, 0.02, 0.566, 0.13, C.stone, { mat: 'stone' }, 0),
   ],
 })

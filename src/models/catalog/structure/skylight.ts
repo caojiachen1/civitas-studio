@@ -63,6 +63,20 @@ for (const sx of [-1, 1]) {
 }
 parts.push(box(0.14, 0.04, 0.14, 0, 0.4, 0, ALU_DARK, { mat: 'metal' }))
 
+// Mid-slope glazing bars brace each pane against snow load.
+parts.push(box(0.94, 0.012, 0.03, 0, 0.278, 0.23, ALU_DARK, { mat: 'metal', rot: [SLOPE_ANGLE, 0, 0] }))
+parts.push(box(0.94, 0.012, 0.03, 0, 0.278, -0.23, ALU_DARK, { mat: 'metal', rot: [-SLOPE_ANGLE, 0, 0] }))
+parts.push(box(0.03, 0.012, 0.94, 0.23, 0.278, 0, ALU_DARK, { mat: 'metal', rot: [0, 0, -SLOPE_ANGLE] }))
+parts.push(box(0.03, 0.012, 0.94, -0.23, 0.278, 0, ALU_DARK, { mat: 'metal', rot: [0, 0, SLOPE_ANGLE] }))
+
+// Weep slots in the gutter and colour-matched fixing caps.
+for (const sx of [-1, 1]) {
+  for (const sz of [-1, 1]) {
+    parts.push(box(0.06, 0.004, 0.02, sx * 0.35, 0.171, sz * 0.575, '#3f4446', { mat: 'matte' }))
+    parts.push(cyl(0.01, 0.01, 0.006, sx * 0.38, 0.143, sz * 0.555, ALU_DARK, { mat: 'metal' }, 8))
+  }
+}
+
 // Perimeter drainage gutter with two downspout stubs.
 for (const sz of [-1, 1]) {
   parts.push(box(1.18, 0.03, 0.04, 0, 0.155, sz * 0.575, ALU_DARK, { mat: 'metal' }))

@@ -2,7 +2,22 @@ import * as THREE from 'three'
 import { GeometryCollector, solidRibbonGeometry, stripGeometry } from '../collector'
 import { getPathBundle, type PathSample } from '../geom'
 import { getPlainMaterial, getSurfaceMaterial } from '../../models/kit'
-import type { PathEntity, Vec2 } from '../types'
+import type { PathEntity } from '../types'
+import {
+  addBridgeDeckDetails,
+  addBridgeRailing,
+  addCarriagewayMarkings,
+  addFootpathDetails,
+  addPondShoreDetails,
+  addRiverBankDetails,
+  addRoadEdgeDetails,
+  addSidewalkDetails,
+  bridgePierPoints,
+  pondWaterGeometry,
+  waterRibbonGeometry,
+  type CarriagewaySpec,
+  type PathDetailMaterials,
+} from './roadDetails'
 
 function seeded(seed: number) {
   let s = seed
@@ -134,6 +149,158 @@ function sidewalkTextures(): { color: THREE.CanvasTexture; bump: THREE.CanvasTex
   return { color: colorTexture, bump: bumpTexture }
 }
 
+function cobbleTextures(): { color: THREE.CanvasTexture; bump: THREE.CanvasTexture } {
+  const size = 512
+  const color = document.createElement('canvas')
+  color.width = size
+  color.height = size
+  const ctx = color.getContext('2d')!
+  const bump = document.createElement('canvas')
+  bump.width = size
+  bump.height = size
+  const bctx = bump.getContext('2d')!
+  const rand = seeded(6301)
+  ctx.fillStyle = '#6b665c'
+  ctx.fillRect(0, 0, size, size)
+  bctx.fillStyle = '#3c3c3c'
+  bctx.fillRect(0, 0, size, size)
+  const rows = 7
+  const cell = size / rows
+  for (let row = 0; row < rows; row++) {
+    const offset = row % 2 === 0 ? 0 : cell / 2
+    for (let col = -1; col <= rows; col++) {
+      const cx = col * cell + cell / 2 + offset + (rand() - 0.5) * 5
+      const cy = row * cell + cell / 2 + (rand() - 0.5) * 5
+      const rx = cell * (0.36 + rand() * 0.08)
+      const ry = cell * (0.31 + rand() * 0.07)
+      const tone = 126 + Math.floor(rand() * 30)
+      ctx.fillStyle = `rgb(${tone},${tone - 4},${tone - 10})`
+      ctx.beginPath()
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(58,54,48,0.45)'
+      ctx.lineWidth = 2
+      ctx.stroke()
+      const bumpTone = 168 + Math.floor(rand() * 58)
+      bctx.fillStyle = `rgb(${bumpTone},${bumpTone},${bumpTone})`
+      bctx.beginPath()
+      bctx.ellipse(cx, cy, rx * 0.9, ry * 0.9, 0, 0, Math.PI * 2)
+      bctx.fill()
+    }
+  }
+  for (let i = 0; i < 2600; i++) {
+    const v = Math.floor(rand() * 26) - 13
+    ctx.fillStyle = `rgba(${122 + v},${116 + v},${104 + v},0.24)`
+    ctx.fillRect(rand() * size, rand() * size, 1.5, 1.5)
+  }
+  const colorTexture = new THREE.CanvasTexture(color)
+  const bumpTexture = new THREE.CanvasTexture(bump)
+  for (const texture of [colorTexture, bumpTexture]) {
+    texture.wrapS = THREE.RepeatWrapping
+    texture.wrapT = THREE.RepeatWrapping
+    texture.repeat.set(0.34, 0.34)
+    texture.anisotropy = 16
+  }
+  colorTexture.colorSpace = THREE.SRGBColorSpace
+  return { color: colorTexture, bump: bumpTexture }
+}
+
+function curbTextures(): { color: THREE.CanvasTexture; bump: THREE.CanvasTexture } {
+  const size = 128
+  const color = document.createElement('canvas')
+  color.width = size
+  color.height = size
+  const ctx = color.getContext('2d')!
+  const rand = seeded(2207)
+  ctx.fillStyle = '#a8a193'
+  ctx.fillRect(0, 0, size, size)
+  for (let i = 0; i < 1200; i++) {
+    const v = Math.floor(rand() * 22) - 11
+    ctx.fillStyle = `rgba(${168 + v},${161 + v},${147 + v},${0.2 + rand() * 0.3})`
+    ctx.fillRect(rand() * size, rand() * size, 1 + rand() * 2.4, 1 + rand() * 2.4)
+  }
+  ctx.fillStyle = 'rgba(76,72,64,0.7)'
+  ctx.fillRect(0, 0, size, 3)
+  ctx.fillStyle = 'rgba(216,210,196,0.45)'
+  ctx.fillRect(0, 3, size, 2)
+  const bump = document.createElement('canvas')
+  bump.width = size
+  bump.height = size
+  const bctx = bump.getContext('2d')!
+  bctx.fillStyle = '#9a9a9a'
+  bctx.fillRect(0, 0, size, size)
+  const brand = seeded(8821)
+  for (let i = 0; i < 900; i++) {
+    const v = Math.floor(brand() * 60) + 110
+    bctx.fillStyle = `rgba(${v},${v},${v},0.4)`
+    bctx.fillRect(brand() * size, brand() * size, 1.5, 1.5)
+  }
+  bctx.fillStyle = '#3a3a3a'
+  bctx.fillRect(0, 0, size, 3)
+  const colorTexture = new THREE.CanvasTexture(color)
+  const bumpTexture = new THREE.CanvasTexture(bump)
+  for (const texture of [colorTexture, bumpTexture]) {
+    texture.wrapS = THREE.RepeatWrapping
+    texture.wrapT = THREE.RepeatWrapping
+    // One paving joint every 2 m along the path (strip UV v is metric).
+    texture.repeat.set(2, 0.5)
+    texture.anisotropy = 16
+  }
+  colorTexture.colorSpace = THREE.SRGBColorSpace
+  return { color: colorTexture, bump: bumpTexture }
+}
+
+function tactileTextures(): { color: THREE.CanvasTexture; bump: THREE.CanvasTexture } {
+  const size = 128
+  const color = document.createElement('canvas')
+  color.width = size
+  color.height = size
+  const ctx = color.getContext('2d')!
+  const bump = document.createElement('canvas')
+  bump.width = size
+  bump.height = size
+  const bctx = bump.getContext('2d')!
+  ctx.fillStyle = '#c49a45'
+  ctx.fillRect(0, 0, size, size)
+  bctx.fillStyle = '#585858'
+  bctx.fillRect(0, 0, size, size)
+  const cells = 4
+  const step = size / cells
+  for (let y = 0; y < cells; y++) {
+    for (let x = 0; x < cells; x++) {
+      const cx = x * step + step / 2
+      const cy = y * step + step / 2
+      ctx.fillStyle = 'rgba(146,106,40,0.5)'
+      ctx.beginPath()
+      ctx.ellipse(cx, cy + 2, step * 0.25, step * 0.2, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#d6b061'
+      ctx.beginPath()
+      ctx.ellipse(cx, cy, step * 0.26, step * 0.21, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = 'rgba(240,212,146,0.5)'
+      ctx.beginPath()
+      ctx.ellipse(cx - 1, cy - 1, step * 0.2, step * 0.14, 0, 0, Math.PI * 2)
+      ctx.fill()
+      bctx.fillStyle = '#e4e4e4'
+      bctx.beginPath()
+      bctx.ellipse(cx, cy, step * 0.26, step * 0.21, 0, 0, Math.PI * 2)
+      bctx.fill()
+    }
+  }
+  const colorTexture = new THREE.CanvasTexture(color)
+  const bumpTexture = new THREE.CanvasTexture(bump)
+  for (const texture of [colorTexture, bumpTexture]) {
+    texture.wrapS = THREE.RepeatWrapping
+    texture.wrapT = THREE.RepeatWrapping
+    // 0.3 m tactile tiles from the metric strip UVs.
+    texture.repeat.set(3.3, 3.3)
+    texture.anisotropy = 16
+  }
+  colorTexture.colorSpace = THREE.SRGBColorSpace
+  return { color: colorTexture, bump: bumpTexture }
+}
+
 function texturedGroundMaterial(
   maker: () => { color: THREE.CanvasTexture; bump: THREE.CanvasTexture },
   roughness: number,
@@ -152,13 +319,23 @@ function texturedGroundMaterial(
 }
 
 const asphalt = texturedGroundMaterial(asphaltTextures, 0.95, 0.035, '#4c5052')
+const cobble = texturedGroundMaterial(cobbleTextures, 0.94, 0.055, '#8a8376')
 const sidewalkMat = texturedGroundMaterial(sidewalkTextures, 0.92, 0.02, '#c6c0b2')
-const curbMat = getPlainMaterial('#a6a094', { roughness: 0.88 })
+const curbMat = texturedGroundMaterial(curbTextures, 0.9, 0.025, '#a6a094')
+const tactileMat = texturedGroundMaterial(tactileTextures, 0.84, 0.02, '#c49a45')
 const lineWhite = getPlainMaterial('#e7e0d0', { roughness: 0.72 })
 const lineYellow = getPlainMaterial('#cdb87c', { roughness: 0.72 })
+const gutterMat = getPlainMaterial('#7c7870', { roughness: 0.94 })
+const drainMat = getPlainMaterial('#3b3f3e', { roughness: 0.66, metalness: 0.25 })
+const studMat = getSurfaceMaterial('emissive', '#e8dcb4')
+const markerMat = getSurfaceMaterial('emissive', '#e0a848')
+const soilMat = getPlainMaterial('#5c4e3c', { roughness: 1 })
 const riverbed = getPlainMaterial('#716553', { roughness: 0.98 })
 const bankEarth = getPlainMaterial('#97866b', { roughness: 0.95 })
 const bankGrass = getPlainMaterial('#8f9d75', { roughness: 0.96 })
+const bankMud = getPlainMaterial('#6b5d48', { roughness: 0.98 })
+const bankSand = getPlainMaterial('#b3a486', { roughness: 0.97 })
+const rockMat = getPlainMaterial('#8a867b', { roughness: 0.92 })
 const pathStone = getPlainMaterial('#c5b9a5', { roughness: 0.9 })
 const pathGravel = getPlainMaterial('#b7a78d', { roughness: 0.98 })
 const pathEdge = getPlainMaterial('#9b8e79', { roughness: 0.9 })
@@ -170,6 +347,30 @@ const hedgeMat = getSurfaceMaterial('foliage', '#658052')
 const hedgeTop = getSurfaceMaterial('foliage', '#789263')
 const stoneFence = getPlainMaterial('#a29b8c', { roughness: 0.9 })
 const stoneCap = getPlainMaterial('#beb6a5', { roughness: 0.82 })
+
+const detailMaterials: PathDetailMaterials = {
+  curb: curbMat,
+  lineWhite,
+  lineYellow,
+  gutter: gutterMat,
+  tactile: tactileMat,
+  soil: soilMat,
+  drain: drainMat,
+  metal: bridgeMetal,
+  stud: studMat,
+  riverbed,
+  bankEarth,
+  bankGrass,
+  bankMud,
+  bankSand,
+  reed: hedgeMat,
+  reedTop: hedgeTop,
+  rock: rockMat,
+  joint: drainMat,
+  marker: markerMat,
+  foliage: hedgeMat,
+  trunk: woodFence,
+}
 
 export const waterMaterials: THREE.ShaderMaterial[] = []
 
@@ -193,13 +394,23 @@ function createWaterMaterial(waveScale = 1): THREE.ShaderMaterial {
       varying vec3 vWorld;
       varying vec3 vNormalW;
       varying float vFogDepth;
+      varying vec2 vUv;
       void main() {
         vec3 p = position;
-        float wave = sin(p.x * 0.55 + uTime * 0.9) * 0.025 + sin(p.z * 0.82 - uTime * 1.2) * 0.018;
-        p.y += wave * uWave;
+        float t = uTime;
+        float w1 = sin(p.x * 0.55 + t * 0.9);
+        float w2 = sin(p.z * 0.82 - t * 1.2);
+        float w3 = sin((p.x + p.z) * 1.45 + t * 2.1);
+        p.y += (w1 * 0.024 + w2 * 0.017 + w3 * 0.008) * uWave;
+        vec3 n = normalize(vec3(
+          (cos(p.x * 0.55 + t * 0.9) * 0.024 * 0.55 + cos((p.x + p.z) * 1.45 + t * 2.1) * 0.008 * 1.45) * uWave,
+          1.0,
+          (cos(p.z * 0.82 - t * 1.2) * 0.017 * 0.82 + cos((p.x + p.z) * 1.45 + t * 2.1) * 0.008 * 1.45) * uWave
+        ));
         vec4 world = modelMatrix * vec4(p, 1.0);
         vWorld = world.xyz;
-        vNormalW = normalize(vec3(sin(p.x * 0.9 + uTime * 0.6) * 0.1, 1.0, cos(p.z * 0.8 - uTime * 0.8) * 0.1));
+        vNormalW = normalize(mat3(modelMatrix) * n);
+        vUv = uv;
         vec4 mv = viewMatrix * world;
         vFogDepth = -mv.z;
         gl_Position = projectionMatrix * mv;
@@ -216,18 +427,34 @@ function createWaterMaterial(waveScale = 1): THREE.ShaderMaterial {
       varying vec3 vWorld;
       varying vec3 vNormalW;
       varying float vFogDepth;
+      varying vec2 vUv;
       void main() {
         vec3 viewDir = normalize(cameraPosition - vWorld);
-        float fresnel = pow(1.0 - max(dot(viewDir, vNormalW), 0.0), 2.2);
-        float ripple = sin(vWorld.x * 1.4 + vWorld.z * 0.6 + uTime * 1.4) * 0.5 + 0.5;
-        float ripple2 = sin(vWorld.z * 2.1 - vWorld.x * 0.45 - uTime * 1.05) * 0.5 + 0.5;
-        vec3 color = mix(uDeep, uShallow, 0.42 + ripple * 0.22 + ripple2 * 0.16);
-        float band = smoothstep(0.82, 1.0, sin(vWorld.z * 1.05 + sin(vWorld.x * 0.32 + uTime * 0.35) * 1.4 + uTime * 0.75) * 0.5 + 0.5);
-        color += vec3(band * 0.035);
-        color = mix(color, uSky, fresnel * 0.55);
+        float t = uTime;
+        float shore = smoothstep(0.64, 0.99, abs(vUv.x));
+        float flow = vUv.y;
+        float r1 = sin(vWorld.x * 1.35 + vWorld.z * 0.55 + t * 1.35) * 0.5 + 0.5;
+        float r2 = sin(vWorld.z * 2.05 - vWorld.x * 0.42 - t * 1.0) * 0.5 + 0.5;
+        float r3 = sin((vWorld.x + vWorld.z) * 3.25 + flow * 0.75 - t * 2.15) * 0.5 + 0.5;
+        float grain = sin(vWorld.x * 0.19 + 1.7) * sin(vWorld.z * 0.16 - 0.6);
+        float depthMix = clamp(0.34 + grain * 0.16 + pow(shore, 1.6) * 0.46 + r3 * 0.05, 0.0, 1.0);
+        vec3 color = mix(uDeep, uShallow, depthMix);
+        color += vec3(0.010, 0.018, 0.016) * (r1 + r2);
+        float band = smoothstep(0.84, 1.0, sin(vWorld.z * 1.05 + sin(vWorld.x * 0.32 + t * 0.35) * 1.4 + t * 0.7) * 0.5 + 0.5);
+        color += vec3(band * 0.028);
+        vec3 n = normalize(vNormalW);
+        float fresnel = pow(1.0 - max(dot(viewDir, n), 0.0), 2.4);
+        color = mix(color, uSky, fresnel * 0.5);
+        vec3 sunDir = normalize(vec3(-0.42, 0.7, 0.36));
+        float spec = pow(max(dot(reflect(-sunDir, n), viewDir), 0.0), 56.0);
+        color += vec3(0.68, 0.72, 0.66) * spec * (0.3 + 0.3 * r2);
+        float foamWave = sin(flow * 2.7 - t * 1.45 + vWorld.x * 0.85) * 0.5 + 0.5;
+        float foamNoise = sin(flow * 7.1 - t * 2.25 + vWorld.z * 1.25) * 0.5 + 0.5;
+        float foam = smoothstep(0.52, 0.9, foamWave * 0.62 + foamNoise * 0.38 + shore * 0.3) * smoothstep(0.7, 0.98, abs(vUv.x));
+        color = mix(color, vec3(0.82, 0.86, 0.84), foam * 0.7);
         float fogFactor = smoothstep(uFogNear, uFogFar, vFogDepth);
         color = mix(color, uFogColor, fogFactor);
-        gl_FragColor = vec4(color, 0.9);
+        gl_FragColor = vec4(color, mix(0.9, 0.94, foam));
       }
     `,
   })
@@ -242,81 +469,71 @@ export function tickWater(time: number) {
   for (const material of waterMaterials) material.uniforms.uTime.value = time
 }
 
-function addDashes(
-  col: GeometryCollector,
-  samples: PathSample[],
-  offset: number,
-  material: THREE.Material,
-  dash = 2.8,
-  gap = 4.2,
-  width = 0.12,
-  y = 0.012,
-) {
-  if (samples.length < 2) return
-  const total = samples[samples.length - 1].distance
-  for (let start = 0.8; start < total - 0.5; start += dash + gap) {
-    const end = Math.min(total, start + dash)
-    for (let i = 0; i < samples.length - 1; i++) {
-      const a = samples[i]
-      const b = samples[i + 1]
-      const segStart = Math.max(start, a.distance)
-      const segEnd = Math.min(end, b.distance)
-      if (segEnd <= segStart) continue
-      const t1 = (segStart - a.distance) / Math.max(0.0001, b.distance - a.distance)
-      const t2 = (segEnd - a.distance) / Math.max(0.0001, b.distance - a.distance)
-      const p1 = a.pos.clone().lerp(b.pos, t1)
-      const p2 = a.pos.clone().lerp(b.pos, t2)
-      const s1 = a.side.clone().lerp(b.side, t1).normalize()
-      const s2 = a.side.clone().lerp(b.side, t2).normalize()
-      const pts = [
-        { pos: p1, side: s1 },
-        { pos: p2, side: s2 },
-      ]
-      col.add(stripGeometry(pts, offset - width / 2, offset + width / 2, y), material)
+function carriagewaySpec(entity: PathEntity): CarriagewaySpec {
+  return {
+    width: entity.width,
+    lanes: entity.lanes,
+    style: entity.style,
+    closed: entity.closed,
+    seed:
+      (entity.points[0]?.[0] ?? 0) * 1.37 +
+      (entity.points[0]?.[1] ?? 0) * 0.73 +
+      entity.width * 0.41 +
+      entity.points.length,
+  }
+}
+
+/** Coarser sampling for plain vertical faces where sub-decimetre steps are wasted. */
+function decimateSamples(samples: PathSample[], step: number): PathSample[] {
+  if (samples.length < 3) return samples
+  const result: PathSample[] = [samples[0]]
+  let last = samples[0].distance
+  for (const sample of samples) {
+    if (sample.distance - last >= step) {
+      result.push(sample)
+      last = sample.distance
     }
   }
-}
-
-function addContinuousLine(col: GeometryCollector, samples: PathSample[], offset: number, width: number, y: number, material: THREE.Material) {
-  col.add(stripGeometry(samples, offset - width / 2, offset + width / 2, y), material)
-}
-
-function addRoadTop(col: GeometryCollector, entity: PathEntity, halfWidth: number, y: number) {
-  const { samples } = getPathBundle(entity)
-  col.add(stripGeometry(samples, -halfWidth, halfWidth, y), asphalt)
-  if (entity.lanes >= 4) {
-    addContinuousLine(col, samples, -0.1, 0.07, y + 0.004, lineYellow)
-    addContinuousLine(col, samples, 0.1, 0.07, y + 0.004, lineYellow)
-    addDashes(col, samples, -halfWidth / 2, lineWhite, 3, 4.5, 0.12, y + 0.004)
-    addDashes(col, samples, halfWidth / 2, lineWhite, 3, 4.5, 0.12, y + 0.004)
-  } else {
-    addDashes(col, samples, 0, lineWhite, 3, 4.5, 0.12, y + 0.004)
-  }
-  addContinuousLine(col, samples, -halfWidth + 0.2, 0.11, y + 0.004, lineWhite)
-  addContinuousLine(col, samples, halfWidth - 0.2, 0.11, y + 0.004, lineWhite)
+  const tail = samples[samples.length - 1]
+  if (result[result.length - 1] !== tail) result.push(tail)
+  return result
 }
 
 function addRoadside(col: GeometryCollector, entity: PathEntity, halfWidth: number) {
   const { samples } = getPathBundle(entity)
   const sw = 1.4
+  const sidewalkTop = 0.14
+  const surface = entity.style === 'stone' ? cobble : asphalt
+
   if (entity.sidewalk) {
-    col.add(stripGeometry(samples, -(halfWidth + sw), halfWidth + sw, 0.012), sidewalkMat)
-    col.add(stripGeometry(samples, -halfWidth, halfWidth, 0.038), asphalt)
-    col.add(
-      solidRibbonGeometry(samples, halfWidth, halfWidth + sw, 0.1, 0.1),
-      sidewalkMat,
-    )
-    col.add(
-      solidRibbonGeometry(samples, -halfWidth - sw, -halfWidth, 0.1, 0.1),
-      sidewalkMat,
-    )
-    col.add(stripGeometry(samples, halfWidth + sw - 0.03, halfWidth + sw + 0.12, 0.105), curbMat)
-    col.add(stripGeometry(samples, -halfWidth - sw - 0.12, -halfWidth - sw + 0.03, 0.105), curbMat)
+    // Raised sidewalk slabs: sides use the jointed curb texture, the walking surface
+    // keeps the metric strip UVs so the paving texture stays square.
+    const slabSamples = decimateSamples(samples, 0.5)
+    const capSamples = decimateSamples(samples, 0.9)
+    col.add(solidRibbonGeometry(slabSamples, halfWidth, halfWidth + sw, sidewalkTop, sidewalkTop), curbMat)
+    col.add(solidRibbonGeometry(slabSamples, -halfWidth - sw, -halfWidth, sidewalkTop, sidewalkTop), curbMat)
+    col.add(stripGeometry(samples, halfWidth + 0.002, halfWidth + sw, sidewalkTop + 0.004), sidewalkMat)
+    col.add(stripGeometry(samples, -halfWidth - sw, -halfWidth - 0.002, sidewalkTop + 0.004), sidewalkMat)
+    // Inner curb stone band along the carriageway and outer curb lip.
+    col.add(stripGeometry(capSamples, halfWidth - 0.02, halfWidth + 0.16, sidewalkTop + 0.008), curbMat)
+    col.add(stripGeometry(capSamples, -halfWidth - 0.16, -halfWidth + 0.02, sidewalkTop + 0.008), curbMat)
+    col.add(stripGeometry(capSamples, halfWidth + sw - 0.16, halfWidth + sw + 0.1, sidewalkTop + 0.0075), curbMat)
+    col.add(stripGeometry(capSamples, -halfWidth - sw - 0.1, -halfWidth - sw + 0.16, sidewalkTop + 0.0075), curbMat)
   } else {
-    col.add(stripGeometry(samples, -halfWidth - 0.45, halfWidth + 0.45, 0.028), bankEarth)
-    col.add(stripGeometry(samples, -halfWidth, halfWidth, 0.038), asphalt)
+    // Gravel shoulder instead of a kerb, with a low stone edge along the asphalt.
+    col.add(stripGeometry(samples, -halfWidth - 0.55, halfWidth + 0.55, 0.028), bankEarth)
+    col.add(stripGeometry(samples, -halfWidth - 0.45, -halfWidth - 0.02, 0.034), bankSand)
+    col.add(stripGeometry(samples, halfWidth + 0.02, halfWidth + 0.45, 0.034), bankSand)
+    col.add(stripGeometry(samples, halfWidth, halfWidth + 0.14, 0.058), curbMat)
+    col.add(stripGeometry(samples, -halfWidth - 0.14, -halfWidth, 0.058), curbMat)
   }
-  addRoadTop(col, entity, halfWidth, 0.052)
+
+  col.add(stripGeometry(samples, -halfWidth, halfWidth, 0.052), surface)
+
+  const spec = carriagewaySpec(entity)
+  addCarriagewayMarkings(col, samples, spec, 0.052, detailMaterials)
+  addRoadEdgeDetails(col, samples, spec, 0.052, detailMaterials)
+  if (entity.sidewalk) addSidewalkDetails(col, samples, spec, halfWidth, sidewalkTop, detailMaterials)
 }
 
 function addFootpath(col: GeometryCollector, entity: PathEntity) {
@@ -327,69 +544,13 @@ function addFootpath(col: GeometryCollector, entity: PathEntity) {
   col.add(stripGeometry(samples, -half, half, 0.055), base)
   col.add(stripGeometry(samples, -half + 0.03, -half + 0.09, 0.06), pathEdge)
   col.add(stripGeometry(samples, half - 0.09, half - 0.03, 0.06), pathEdge)
-}
-
-function deterministic(index: number, salt = 0): number {
-  const value = Math.sin(index * 12.9898 + salt * 78.233) * 43758.5453
-  return value - Math.floor(value)
-}
-
-function polygonGeometry(points: Vec2[], yOffset: number): THREE.BufferGeometry {
-  const shape = new THREE.Shape()
-  points.forEach((point, index) => {
-    if (index === 0) shape.moveTo(point[0], -point[1])
-    else shape.lineTo(point[0], -point[1])
-  })
-  shape.closePath()
-  const geometry = new THREE.ShapeGeometry(shape)
-  geometry.rotateX(-Math.PI / 2)
-  geometry.translate(0, yOffset, 0)
-  geometry.computeVertexNormals()
-  return geometry
+  addFootpathDetails(col, samples, entity.width, entity.style, detailMaterials)
 }
 
 function addPond(col: GeometryCollector, samples: PathSample[]) {
-  const boundary2d: Vec2[] = samples.map((sample) => [sample.pos.x, sample.pos.z])
-  if (boundary2d.length < 4) return
-  let cx = 0
-  let cz = 0
-  for (const point of boundary2d) {
-    cx += point[0]
-    cz += point[1]
-  }
-  cx /= boundary2d.length
-  cz /= boundary2d.length
-  const expand = (extra: number): Vec2[] =>
-    boundary2d.map((point) => {
-      const dx = point[0] - cx
-      const dz = point[1] - cz
-      const length = Math.hypot(dx, dz) || 1
-      return [point[0] + (dx / length) * extra, point[1] + (dz / length) * extra]
-    })
-
-  col.add(polygonGeometry(expand(2.6), 0.012), bankEarth)
-  col.add(polygonGeometry(expand(1.2), 0.028), bankGrass)
-  col.add(polygonGeometry(boundary2d, 0.085), pondWaterMaterial)
-
-  for (let i = 4; i < boundary2d.length - 2; i += 9) {
-    const point = boundary2d[i]
-    const dx = point[0] - cx
-    const dz = point[1] - cz
-    const length = Math.hypot(dx, dz) || 1
-    const offset = 0.7 + deterministic(i, 1) * 0.9
-    const x = point[0] + (dx / length) * offset
-    const z = point[1] + (dz / length) * offset
-    col.addBox(
-      0.35 + deterministic(i, 2) * 0.45,
-      0.14 + deterministic(i, 3) * 0.16,
-      0.3 + deterministic(i, 4) * 0.35,
-      x,
-      0.1,
-      z,
-      bankEarth,
-      deterministic(i, 5) * Math.PI,
-    )
-  }
+  if (samples.length < 4) return
+  addPondShoreDetails(col, samples, detailMaterials)
+  col.add(pondWaterGeometry(samples, 0.085), pondWaterMaterial)
 }
 
 function addRiver(col: GeometryCollector, entity: PathEntity) {
@@ -399,27 +560,9 @@ function addRiver(col: GeometryCollector, entity: PathEntity) {
     return
   }
   const half = entity.width / 2
-  col.add(stripGeometry(samples, -half - 3.2, half + 3.2, 0.012), bankEarth)
-  col.add(stripGeometry(samples, -half - 2.4, -half - 0.3, 0.028), bankGrass)
-  col.add(stripGeometry(samples, half + 0.3, half + 2.4, 0.028), bankGrass)
-  col.add(stripGeometry(samples, -half - 0.5, half + 0.5, 0.006), riverbed)
-  col.add(stripGeometry(samples, -half, half, 0.085), waterMaterial)
-  for (let i = 3; i < samples.length - 3; i += 7) {
-    const s = samples[i]
-    const scatter = i % 2 === 0 ? 1 : -1
-    const x = s.pos.x + s.side.x * (half + 0.55 + deterministic(i, 2) * 0.35) * scatter
-    const z = s.pos.z + s.side.z * (half + 0.55 + deterministic(i, 2) * 0.35) * scatter
-    col.addBox(
-      0.4 + deterministic(i, 3) * 0.45,
-      0.18 + deterministic(i, 4) * 0.2,
-      0.35 + deterministic(i, 5) * 0.4,
-      x,
-      0.12,
-      z,
-      bankEarth,
-      deterministic(i, 6) * Math.PI,
-    )
-  }
+  addRiverBankDetails(col, samples, entity.width, detailMaterials)
+  col.add(stripGeometry(samples, -half - 0.4, half + 0.4, 0.006), riverbed)
+  col.add(waterRibbonGeometry(samples, half, 0.085), waterMaterial)
 }
 
 function addBridge(col: GeometryCollector, entity: PathEntity, elevation: number) {
@@ -431,49 +574,25 @@ function addBridge(col: GeometryCollector, entity: PathEntity, elevation: number
   col.add(solidRibbonGeometry(samples, -deckHalf, deckHalf, 0.02, deckThickness), bridgeConcrete)
   col.add(stripGeometry(samples, -half, half, 0.035), asphalt)
   if (entity.sidewalk) {
-    col.add(stripGeometry(samples, half + 0.15, deckHalf - 0.1, 0.045), sidewalkMat)
-    col.add(stripGeometry(samples, -deckHalf + 0.1, -half - 0.15, 0.045), sidewalkMat)
+    col.add(stripGeometry(samples, half + 0.02, deckHalf - 0.02, 0.045), sidewalkMat)
+    col.add(stripGeometry(samples, -deckHalf + 0.02, -half - 0.02, 0.045), sidewalkMat)
+    col.add(stripGeometry(samples, half - 0.02, half + 0.12, 0.048), curbMat)
+    col.add(stripGeometry(samples, -half - 0.12, -half + 0.02, 0.048), curbMat)
   }
-  addDashes(col, samples, 0, lineWhite, 3, 4.5, 0.12, 0.043)
-  addContinuousLine(col, samples, -half + 0.2, 0.11, 0.043, lineWhite)
-  addContinuousLine(col, samples, half - 0.2, 0.11, 0.043, lineWhite)
+  addCarriagewayMarkings(
+    col,
+    samples,
+    { ...carriagewaySpec(entity), style: 'urban', crossings: false },
+    0.035,
+    detailMaterials,
+  )
+  if (entity.railings) addBridgeRailing(col, samples, deckHalf, detailMaterials)
+  addBridgeDeckDetails(col, samples, { width: entity.width, sidewalk: entity.sidewalk }, detailMaterials)
 
-  if (entity.railings) {
-    for (const sideSign of [-1, 1]) {
-      const offset = sideSign * (deckHalf - 0.12)
-      for (let i = 0; i < samples.length; i += 5) {
-        const s = samples[i]
-        const x = s.pos.x + s.side.x * offset
-        const z = s.pos.z + s.side.z * offset
-        col.addBox(0.09, 1.08, 0.09, x, s.pos.y + 0.54, z, bridgeMetal, Math.atan2(-s.flatTangent.z, s.flatTangent.x))
-        col.addBox(0.11, 0.05, 0.11, x, s.pos.y + 1.09, z, bridgeMetal)
-      }
-      for (const railY of [0.55, 1.02]) {
-        for (let i = 0; i < samples.length - 1; i += 2) {
-          const a = samples[i]
-          const b = samples[Math.min(samples.length - 1, i + 2)]
-          const ax = a.pos.x + a.side.x * offset
-          const az = a.pos.z + a.side.z * offset
-          const bx = b.pos.x + b.side.x * offset
-          const bz = b.pos.z + b.side.z * offset
-          col.addBeam(
-            new THREE.Vector3(ax, a.pos.y + railY, az),
-            new THREE.Vector3(bx, b.pos.y + railY, bz),
-            0.06,
-            0.075,
-            bridgeMetal,
-          )
-        }
-      }
-    }
-  }
-
-  for (let i = 8; i < samples.length - 8; i += 16) {
-    const s = samples[i]
-    const height = s.pos.y + elevation
-    if (height < 0.9) continue
-    col.addBox(0.65, height, 0.65, s.pos.x, height / 2, s.pos.z, bridgeConcrete, Math.atan2(-s.flatTangent.z, s.flatTangent.x))
-    col.addBox(1.0, 0.16, 1.0, s.pos.x, height - 0.1, s.pos.z, bridgeConcrete)
+  for (const point of bridgePierPoints(samples, elevation)) {
+    const height = point.y + elevation
+    col.addBox(0.6, height, 0.6, point.x, height / 2, point.z, bridgeConcrete)
+    col.addBox(1.0, 0.16, 1.0, point.x, height - 0.1, point.z, bridgeConcrete)
   }
 }
 
@@ -561,10 +680,5 @@ export function buildPath(entity: PathEntity, elevation: number): THREE.Group {
 }
 
 export function countBridgePiers(entity: PathEntity): number {
-  const { samples } = getPathBundle(entity)
-  let count = 0
-  for (let i = 8; i < samples.length - 8; i += 16) {
-    if (samples[i].pos.y > 0.9) count++
-  }
-  return count
+  return bridgePierPoints(getPathBundle(entity).samples, 0).length
 }

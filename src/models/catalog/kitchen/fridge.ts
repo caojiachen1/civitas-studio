@@ -62,5 +62,17 @@ export default defineModel({
     // hinges
     box(0.02, 0.06, 0.014, -0.415, 0.86, 0.33, C.graphite, { mat: 'metal' }),
     box(0.02, 0.06, 0.014, 0.415, 0.86, 0.33, C.graphite, { mat: 'metal' }),
+
+    // top hinge covers and a magnetic shopping note on the right side panel
+    rbox(0.07, 0.032, 0.04, 0.008, -0.37, 1.862, 0.33, C.graphite, { mat: 'metal' }),
+    rbox(0.07, 0.032, 0.04, 0.008, 0.37, 1.862, 0.33, C.graphite, { mat: 'metal' }),
+    rbox(0.003, 0.13, 0.17, 0.002, 0.4265, 1.48, 0.05, C.white, { mat: 'matte' }),
+    ...[-0.045, -0.015, 0.015, 0.045].map((dy) =>
+      box(0.002, 0.004, 0.11, 0.4285, 1.48 + dy, 0.05, '#b7b0a2', { mat: 'matte' }),
+    ),
+    cyl(0.015, 0.015, 0.008, 0.4305, 1.55, 0.05, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 16),
+    // kick grille screws
+    cyl(0.006, 0.006, 0.005, -0.28, 0.075, 0.339, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    cyl(0.006, 0.006, 0.005, 0.28, 0.075, 0.339, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
   ],
 })

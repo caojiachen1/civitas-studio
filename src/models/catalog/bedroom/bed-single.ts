@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere } from '../../kit'
 
 export default defineModel({
   id: 'bed-single',
@@ -52,5 +52,13 @@ export default defineModel({
     // Throw folded across the foot
     rbox(0.98, 0.05, 0.36, 0.018, 0, 0.855, 0.76, C.sage, { mat: 'fabric' }),
     rbox(0.98, 0.028, 0.09, 0.011, 0, 0.878, 0.6, '#9cab92', { mat: 'fabric' }),
+
+    // leg ferrules, headboard tufting and an extra duvet topstitch
+    cyl(0.021, 0.021, 0.012, -0.44, 0.006, -0.88, C.brass, { mat: 'metal' }, 10),
+    cyl(0.021, 0.021, 0.012, 0.44, 0.006, -0.88, C.brass, { mat: 'metal' }, 10),
+    cyl(0.021, 0.021, 0.012, -0.44, 0.006, 0.94, C.brass, { mat: 'metal' }, 10),
+    cyl(0.021, 0.021, 0.012, 0.44, 0.006, 0.94, C.brass, { mat: 'metal' }, 10),
+    sphere(0.011, 0, 0.69, -0.895, '#7d8f76', { mat: 'fabric' }, 10),
+    box(0.86, 0.006, 0.01, 0, 0.828, 0.45, '#c7bcaa', { mat: 'fabric' }),
   ],
 })

@@ -94,5 +94,14 @@ export default defineModel({
     cyl(0.035, 0.035, 0.05, 0, 0.79, 0.5, dark, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
     cyl(0.028, 0.028, 0.01, 0, 0.79, 0.53, '#ffe9c2', { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 14),
     box(0.04, 0.045, 0.01, 0, 1.02, -0.4, C.red, { mat: 'gloss' }),
+    // amber pedal reflectors clipped to the outer pedal edges
+    box(0.012, 0.022, 0.05, 0.118, 0.3, 0.06, '#d99a52', { mat: 'gloss' }),
+    box(0.012, 0.022, 0.05, -0.118, 0.46, -0.1, '#d99a52', { mat: 'gloss' }),
+    // tyre valve stems at the rims
+    cyl(0.004, 0.004, 0.032, 0, 0.602, 0.57, C.steel, { mat: 'metal' }, 6),
+    cyl(0.004, 0.004, 0.032, 0, 0.602, -0.57, C.steel, { mat: 'metal' }, 6),
+    // quick-release seat clamp around the seat post
+    torus(0.017, 0.006, 0, 0.98, -0.14, C.blackMetal, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    box(0.03, 0.014, 0.02, 0.028, 0.98, -0.14, C.steel, { mat: 'metal' }),
   ],
 })

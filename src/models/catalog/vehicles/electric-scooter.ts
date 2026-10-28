@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox } from '../../kit'
+import { C, box, cyl, defineModel, rbox, torus } from '../../kit'
 
 const paint = '#57646a'
 const livery = '#8f9c8a'
@@ -80,5 +80,17 @@ export default defineModel({
     cyl(0.01, 0.01, 0.22, -0.09, 0.11, -0.25, dark, { mat: 'metal', rot: [0.2, 0, 0.5] }, 8),
     box(0.04, 0.01, 0.06, -0.14, 0.02, -0.22, dark, { mat: 'metal' }),
     box(0.02, 0.03, 0.05, -0.087, 0.16, -0.15, livery, { mat: 'gloss' }),
+    // coil-sprung rear shock
+    cyl(0.011, 0.011, 0.15, 0.075, 0.17, -0.365, chrome, { mat: 'metal', rot: [0.5, 0, 0] }, 8),
+    torus(0.021, 0.005, 0.075, 0.14, -0.381, C.steel, { mat: 'metal', rot: [2.07, 0, 0] }, 10),
+    torus(0.021, 0.005, 0.075, 0.17, -0.365, C.steel, { mat: 'metal', rot: [2.07, 0, 0] }, 10),
+    torus(0.021, 0.005, 0.075, 0.2, -0.349, C.steel, { mat: 'metal', rot: [2.07, 0, 0] }, 10),
+    // battery lock barrel and key
+    box(0.022, 0.014, 0.035, 0.062, 0.172, 0.04, C.brass, { mat: 'metal' }),
+    cyl(0.006, 0.006, 0.03, 0.078, 0.178, 0.04, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 6),
+    // brake cable running down the steering stem
+    cyl(0.004, 0.004, 0.62, -0.03, 0.62, 0.385, dark, { mat: 'metal', rot: [-0.12, 0, 0.05] }, 5),
+    // amber side reflector on the fork leg
+    box(0.008, 0.02, 0.03, 0.044, 0.28, 0.48, '#d99a52', { mat: 'gloss' }),
   ],
 })

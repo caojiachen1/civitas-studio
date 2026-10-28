@@ -106,5 +106,13 @@ export default defineModel({
     sphere(0.014, 0.01, 0.766, -0.045, C.concrete, { mat: 'stone' }, 12),
     sphere(0.013, -0.05, 0.765, -0.02, '#7d7c74', { mat: 'stone' }, 12),
     ...pebbles,
+
+    // rope knot with hanging tails and pale plume tips
+    sphere(0.024, 0, 0.718, 0.112, '#c4b394', { mat: 'matte' }, 12),
+    cyl(0.0065, 0.0065, 0.055, 0.016, 0.69, 0.124, '#c4b394', { mat: 'matte', rot: [0.15, 0, 0.12] }, 8),
+    cyl(0.0065, 0.0065, 0.05, -0.014, 0.693, 0.124, '#c4b394', { mat: 'matte', rot: [0.15, 0, -0.1] }, 8),
+    ...plumeData.map(({ a, lean, top }) =>
+      sphere(0.011, lean * Math.cos(a), top, lean * Math.sin(a), PAMPAS_LIGHT, { mat: 'matte' }, 10),
+    ),
   ],
 })

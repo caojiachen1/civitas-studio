@@ -1,4 +1,4 @@
-import { C, box, defineModel, rbox } from '../../kit'
+import { C, box, cyl, defineModel, rbox } from '../../kit'
 
 export default defineModel({
   id: 'tall-cabinet',
@@ -53,5 +53,16 @@ export default defineModel({
 
     // small brass toe vent
     box(0.4, 0.012, 0.012, 0, 0.06, 0.216, C.brass, { mat: 'metal' }),
+
+    // concealed hinges, lock escutcheon and toe-vent screws
+    ...[-0.334, 0.334].flatMap((x) =>
+      [0.3, 1.1, 1.9].map((y) =>
+        rbox(0.014, 0.052, 0.03, 0.005, x, y, 0.306, C.graphite, { mat: 'metal' }),
+      ),
+    ),
+    rbox(0.034, 0.052, 0.005, 0.003, 0.062, 0.98, 0.3235, C.brass, { mat: 'metal' }),
+    cyl(0.007, 0.007, 0.004, 0.062, 0.99, 0.3275, C.ink, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    cyl(0.006, 0.006, 0.005, -0.18, 0.06, 0.2225, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    cyl(0.006, 0.006, 0.005, 0.18, 0.06, 0.2225, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
   ],
 })

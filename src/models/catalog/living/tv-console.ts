@@ -56,5 +56,14 @@ export default defineModel({
     box(0.022, 0.007, 0.004, -0.29, 0.487, 0.116, '#d9a45a', { mat: 'emissive' }),
     rbox(0.05, 0.014, 0.15, 0.006, 0.36, 0.477, 0.02, C.ink, { mat: 'matte' }),
     rbox(0.03, 0.004, 0.09, 0.002, 0.36, 0.485, 0.02, '#4a4f53', { mat: 'matte' }),
+
+    // door top reveals, hinge knuckles and a top edge chamfer line
+    box(0.855, 0.004, 0.006, -0.4375, 0.432, 0.1905, '#3f2d20', { mat: 'matte' }),
+    box(0.855, 0.004, 0.006, 0.4375, 0.432, 0.1905, '#3f2d20', { mat: 'matte' }),
+    ...[0.17, 0.285, 0.40].flatMap((y) => [
+      cyl(0.008, 0.008, 0.05, -0.868, y, 0.189, C.brass, { mat: 'metal' }, 10),
+      cyl(0.008, 0.008, 0.05, 0.868, y, 0.189, C.brass, { mat: 'metal' }, 10),
+    ]),
+    box(1.72, 0.003, 0.006, 0, 0.4705, 0.19, '#8a623f', { mat: 'wood' }),
   ],
 })

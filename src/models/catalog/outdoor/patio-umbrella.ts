@@ -49,6 +49,12 @@ const hem = Array.from({ length: seam }, (_, i) => {
   })
 })
 
+// rib tips peeking out beneath the hem, one per rib
+const tips = Array.from({ length: seam }, (_, i) => {
+  const angle = (i / seam) * Math.PI * 2
+  return sphere(0.019, 0.947 * Math.sin(angle), 2.028, 0.947 * Math.cos(angle), C.walnut, { mat: 'wood' }, 8)
+})
+
 export default defineModel({
   id: 'patio-umbrella',
   name: '庭院遮阳伞',
@@ -80,5 +86,11 @@ export default defineModel({
     // finial
     cyl(0.026, 0.034, 0.05, 0, 2.475, 0, C.brass, { mat: 'metal' }, 12),
     sphere(0.034, 0, 2.515, 0, C.brass, { mat: 'metal' }, 12),
+    ...tips,
+    // vent ring closing the canopy apex
+    cyl(0.062, 0.078, 0.028, 0, 2.488, 0, seamColor, { mat: 'fabric' }, 12),
+    // cast base locking knob
+    cyl(0.026, 0.026, 0.045, 0.129, 0.19, 0, C.blackMetal, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.008, 0.008, 0.02, 0.152, 0.19, 0, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 6),
   ],
 })

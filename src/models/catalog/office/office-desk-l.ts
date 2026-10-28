@@ -96,5 +96,18 @@ export default defineModel({
     cyl(0.012, 0.012, 0.02, 0.56, 0.5, -0.294, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
     cyl(0.012, 0.012, 0.02, 0.64, 0.5, -0.294, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
     cyl(0.15, 0.13, 0.42, 0.12, 0.21, 0.68, C.graphite, { mat: 'metal' }, 20),
+
+    // cable grommet on the return top with a brass ring
+    cyl(0.033, 0.033, 0.004, 0.45, 0.7625, 0.68, '#20262a', { mat: 'matte' }, 24),
+    torus(0.033, 0.004, 0.45, 0.763, 0.68, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 24),
+    // webcam and status LED clipped to the monitor bezel
+    rbox(0.06, 0.014, 0.022, 0.006, -0.2, 1.271, -0.536, C.blackMetal, { mat: 'matte' }),
+    cyl(0.008, 0.008, 0.006, -0.2, 1.271, -0.523, C.ink, { mat: 'gloss', rot: [Math.PI / 2, 0, 0] }, 14),
+    cyl(0.003, 0.003, 0.003, -0.165, 1.271, -0.524, C.leafLight, { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 8),
+    // sticky note on the lower bezel and a drawer lock
+    rbox(0.07, 0.07, 0.002, 0.002, -0.44, 0.94, -0.5165, '#e8d98a', { mat: 'matte' }),
+    box(0.05, 0.003, 0.001, -0.44, 0.955, -0.5152, '#b9ad74', { mat: 'matte' }),
+    cyl(0.012, 0.012, 0.005, 0.6, 0.7, 0.7545, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
+    box(0.004, 0.012, 0.004, 0.6, 0.696, 0.758, C.ink),
   ],
 })

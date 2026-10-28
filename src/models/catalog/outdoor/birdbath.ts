@@ -59,5 +59,14 @@ export default defineModel({
     ...pebbles.map(([x, z, y, r], i) =>
       ico(r, x, 0.976 + y * 0.25, z, i % 2 === 0 ? PEBBLE : STONE_LIGHT, { mat: 'stone', rot: [0.4, i, 0.2] }, 0),
     ),
+    // concentric ripples spreading across the water
+    torus(0.155, 0.0025, 0, 0.986, 0, '#a6c6cb', { mat: 'glass', opacity: 0.5, rot: [Math.PI / 2, 0, 0] }, 28),
+    torus(0.09, 0.0022, 0, 0.987, 0, '#a6c6cb', { mat: 'glass', opacity: 0.5, rot: [Math.PI / 2, 0, 0] }, 24),
+    // carved astragal band turning around the pedestal
+    torus(0.084, 0.006, 0, 0.62, 0, STONE_LIGHT, { mat: 'stone', rot: [Math.PI / 2, 0, 0] }, 20),
+    // sedum rosettes tucked onto the weathered bottom tier
+    ico(0.032, 0.19, 0.068, 0.12, MOSS, { mat: 'foliage' }, 0),
+    ico(0.027, -0.18, 0.063, -0.14, MOSS_LIGHT, { mat: 'foliage' }, 0),
+    ico(0.024, 0.05, 0.062, 0.215, MOSS, { mat: 'foliage' }, 0),
   ],
 })

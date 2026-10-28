@@ -56,5 +56,21 @@ export default defineModel({
     box(0.006, 0.36, 0.004, 0, 0.34, -0.0685, C.graphite),
     rounded(0.05, 0.034, 0.006, 0.002, 0.02, 0.41, 0.0705, bandEdge, { mat: 'matte' }),
     box(0.032, 0.006, 0.003, 0.02, 0.415, 0.0745, bodyPaint),
+
+    // silicone bead bedding the flange on the paving
+    torus(0.135, 0.005, 0, 0.004, 0, '#a9a69c', { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 28),
+
+    // two more flange bolts completing the six-bolt ring
+    cyl(0.011, 0.011, 0.022, 0, 0.045, 0.12, steel, { mat: 'metal' }, 8),
+    cyl(0.011, 0.011, 0.022, 0, 0.045, -0.12, steel, { mat: 'metal' }, 8),
+
+    // cast maker mark low on the shaft
+    rounded(0.05, 0.034, 0.004, 0.002, 0, 0.15, 0.0745, C.graphite, { mat: 'metal' }),
+    box(0.032, 0.006, 0.003, 0, 0.157, 0.077, bandEdge),
+    box(0.022, 0.005, 0.003, 0, 0.145, 0.077, bandEdge),
+
+    // matching closing links on the rear chain
+    torus(0.018, 0.006, 0, 0.757, -0.1, C.graphite, { mat: 'metal', rot: [0, Math.PI / 2, 0] }, 14),
+    torus(0.018, 0.006, 0, 0.723, -0.1, C.graphite, { mat: 'metal' }, 14),
   ],
 })

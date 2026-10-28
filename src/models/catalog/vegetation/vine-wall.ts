@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, ico, rbox, sphere } from '../../kit'
+import { C, box, cyl, defineModel, ico, rbox, sphere, torus } from '../../kit'
 
 const WOOD = '#7b6146'
 const VINE = '#6b7a4d'
@@ -24,6 +24,52 @@ const flowers: [number, number, number][] = [
   [0.55, 1.0, 0.06],
   [-0.05, 1.25, 0.06],
 ]
+
+// Tendrils curl away from the lattice in search of a hold.
+const TENDRILS: [number, number, number, number][] = [
+  [0.16, 1.52, 0.05, 0.5],
+  [-0.55, 1.12, 0.05, 1.4],
+  [0.66, 2.14, 0.05, 2.3],
+]
+const tendrils = TENDRILS.flatMap(([x, y, z, a], i) => [
+  cyl(0.005, 0.008, 0.16, x - Math.cos(a) * 0.06, y - 0.08, z, VINE, {
+    mat: 'wood',
+    rot: [0.2, 0, i % 2 === 0 ? 0.5 : -0.45],
+  }, 5),
+  torus(0.038, 0.006, x, y, z, VINE, { mat: 'wood', rot: [0.15, a, 0] }, 12),
+])
+
+// Extra leaf cover and buds along the upper rails.
+const extraLeaves: [number, number, number][] = [
+  [0.06, 1.58, 0.1],
+  [-0.86, 1.32, 0.09],
+  [0.8, 0.88, 0.1],
+  [-0.38, 2.12, 0.09],
+  [0.5, 2.05, 0.08],
+]
+const extraLeafParts = extraLeaves.map(([x, y, r], i) =>
+  ico(r, x, y, 0.02, LEAVES[(i + 2) % 4], { mat: 'foliage', rot: [0.25, i * 1.1, 0.2] }, 1),
+)
+const buds = [
+  [0.18, 1.42],
+  [-0.18, 0.98],
+  [0.72, 1.78],
+].map(([x, y], i) =>
+  sphere(0.02, x, y, 0.075, i % 2 === 0 ? '#d9b3b6' : C.blush, { mat: 'matte' }, 8),
+)
+
+// Brass screws fix the trellis rails at the crossings.
+const SCREWS: [number, number, number][] = [
+  [-0.93, 0.7, -0.052],
+  [0.93, 0.7, -0.052],
+  [-0.93, 1.7, -0.052],
+  [0.93, 1.7, -0.052],
+  [-0.45, 1.2, -0.066],
+  [0.45, 1.2, -0.066],
+]
+const screws = SCREWS.map(([x, y, z], i) =>
+  sphere(0.009, x, y, z, i % 2 === 0 ? C.brass : '#9b8b62', { mat: 'metal' }, 6),
+)
 
 export default defineModel({
   id: 'vine-wall',
@@ -55,6 +101,10 @@ export default defineModel({
     ...leaves.map(([x, y, r], i) =>
       ico(r, x, y, 0.02, LEAVES[i % 4], { mat: 'foliage', rot: [0.2, i * 0.9, 0.15] }, 1),
     ),
+    ...extraLeafParts,
+    ...tendrils,
+    ...buds,
+    ...screws,
     // a few pale blooms
     ...flowers.map(([x, y, z], i) =>
       sphere(0.028, x, y, z, i % 2 === 0 ? '#d9b3b6' : '#c9a099', { mat: 'matte' }, 8),

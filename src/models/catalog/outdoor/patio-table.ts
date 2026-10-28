@@ -9,7 +9,7 @@ export default defineModel({
   category: 'outdoor',
   tags: ['table', 'dining', 'patio', 'teak', '餐桌', '户外桌', '柚木'],
   footprint: [1.4, 0.8],
-  height: 0.74,
+  height: 0.79,
   placement: 'outdoor',
   parts: [
     // slatted top, split around the central herb trough
@@ -65,5 +65,20 @@ export default defineModel({
     cyl(0.014, 0.014, 0.02, 0.62, 0.625, 0.3, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
     cyl(0.014, 0.014, 0.02, -0.62, 0.625, -0.3, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
     cyl(0.014, 0.014, 0.02, 0.62, 0.625, -0.3, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    // breadboard end caps closing the slats
+    box(0.035, 0.05, 0.7, -0.6825, 0.6975, 0, teakDark, { mat: 'wood' }),
+    box(0.035, 0.05, 0.7, 0.6825, 0.6975, 0, teakDark, { mat: 'wood' }),
+    // rubber foot pads under the legs
+    box(0.088, 0.012, 0.088, -0.6, 0.006, 0.3, C.blackMetal, { mat: 'matte' }),
+    box(0.088, 0.012, 0.088, 0.6, 0.006, 0.3, C.blackMetal, { mat: 'matte' }),
+    box(0.088, 0.012, 0.088, -0.6, 0.006, -0.3, C.blackMetal, { mat: 'matte' }),
+    box(0.088, 0.012, 0.088, 0.6, 0.006, -0.3, C.blackMetal, { mat: 'matte' }),
+    // centre bolts on the long aprons
+    cyl(0.013, 0.013, 0.018, 0, 0.625, 0.331, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    cyl(0.013, 0.013, 0.018, 0, 0.625, -0.331, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    // serving bowl and cup set on the slats
+    cyl(0.075, 0.05, 0.05, 0.47, 0.745, 0.06, C.cream, { mat: 'ceramic' }, 18),
+    cyl(0.058, 0.058, 0.006, 0.47, 0.765, 0.06, C.sage, { mat: 'ceramic' }, 18),
+    cyl(0.03, 0.026, 0.065, 0.45, 0.752, 0.23, C.white, { mat: 'ceramic' }, 14),
   ],
 })

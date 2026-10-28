@@ -28,3 +28,6 @@ src-tauri/target
 
 # Stale release artifacts
 release/old-0.2.0/
+
+# Local build progress notes
+/PROGRESS.md

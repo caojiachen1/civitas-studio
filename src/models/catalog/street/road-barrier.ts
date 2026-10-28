@@ -80,5 +80,18 @@ export default defineModel({
         mat: 'metal',
       }, 6),
     ),
+
+    // ground anchor pins through the cross feet
+    ...[0.8, -0.8].flatMap((x) =>
+      [0.11, -0.11].map((z) => cyl(0.009, 0.009, 0.09, x, 0.035, z, C.graphite, { mat: 'metal' }, 6)),
+    ),
+
+    // pressed end caps closing both rails
+    ...[
+      [0.892, 0.955, 0.032],
+      [-0.892, 0.955, 0.032],
+      [0.892, 0.28, 0.027],
+      [-0.892, 0.28, 0.027],
+    ].map(([x, y, r]) => cyl(r, r, 0.012, x, y, 0, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14)),
   ],
 })

@@ -81,5 +81,22 @@ export default defineModel({
     cyl(0.055, 0.045, 0.08, 0.56, 0.3525, -0.12, C.terracotta, { mat: 'ceramic' }, 12),
     // folding ruler resting on the worktop
     box(0.2, 0.012, 0.03, 0.3, 0.791, 0.06, C.cream, { mat: 'wood', rot: [0, 0.2, 0] }),
+    // drawer tucked under the worktop with a brass pull
+    box(0.46, 0.12, 0.02, 0.2, 0.61, 0.265, WOOD, { mat: 'wood' }),
+    box(0.42, 0.1, 0.36, 0.2, 0.61, 0.08, WOOD_DARK, { mat: 'wood' }),
+    cyl(0.016, 0.016, 0.12, 0.2, 0.61, 0.28, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    // galvanised watering can on the lower shelf
+    cyl(0.07, 0.062, 0.14, 0.02, 0.39, -0.06, METAL, { mat: 'metal' }, 14),
+    cyl(0.01, 0.014, 0.17, 0.095, 0.425, -0.06, METAL, { mat: 'metal', rot: [0, 0, -0.8] }, 8),
+    torus(0.045, 0.008, -0.055, 0.455, -0.06, METAL, { mat: 'metal', rot: [0, 0, 0] }, 12),
+    // seed tray with young seedlings on the worktop
+    box(0.26, 0.035, 0.16, -0.1, 0.803, 0.18, WOOD_DARK, { mat: 'wood' }),
+    box(0.23, 0.012, 0.13, -0.1, 0.825, 0.18, C.soil, { mat: 'matte' }),
+    cyl(0.004, 0.005, 0.06, -0.18, 0.85, 0.18, C.leafDeep, { mat: 'foliage' }, 5),
+    ico(0.02, -0.18, 0.885, 0.18, C.leaf, { mat: 'foliage' }, 0),
+    cyl(0.004, 0.005, 0.07, -0.1, 0.855, 0.18, C.leafDeep, { mat: 'foliage' }, 5),
+    ico(0.021, -0.1, 0.895, 0.18, C.leafLight, { mat: 'foliage' }, 0),
+    cyl(0.004, 0.005, 0.055, -0.02, 0.845, 0.18, C.leafDeep, { mat: 'foliage' }, 5),
+    ico(0.019, -0.02, 0.878, 0.18, C.leaf, { mat: 'foliage' }, 0),
   ],
 })

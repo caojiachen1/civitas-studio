@@ -14,6 +14,7 @@ const baseParts = baseAngles.flatMap((a) => {
     rbox(0.055, 0.06, 0.06, 0.014, x, 0.08, z, C.blackMetal, { mat: 'metal', rot: [0, a, 0] }),
     cyl(0.034, 0.034, 0.022, x + tx * 0.018, 0.034, z + tz * 0.018, C.ink, { mat: 'matte', rot: [Math.PI / 2, 0, -a] }, 16),
     cyl(0.034, 0.034, 0.022, x - tx * 0.018, 0.034, z - tz * 0.018, C.ink, { mat: 'matte', rot: [Math.PI / 2, 0, -a] }, 16),
+    cyl(0.011, 0.011, 0.004, x + tx * 0.031, 0.034, z + tz * 0.031, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, -a] }, 12),
   ]
 })
 
@@ -65,5 +66,16 @@ export default defineModel({
     rbox(0.05, 0.026, 0.18, 0.008, 0.27, 0.645, -0.02, C.blackMetal, { mat: 'metal' }),
     rbox(0.08, 0.03, 0.3, 0.012, 0.27, 0.672, 0.01, C.ink, { mat: 'leather' }),
     cyl(0.012, 0.012, 0.012, 0.27, 0.652, 0.13, C.brass, { mat: 'metal' }, 10),
+
+    // seat and side stitch seams
+    box(0.002, 0.005, 0.26, -0.2505, 0.455, 0.02, '#3a4450', { mat: 'fabric' }),
+    box(0.002, 0.005, 0.26, 0.2505, 0.455, 0.02, '#3a4450', { mat: 'fabric' }),
+    box(0.3, 0.005, 0.002, 0, 0.455, 0.2605, '#3a4450', { mat: 'fabric' }),
+    // headrest stitching
+    box(0.003, 0.09, 0.003, -0.055, 1.125, -0.2455, '#3a4450', { mat: 'fabric', rot: [-0.15, 0, 0] }),
+    box(0.003, 0.09, 0.003, 0.055, 1.125, -0.2455, '#3a4450', { mat: 'fabric', rot: [-0.15, 0, 0] }),
+    // seat height paddle under the mechanism
+    rbox(0.14, 0.012, 0.05, 0.005, 0.06, 0.377, 0.105, C.blackMetal, { mat: 'metal' }),
+    box(0.02, 0.028, 0.02, 0.12, 0.386, 0.088, C.blackMetal, { mat: 'metal' }),
   ],
 })

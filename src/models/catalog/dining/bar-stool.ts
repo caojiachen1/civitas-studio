@@ -1,6 +1,7 @@
-import { C, cyl, defineModel, rbox, torus } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere, torus } from '../../kit'
 
 const LEGS = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2]
+const STUDS = Array.from({ length: 16 }, (_, i) => (i / 16) * Math.PI * 2 + Math.PI / 16)
 
 export default defineModel({
   id: 'bar-stool',
@@ -75,5 +76,29 @@ export default defineModel({
     cyl(0.011, 0.013, 0.2, 0.12, 0.9, -0.16, C.brass, { mat: 'metal', rot: [-0.12, 0, 0] }, 12),
     cyl(0.02, 0.02, 0.012, -0.12, 0.795, -0.157, C.brass, { mat: 'metal' }, 12),
     cyl(0.02, 0.02, 0.012, 0.12, 0.795, -0.157, C.brass, { mat: 'metal' }, 12),
+
+    // brass nailhead row around the seat rail
+    ...STUDS.map((a) =>
+      sphere(0.0075, Math.cos(a) * 0.2115, 0.795, Math.sin(a) * 0.2115, C.brass, { mat: 'metal' }, 8),
+    ),
+    // under-seat dust cover, leg mounting plates and a maker's plate on the rail
+    cyl(0.186, 0.19, 0.006, 0, 0.7745, 0, C.walnut, { mat: 'wood' }, 28),
+    ...LEGS.map((a) =>
+      cyl(
+        0.026,
+        0.026,
+        0.005,
+        Math.cos(a) * 0.165,
+        0.7695,
+        Math.sin(a) * 0.165,
+        C.brass,
+        { mat: 'metal' },
+        12,
+      ),
+    ),
+    box(0.08, 0.012, 0.004, 0, 0.782, 0.2165, C.brass, { mat: 'metal' }),
+    // footrest wear plates at the front of both rings
+    box(0.14, 0.005, 0.024, 0, 0.2995, 0.172, C.brass, { mat: 'metal' }),
+    box(0.11, 0.004, 0.02, 0, 0.2345, 0.176, C.brass, { mat: 'metal' }),
   ],
 })

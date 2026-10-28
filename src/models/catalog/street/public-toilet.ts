@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, prism, rbox, sphere } from '../../kit'
+import { C, box, cyl, defineModel, prism, rbox, sphere, torus } from '../../kit'
 
 // Rounded boxes are non-indexed; double-siding them keeps them in their own
 // material bucket so the kit never merges indexed and non-indexed geometry.
@@ -110,8 +110,8 @@ export default defineModel({
     box(0.05, 0.06, 0.44, 0.665, 0.09, 0.78, C.graphite, { mat: 'stone', rot: [0.137, 0, 0] }),
 
     // ramp handrails: two rails and four posts
-    cyl(0.016, 0.016, 0.4, -0.665, 0.885, 0.775, C.steel, { mat: 'metal', rot: [-0.1, 0, 0] }, 12),
-    cyl(0.016, 0.016, 0.4, 0.665, 0.885, 0.775, C.steel, { mat: 'metal', rot: [-0.1, 0, 0] }, 12),
+    cyl(0.016, 0.016, 0.4, -0.665, 0.885, 0.775, C.steel, { mat: 'metal', rot: [-Math.PI / 2 + 0.137, 0, 0] }, 12),
+    cyl(0.016, 0.016, 0.4, 0.665, 0.885, 0.775, C.steel, { mat: 'metal', rot: [-Math.PI / 2 + 0.137, 0, 0] }, 12),
     cyl(0.014, 0.014, 0.85, -0.665, 0.48, 0.6, C.steel, { mat: 'metal' }, 10),
     cyl(0.014, 0.014, 0.85, 0.665, 0.48, 0.6, C.steel, { mat: 'metal' }, 10),
     cyl(0.014, 0.014, 0.85, -0.665, 0.432, 0.95, C.steel, { mat: 'metal' }, 10),
@@ -129,5 +129,21 @@ export default defineModel({
     // WC plate on the door
     rounded(0.16, 0.12, 0.01, 0.005, 0, 1.56, 0.568, C.cream, { mat: 'matte' }),
     box(0.1, 0.02, 0.004, 0, 1.57, 0.575, C.navy),
+
+    // wheelchair pictogram on the door leaf
+    rounded(0.18, 0.18, 0.008, 0.004, 0.28, 0.78, 0.567, '#47657f', { mat: 'matte' }),
+    cyl(0.014, 0.014, 0.003, 0.28, 0.826, 0.5715, C.white, { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 12),
+    box(0.016, 0.05, 0.003, 0.276, 0.8, 0.5715, C.white, { mat: 'matte' }),
+    torus(0.032, 0.005, 0.288, 0.785, 0.5715, C.white, { mat: 'matte' }, 16),
+    box(0.042, 0.008, 0.003, 0.291, 0.79, 0.5715, C.white, { mat: 'matte' }),
+    box(0.008, 0.03, 0.003, 0.301, 0.766, 0.5715, C.white, { mat: 'matte', rot: [0, 0, 0.4] }),
+
+    // hydraulic door closer under the head frame
+    rounded(0.24, 0.06, 0.05, 0.01, 0.16, 2.05, 0.585, C.steel, { mat: 'metal' }),
+    box(0.26, 0.018, 0.03, 0.3, 2.07, 0.59, C.steel, { mat: 'metal' }),
+
+    // roof scupper outlet at the rear edge
+    box(0.18, 0.05, 0.04, 0.55, 2.44, -1.005, C.graphite, { mat: 'metal' }),
+    box(0.12, 0.026, 0.01, 0.55, 2.44, -1.028, C.ink, { mat: 'metal' }),
   ],
 })

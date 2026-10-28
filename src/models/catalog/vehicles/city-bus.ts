@@ -86,5 +86,22 @@ export default defineModel({
     box(0.02, 0.6, 1.2, 1.221, 0.75, 2.6, '#2f3437'),
     box(0.02, 0.6, 1.2, -1.221, 0.75, -3.1, '#2f3437'),
     box(0.02, 0.6, 1.2, 1.221, 0.75, -3.1, '#2f3437'),
+
+    // wiper arms across the base of the windscreen
+    box(0.72, 0.014, 0.016, -0.5, 1.55, 4.878, dark, { mat: 'matte', rot: [0, 0, 0.18] }),
+    box(0.72, 0.014, 0.016, 0.5, 1.55, 4.878, dark, { mat: 'matte', rot: [0, 0, -0.18] }),
+    // roof escape hatches with raised rims
+    box(0.86, 0.02, 0.56, 0, 2.945, 1.3, '#c4c0b4', { mat: 'metal' }),
+    box(0.8, 0.05, 0.5, 0, 2.96, 1.3, '#d8d4c9', { mat: 'metal' }),
+    box(0.86, 0.02, 0.56, 0, 2.945, -3.2, '#c4c0b4', { mat: 'metal' }),
+    box(0.8, 0.05, 0.5, 0, 2.96, -3.2, '#d8d4c9', { mat: 'metal' }),
+    // centre mullions between the door leaves
+    box(0.012, 1.58, 0.02, 1.245, 1.5, 3.85, dark, { mat: 'metal' }),
+    box(0.012, 1.58, 0.02, 1.245, 1.5, -1.35, dark, { mat: 'metal' }),
+    // brushed trim strips over the wheel arches
+    box(0.016, 0.05, 1.15, -1.222, 1.1, 2.6, C.steel, { mat: 'metal' }),
+    box(0.016, 0.05, 1.15, 1.222, 1.1, 2.6, C.steel, { mat: 'metal' }),
+    box(0.016, 0.05, 1.15, -1.222, 1.1, -3.1, C.steel, { mat: 'metal' }),
+    box(0.016, 0.05, 1.15, 1.222, 1.1, -3.1, C.steel, { mat: 'metal' }),
   ],
 })

@@ -77,5 +77,16 @@ export default defineModel({
 
     // brass maker's badge on the bottom rail
     box(0.06, 0.014, 0.004, 0, 0.045, zAt(0.045, 0.024), C.brass, { mat: 'metal', rot: [TILT, 0, 0] }),
+
+    // brace bolts, rear wall bumpers and a second glass highlight
+    cyl(0.007, 0.007, 0.012, -0.17, 0.55, -0.044, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    cyl(0.007, 0.007, 0.012, 0.17, 0.55, -0.044, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    cyl(0.01, 0.01, 0.008, -0.265, 1.83, zAt(1.83, -0.02), '#24282a', { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 10),
+    cyl(0.01, 0.01, 0.008, 0.265, 1.83, zAt(1.83, -0.02), '#24282a', { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 10),
+    box(0.09, 0.9, 0.0015, 0.13, 1.2, zAt(1.2, 0.0125), '#dfe9e5', {
+      mat: 'glass',
+      opacity: 0.18,
+      rot: [TILT, 0, 0.08],
+    }),
   ],
 })

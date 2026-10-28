@@ -1,4 +1,4 @@
-import { C, cone, cyl, defineModel, ico, sphere } from '../../kit'
+import { C, box, cone, cyl, defineModel, ico, sphere } from '../../kit'
 
 const BARK = '#6d5039'
 const BARK_DARK = '#5a412f'
@@ -43,6 +43,48 @@ const grass: [number, number, number][] = [
   [0.5, -0.55, 0.28],
 ]
 
+// Scaly bark plates on the short orchard trunk.
+const barkPlates = Array.from({ length: 7 }, (_, i) => {
+  const a = i * 0.92 + 0.25
+  const y = 0.42 + (i % 3) * 0.13
+  const r = 0.238 - (i % 3) * 0.008
+  return box(0.03, 0.3 + (i % 2) * 0.06, 0.014, Math.cos(a) * r, y, Math.sin(a) * r, i % 2 === 0 ? '#654a34' : '#72543a', {
+    mat: 'wood',
+    rot: [0, -(a + Math.PI / 2), 0.03 * Math.cos(a)],
+  })
+})
+
+// Pruning stubs and old branch collars below the crown.
+const stubs = [0.55, 2.35, 4.1].map((a, i) =>
+  cyl(0.028, 0.045, 0.24, Math.cos(a) * 0.17, 1.58 + i * 0.09, Math.sin(a) * 0.17, BARK_LIGHT, {
+    mat: 'wood',
+    rot: [0, -a, 1.3],
+  }, 7),
+)
+
+// Four more apples sit on the outer canopy surface.
+const EXTRA_FRUIT: [number, number, number, number][] = [
+  [1.28, 3.82, 0.86, 0.06],
+  [-1.24, 3.78, 0.8, 0.058],
+  [0.35, 4.02, -1.2, 0.055],
+  [-1.38, 3.45, -0.66, 0.052],
+]
+const extraFruit = EXTRA_FRUIT.map(([x, y, z, r], i) =>
+  sphere(r, x, y, z, i % 2 === 0 ? '#b5533f' : '#c0603f', { mat: 'gloss' }, 10),
+)
+
+// Dry leaves and fallen fruit litter the grass.
+const LITTER: [number, number, string, number][] = [
+  [0.72, 0.3, '#8a6a3f', 0.3],
+  [-0.66, 0.42, '#7d5e39', 1.2],
+  [0.3, -0.82, '#96723f', 2.1],
+  [-0.82, -0.3, '#87653b', 0.8],
+  [1.05, -0.5, '#8f6d42', 1.8],
+]
+const litter = LITTER.map(([x, z, color, a], i) =>
+  cyl(0.065, 0.045, 0.006, x, 0.006 + i * 0.0004, z, color, { mat: 'foliage', rot: [0, a, 0] }, 5),
+)
+
 export default defineModel({
   id: 'fruit-tree',
   name: '果树',
@@ -61,6 +103,8 @@ export default defineModel({
     ),
     // short stout trunk and upper leader
     cyl(0.17, 0.27, 1.6, 0, 0.85, 0, BARK, { mat: 'wood' }, 12),
+    ...barkPlates,
+    ...stubs,
     cyl(0.11, 0.17, 0.78, 0.03, 1.9, 0.02, BARK_LIGHT, { mat: 'wood', rot: [0.02, 0, 0.05] }, 10),
     // four main boughs opening into a vase shape
     cyl(0.05, 0.1, 1.4, 0.32, 1.95, 0.05, BARK_LIGHT, { mat: 'wood', rot: [0.2, 0, -0.72] }, 8),
@@ -79,9 +123,11 @@ export default defineModel({
     ...fruits.map(([x, y, z], i) =>
       sphere(0.06, x, y, z, i % 3 === 0 ? '#c27a45' : i % 2 === 0 ? '#c0603f' : '#b5533f', { mat: 'gloss' }, 10),
     ),
+    ...extraFruit,
     // two fallen apples in the grass
     sphere(0.055, 0.55, 0.055, 0.78, '#b5533f', { mat: 'gloss' }, 10),
     sphere(0.05, -0.42, 0.05, 0.86, '#c0603f', { mat: 'gloss' }, 10),
+    ...litter,
     // tufts of grass at the foot of the trunk
     ...grass.map(([x, z, h], i) =>
       cone(0.03, h, x, h / 2 + 0.01, z, i % 2 === 0 ? '#6f8a4f' : '#7d9a5a', {

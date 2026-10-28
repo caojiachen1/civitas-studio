@@ -98,9 +98,9 @@ export default defineModel({
 
     // price tags, stacked goods and sign lettering
     ...[-0.45, 0, 0.45].flatMap((x) => [
-      box(0.1, 0.045, 0.008, x, 1.36, -0.242, C.cream, { mat: 'matte' }),
-      box(0.07, 0.01, 0.006, x, 1.36, -0.236, C.red, { mat: 'matte' }),
-      box(0.1, 0.045, 0.008, x, 1.72, -0.242, C.cream, { mat: 'matte' }),
+      box(0.1, 0.045, 0.008, x, 1.36, -0.246, C.cream, { mat: 'matte' }),
+      box(0.07, 0.01, 0.006, x, 1.36, -0.2435, C.red, { mat: 'matte' }),
+      box(0.1, 0.045, 0.008, x, 1.72, -0.246, C.cream, { mat: 'matte' }),
     ]),
     ...[-0.6, -0.2, 0.2, 0.6].map((x) =>
       box(0.26, 0.055, 0.012, x, 2.68, 0.654, C.navy, { mat: 'matte' }),
@@ -109,5 +109,17 @@ export default defineModel({
     cyl(0.024, 0.024, 2.28, -1.05, 1.17, -0.72, trim, { mat: 'metal' }, 10),
     cyl(0.026, 0.026, 0.3, -1.05, 0.1, -0.62, trim, { mat: 'metal', rot: [0.9, 0, 0] }, 10),
     rounded(0.26, 0.08, 0.7, 0.02, -0.88, 0.04, 0.1, C.concrete, { mat: 'stone' }),
+
+    // louvered extract vent on the back panel
+    rounded(0.4, 0.3, 0.02, 0.008, 0.45, 1.8, -0.663, trim, { mat: 'metal' }),
+    ...[1.7, 1.77, 1.84, 1.91].map((y) =>
+      box(0.34, 0.022, 0.012, 0.45, y, -0.675, C.graphite, { mat: 'metal', rot: [0.45, 0, 0] }),
+    ),
+
+    // surface conduit and junction box on the right flank
+    cyl(0.016, 0.016, 2.2, 1.012, 1.15, -0.55, trim, { mat: 'metal' }, 10),
+    rounded(0.09, 0.13, 0.1, 0.012, 1.03, 0.4, -0.55, C.steel, { mat: 'metal' }),
+    rounded(0.03, 0.03, 0.03, 0.006, 1.012, 1.62, -0.55, C.graphite, { mat: 'metal' }),
+    rounded(0.03, 0.03, 0.03, 0.006, 1.012, 1.95, -0.55, C.graphite, { mat: 'metal' }),
   ],
 })

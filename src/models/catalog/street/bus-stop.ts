@@ -114,5 +114,21 @@ export default defineModel({
     // bin lid hinge and lock tab
     rounded(0.06, 0.03, 0.03, 0.008, 1.45, 0.55, -0.24, C.steel, { mat: 'metal' }),
     box(0.03, 0.05, 0.012, 1.45, 0.5, -0.23, C.steel, { mat: 'metal' }),
+
+    // frosted manifestation bands at eye level on the rear glazing
+    box(3.1, 0.09, 0.004, 0, 1.32, -0.588, '#e9e6dd', { mat: 'matte' }),
+    box(3.1, 0.09, 0.004, 0, 1.47, -0.588, '#e9e6dd', { mat: 'matte' }),
+
+    // real-time departure display under the route board
+    rounded(1.2, 0.1, 0.03, 0.008, -0.65, 2.145, 0.6, C.blackMetal, { mat: 'metal' }),
+    box(1.1, 0.06, 0.006, -0.65, 2.145, 0.618, '#f4d3a0', { mat: 'emissive' }),
+
+    // patch fittings clamping the rear glass to the mullions
+    ...[
+      [-0.53, 1.0],
+      [0.53, 1.0],
+      [-0.53, 1.7],
+      [0.53, 1.7],
+    ].map(([x, y]) => rounded(0.03, 0.05, 0.03, 0.006, x, y, -0.575, C.steel, { mat: 'metal' })),
   ],
 })

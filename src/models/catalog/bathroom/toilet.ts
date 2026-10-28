@@ -68,5 +68,11 @@ export default defineModel({
     cyl(0.008, 0.008, 0.01, -0.075, 0.026, 0.09, C.steel, { mat: 'metal' }, 6),
     sphere(0.012, 0.075, 0.012, 0.09, C.steel, { mat: 'metal' }, 10),
     sphere(0.012, -0.075, 0.012, 0.09, C.steel, { mat: 'metal' }, 10),
+    // silicone bead sealing the flange to the floor
+    box(0.2, 0.006, 0.012, 0, 0.003, 0.118, '#d3cdc1', { mat: 'matte' }),
+    box(0.01, 0.006, 0.25, 0.101, 0.003, -0.005, '#d3cdc1', { mat: 'matte' }),
+    box(0.01, 0.006, 0.25, -0.101, 0.003, -0.005, '#d3cdc1', { mat: 'matte' }),
+    // chrome floor escutcheon at the supply stop
+    cyl(0.022, 0.024, 0.008, 0.15, 0.004, -0.34, C.steel, { mat: 'metal' }, 16),
   ],
 })

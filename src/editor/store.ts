@@ -4,6 +4,8 @@ import {
   LEVEL_HEIGHT,
   PATH_PRESETS,
   WINDOW_STYLES,
+  type BuildingSession,
+  type BuildingTemplateId,
   type CustomAsset,
   type EditorDocument,
   type EditorSettings,
@@ -18,6 +20,12 @@ import {
   type ToolId,
 } from './types'
 import { buildLevelCopy } from './plan'
+import {
+  cityDocWithInterior,
+  createBuildingEntity,
+  getBuildingTemplate,
+  interiorToWorld,
+} from './buildings'
 
 export function uid(prefix = 'e'): string {
   const raw =
@@ -64,6 +72,7 @@ export interface EditorState {
   future: HistoryEntry[]
   revision: number
   dirty: boolean
+  buildingSession: BuildingSession | null
 
   setTool: (tool: ToolId, modelId?: string | null) => void
   setActiveModel: (modelId: string) => void
@@ -76,6 +85,11 @@ export interface EditorState {
   setRoofDefaults: (patch: Partial<PlacementDefaults['roof']>) => void
   setPathOptions: (patch: Partial<PathOptions>) => void
   setPlanOptions: (patch: Partial<PlacementDefaults['plan']>) => void
+  placeBuilding: (templateId: BuildingTemplateId, x: number, z: number, rot?: number) => string | null
+  placeSkyline: (centerX: number, centerZ: number, count?: number) => number
+  enterBuilding: (id: string) => void
+  exitBuilding: () => void
+  setBuildingMode: (mode: BuildingSession['mode']) => void
   setPathType: (type: PathType) => void
   setDoorStyle: (style: string) => void
   setWindowStyle: (style: string) => void
@@ -140,6 +154,7 @@ const defaultSettings: EditorSettings = {
   planMode: false,
   shadows: true,
   quality: 'auto',
+  visualStyle: 'mono',
 }
 
 function takeSnapshot(state: EditorState): DocSnapshot {
@@ -181,6 +196,7 @@ export const useEditor = create<EditorState>()((set, get) => ({
   future: [],
   revision: 0,
   dirty: false,
+  buildingSession: null,
 
   setTool: (tool, modelId = null) =>
     set((s) => ({
@@ -210,6 +226,135 @@ export const useEditor = create<EditorState>()((set, get) => ({
     set((s) => ({ toolOptions: { ...s.toolOptions, path: { ...s.toolOptions.path, ...patch } } })),
   setPlanOptions: (patch) =>
     set((s) => ({ toolOptions: { ...s.toolOptions, plan: { ...s.toolOptions.plan, ...patch } } })),
+
+  placeBuilding: (templateId, x, z, rot = 0) => {
+    const state = get()
+    if (state.buildingSession) return null
+    const level = state.doc.levels.find((item) => item.id === state.doc.activeLevelId) ?? state.doc.levels[0]
+    if (!level) return null
+    const template = getBuildingTemplate(templateId)
+    const count = Object.values(state.doc.entities).filter((entity) => entity.kind === 'building').length
+    const entity = createBuildingEntity(
+      templateId,
+      level.id,
+      x,
+      z,
+      rot,
+      `${template.name} ${count + 1}`,
+    )
+    state.beginHistory('放置建筑')
+    state.addEntity(entity, false)
+    state.select(entity.id)
+    return entity.id
+  },
+
+  placeSkyline: (centerX, centerZ, count = 6) => {
+    const state = get()
+    if (state.buildingSession) return 0
+    const level = state.doc.levels.find((item) => item.id === state.doc.activeLevelId) ?? state.doc.levels[0]
+    if (!level) return 0
+    const picks: { id: BuildingTemplateId; floors: number }[] = [
+      { id: 'tower', floors: 12 },
+      { id: 'tower', floors: 8 },
+      { id: 'office', floors: 6 },
+      { id: 'tower', floors: 16 },
+      { id: 'townhouse', floors: 3 },
+      { id: 'tower', floors: 10 },
+      { id: 'villa', floors: 2 },
+      { id: 'tower', floors: 14 },
+    ]
+    const total = Math.max(3, Math.min(picks.length, Math.round(count)))
+    const selected = picks.slice(0, total)
+    const gap = 5
+    const widths = selected.map((pick) => getBuildingTemplate(pick.id).width)
+    const span = widths.reduce((sum, width) => sum + width, 0) + gap * (total - 1)
+    let cursor = centerX - span / 2
+    const entities = selected.map((pick, index) => {
+      const width = widths[index]
+      const entity = createBuildingEntity(
+        pick.id,
+        level.id,
+        cursor + width / 2,
+        centerZ,
+        0,
+        `${getBuildingTemplate(pick.id).name} ${index + 1}`,
+        pick.floors,
+      )
+      cursor += width + gap
+      return entity
+    })
+    state.beginHistory('生成天际线')
+    state.addEntities(entities, false)
+    state.select(null)
+    return entities.length
+  },
+
+  enterBuilding: (id) => {
+    const state = get()
+    if (state.buildingSession) return
+    const cityDoc = structuredClone(state.doc)
+    const building = cityDoc.entities[id]
+    if (!building || building.kind !== 'building') return
+    const level = cityDoc.levels.find((item) => item.id === building.levelId)
+    const baseElevation = level?.elevation ?? 0
+    const world = interiorToWorld(building.interior, building, baseElevation, cityDoc.customAssets)
+    if (world.levels.length === 0) return
+    const session: BuildingSession = {
+      buildingId: id,
+      name: building.name,
+      templateId: building.templateId,
+      cityDoc,
+      cityLevelId: cityDoc.activeLevelId,
+      baseElevation,
+      center: [building.x, building.z],
+      width: building.width,
+      depth: building.depth,
+      floors: building.floors,
+      floorHeight: building.floorHeight,
+      shellWallIds: [...building.interior.shellWallIds],
+      mode: 'interior',
+    }
+    set((s) => ({
+      doc: world,
+      buildingSession: session,
+      activeLevelId: world.levels[0].id,
+      selectedId: null,
+      tool: 'select',
+      activeModelId: null,
+      past: [],
+      future: [],
+      revision: s.revision + 1,
+      settings: { ...s.settings, planMode: false },
+    }))
+  },
+
+  exitBuilding: () => {
+    const state = get()
+    const session = state.buildingSession
+    if (!session) return
+    const city = cityDocWithInterior(session, state.doc)
+    set((s) => ({
+      doc: city,
+      buildingSession: null,
+      activeLevelId: session.cityLevelId,
+      selectedId: session.buildingId,
+      tool: 'select',
+      activeModelId: null,
+      past: [],
+      future: [],
+      revision: s.revision + 1,
+      dirty: true,
+      settings: { ...s.settings, planMode: false },
+    }))
+  },
+
+  setBuildingMode: (mode) =>
+    set((s) =>
+      s.buildingSession
+        ? { buildingSession: { ...s.buildingSession, mode } }
+        : {},
+    ),
+
   setPathType: (type) =>
     set((s) => {
       const preset = PATH_PRESETS[type]
@@ -328,6 +473,9 @@ export const useEditor = create<EditorState>()((set, get) => ({
     } else if (clone.kind === 'slab' || clone.kind === 'roof') {
       clone.x += 0.7
       clone.z += 0.7
+    } else if (clone.kind === 'building') {
+      clone.x += clone.width + 4
+      clone.name = `${clone.name} 副本`
     } else if (clone.kind === 'wall') {
       clone.a = [clone.a[0] + 0.7, clone.a[1] + 0.7]
       clone.b = [clone.b[0] + 0.7, clone.b[1] + 0.7]
@@ -377,16 +525,28 @@ export const useEditor = create<EditorState>()((set, get) => ({
     if (history) get().beginHistory('新增楼层')
     set((s) => {
       const top = s.doc.levels.reduce((max, l) => Math.max(max, l.elevation), 0)
+      const step = s.buildingSession?.floorHeight ?? LEVEL_HEIGHT
       const level: Level = {
         id: uid('level'),
         name: `第${s.doc.levels.length + 1}层`,
-        elevation: top + LEVEL_HEIGHT,
+        elevation: top + step,
+      }
+      let entities = s.doc.entities
+      if (s.buildingSession) {
+        entities = { ...entities }
+        for (const [id, entity] of Object.entries(entities)) {
+          if (entity.kind !== 'roof') continue
+          const roofLevel = s.doc.levels.find((item) => item.id === entity.levelId)
+          if (!roofLevel || Math.abs(roofLevel.elevation - top) > 0.001) continue
+          entities[id] = { ...entity, levelId: level.id, eaveY: entity.eaveY + step }
+        }
       }
       return {
         doc: {
           ...s.doc,
           levels: [...s.doc.levels, level],
           activeLevelId: level.id,
+          entities,
         },
         selectedId: null,
         revision: s.revision + 1,
@@ -413,7 +573,7 @@ export const useEditor = create<EditorState>()((set, get) => ({
       const level: Level = {
         id: targetId,
         name: `第${s.doc.levels.length + 1}层`,
-        elevation: top + LEVEL_HEIGHT,
+        elevation: top + (s.buildingSession?.floorHeight ?? LEVEL_HEIGHT),
       }
       const entities = { ...s.doc.entities }
       for (const entity of copies) entities[entity.id] = entity
@@ -476,6 +636,7 @@ export const useEditor = create<EditorState>()((set, get) => ({
   loadDocument: (doc) =>
     set((s) => ({
       doc: structuredClone(doc),
+      buildingSession: null,
       selectedId: null,
       past: [],
       future: [],
@@ -483,11 +644,13 @@ export const useEditor = create<EditorState>()((set, get) => ({
       dirty: false,
       tool: 'select',
       activeModelId: null,
+      settings: { ...s.settings, planMode: false },
     })),
 
   newProject: (doc = createBlankDocument()) =>
     set((s) => ({
       doc: structuredClone(doc),
+      buildingSession: null,
       selectedId: null,
       past: [],
       future: [],
@@ -496,6 +659,7 @@ export const useEditor = create<EditorState>()((set, get) => ({
       tool: 'select',
       activeModelId: null,
       toolOptions: { ...s.toolOptions, path: { ...s.toolOptions.path, type: 'road' } },
+      settings: { ...s.settings, planMode: false },
     })),
 
   markClean: () => set({ dirty: false }),

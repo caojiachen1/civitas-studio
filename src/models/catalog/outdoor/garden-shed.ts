@@ -9,7 +9,7 @@ export default defineModel({
   name: '花园工具房',
   category: 'outdoor',
   tags: ['shed', 'tool shed', 'garden storage', '工具房', '花园小屋', '木屋'],
-  footprint: [2.4, 2.0],
+  footprint: [2.44, 2.12],
   height: 2.35,
   placement: 'outdoor',
   parts: [
@@ -70,5 +70,32 @@ export default defineModel({
     box(2.4, 0.045, 0.14, 0, 2.3275, 0, C.graphite, { mat: 'metal' }),
     // house number beside the door
     box(0.12, 0.07, 0.012, -1.07, 1.45, 0.975, C.brass, { mat: 'metal' }),
+    // eaves gutter, downpipe and its wall brackets
+    box(2.44, 0.075, 0.1, 0, 1.8, 1.05, C.graphite, { mat: 'metal' }),
+    cyl(0.033, 0.033, 1.56, 1.14, 1.0, 1.05, C.graphite, { mat: 'metal' }, 10),
+    cyl(0.033, 0.033, 0.18, 1.14, 0.24, 0.97, C.graphite, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    box(0.1, 0.03, 0.1, 1.14, 0.85, 1.0, C.blackMetal, { mat: 'metal' }),
+    box(0.1, 0.03, 0.1, 1.14, 1.45, 1.0, C.blackMetal, { mat: 'metal' }),
+    // window box planted with geraniums
+    box(0.8, 0.15, 0.16, 0.51, 0.915, 1.02, '#8b6139', { mat: 'wood' }),
+    box(0.76, 0.03, 0.13, 0.51, 0.975, 1.02, C.soil, { mat: 'matte' }),
+    box(0.09, 0.04, 0.1, 0.2, 0.82, 1.0, C.blackMetal, { mat: 'metal' }),
+    box(0.09, 0.04, 0.1, 0.82, 0.82, 1.0, C.blackMetal, { mat: 'metal' }),
+    cyl(0.006, 0.007, 0.1, 0.32, 1.03, 1.03, C.leafDeep, { mat: 'foliage' }, 6),
+    ico(0.032, 0.32, 1.09, 1.03, '#c26a5a', { mat: 'foliage' }, 0),
+    cyl(0.006, 0.007, 0.12, 0.53, 1.04, 1.0, C.leafDeep, { mat: 'foliage' }, 6),
+    ico(0.034, 0.53, 1.11, 1.0, C.blush, { mat: 'foliage' }, 0),
+    cyl(0.006, 0.007, 0.09, 0.71, 1.025, 1.04, C.leafDeep, { mat: 'foliage' }, 6),
+    ico(0.03, 0.71, 1.08, 1.04, '#d98f5a', { mat: 'foliage' }, 0),
+    ico(0.04, 0.43, 1.0, 1.03, C.leaf, { mat: 'foliage' }, 0),
+    ico(0.036, 0.62, 0.995, 1.01, C.leafLight, { mat: 'foliage' }, 0),
+    // diagonal door brace, kick plate and a lantern beside the door
+    box(0.94, 0.055, 0.018, -0.5, 0.95, 0.996, '#8b6139', { mat: 'wood', rot: [0, 0, 1.02] }),
+    box(0.78, 0.1, 0.018, -0.5, 0.2, 0.996, C.blackMetal, { mat: 'metal' }),
+    box(0.05, 0.04, 0.12, -1.02, 1.62, 1.01, C.blackMetal, { mat: 'metal' }),
+    box(0.1, 0.16, 0.1, -1.02, 1.52, 1.06, C.glass, { mat: 'glass', opacity: 0.35 }),
+    box(0.07, 0.1, 0.07, -1.02, 1.52, 1.06, '#ffe9c2', { mat: 'emissive' }),
+    box(0.12, 0.018, 0.12, -1.02, 1.6, 1.06, C.blackMetal, { mat: 'metal' }),
+    box(0.12, 0.018, 0.12, -1.02, 1.44, 1.06, C.blackMetal, { mat: 'metal' }),
   ],
 })

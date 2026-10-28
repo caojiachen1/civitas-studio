@@ -1,4 +1,4 @@
-import { C, cyl, defineModel, ico, rbox, sphere, torus } from '../../kit'
+import { C, box, cyl, defineModel, ico, rbox, sphere, torus } from '../../kit'
 
 // Rounded boxes are non-indexed; double-siding them keeps them in their own
 // material bucket so the kit never merges indexed and non-indexed geometry.
@@ -58,5 +58,26 @@ export default defineModel({
     cyl(0.045, 0.052, 0.27, -0.27, 2.275, 0, bronze, { mat: 'metal', rot: [0, 0, -0.08] }, 12),
     sphere(0.05, -0.26, 2.13, 0, bronze, { mat: 'metal' }, 12),
     rounded(0.12, 0.16, 0.03, 0.008, -0.27, 2.15, 0.08, patina, { mat: 'metal', rot: [0, 0, 0.12] }),
+
+    // engraved lines on the dedication plaque
+    rounded(0.2, 0.012, 0.004, 0.002, 0, 0.84, 0.4155, bronze, { mat: 'metal' }),
+    rounded(0.16, 0.01, 0.004, 0.002, 0, 0.815, 0.4155, bronze, { mat: 'metal' }),
+    rounded(0.11, 0.01, 0.004, 0.002, 0, 0.792, 0.4155, bronze, { mat: 'metal' }),
+
+    // bronze anchor bolts around the top plinth cap
+    ...[
+      [0.38, 0.38],
+      [-0.38, 0.38],
+      [0.38, -0.38],
+      [-0.38, -0.38],
+    ].map(([x, z]) => cyl(0.016, 0.016, 0.012, x, 1.245, z, bronze, { mat: 'metal' }, 6)),
+
+    // recessed uplight on the lower step
+    rounded(0.07, 0.07, 0.07, 0.008, 0.2, 0.155, 0.545, C.graphite, { mat: 'metal' }),
+    box(0.05, 0.012, 0.05, 0.2, 0.196, 0.545, '#f4d3a0', { mat: 'emissive' }),
+
+    // vertical expansion joints in the plinth stone
+    box(0.006, 0.8, 0.004, -0.28, 0.71, 0.393, '#8c8b84'),
+    box(0.006, 0.8, 0.004, 0.28, 0.71, 0.393, '#8c8b84'),
   ],
 })

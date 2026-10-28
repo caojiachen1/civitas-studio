@@ -100,5 +100,20 @@ export default defineModel({
 
     // low roof vent
     rounded(0.3, 0.08, 0.3, 0.015, -0.55, 1.99, -0.2, C.graphite, { mat: 'metal' }),
+
+    // propane cylinder slung under the chassis
+    cyl(0.09, 0.09, 0.24, 0.45, 0.36, 0, C.cream, { mat: 'metal' }, 20),
+    torus(0.09, 0.008, 0.45, 0.255, 0, C.graphite, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 20),
+    cyl(0.014, 0.014, 0.04, 0.45, 0.46, 0.09, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    cyl(0.022, 0.022, 0.014, 0.45, 0.46, 0.108, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+
+    // wheel hub lug nuts on both wheels
+    ...[0.428, -0.428].flatMap((z) =>
+      [0, 1, 2, 3].map((i) =>
+        sphere(0.009, -0.58 + 0.062 * Math.sin((i * Math.PI) / 2), 0.26 + 0.062 * Math.cos((i * Math.PI) / 2), z, C.steel, {
+          mat: 'metal',
+        }, 8),
+      ),
+    ),
   ],
 })

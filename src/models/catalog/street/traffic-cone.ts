@@ -56,5 +56,18 @@ export default defineModel({
 
     // reinforced tip
     cyl(0.016, 0.024, 0.03, 0, 0.685, 0, safetyOrange, { mat: 'gloss' }, 16),
+
+    // moulded hand slots in the sides of the base pad
+    rounded(0.008, 0.014, 0.06, 0.003, 0.186, 0.022, 0, '#1f2223', { mat: 'matte' }),
+    rounded(0.008, 0.014, 0.06, 0.003, -0.186, 0.022, 0, '#1f2223', { mat: 'matte' }),
+
+    // pressed size marking on the base top
+    rounded(0.1, 0.004, 0.03, 0.002, 0, 0.062, -0.11, '#c6c8c1', { mat: 'matte' }),
+    rounded(0.05, 0.003, 0.008, 0.001, -0.016, 0.0645, -0.11, '#1f2223', { mat: 'matte' }),
+    rounded(0.07, 0.003, 0.008, 0.001, 0.008, 0.0645, -0.11, '#1f2223', { mat: 'matte' }),
+
+    // additional drain holes at the front and back edges
+    cyl(0.01, 0.01, 0.006, 0, 0.063, 0.145, '#1f2223', { mat: 'matte' }, 10),
+    cyl(0.01, 0.01, 0.006, 0, 0.063, -0.145, '#1f2223', { mat: 'matte' }, 10),
   ],
 })

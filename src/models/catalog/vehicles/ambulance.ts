@@ -20,7 +20,7 @@ export default defineModel({
   name: '救护车',
   category: 'vehicles',
   tags: ['ambulance', 'emergency', 'medical', '救护车', '急救', '医疗', '救援'],
-  footprint: [2.0, 5.2],
+  footprint: [2.02, 5.27],
   height: 2.6,
   placement: 'on-road',
   parts: [
@@ -98,5 +98,23 @@ export default defineModel({
     box(0.06, 0.04, 0.04, 0.955, 1.82, 2.0, dark, { mat: 'metal' }),
     rbox(0.03, 0.26, 0.16, 0.02, -0.985, 1.76, 2.03, dark),
     rbox(0.03, 0.26, 0.16, 0.02, 0.985, 1.76, 2.03, dark),
+
+    // wiper arms laid against the windscreen
+    box(0.46, 0.012, 0.014, -0.36, 1.43, 2.588, dark, { mat: 'matte', rot: [-0.08, 0, 0.32] }),
+    box(0.46, 0.012, 0.014, 0.36, 1.43, 2.588, dark, { mat: 'matte', rot: [-0.08, 0, -0.32] }),
+    // two chrome bars set into the radiator grille
+    box(1.12, 0.018, 0.016, 0, 1.06, 2.572, chrome, { mat: 'metal' }),
+    box(1.12, 0.018, 0.016, 0, 0.96, 2.572, chrome, { mat: 'metal' }),
+    // low-profile roof vent on the treatment box
+    box(0.72, 0.11, 0.52, 0, 2.455, -1.05, paintDeep, { mat: 'gloss' }),
+    box(0.62, 0.012, 0.05, 0, 2.515, -1.17, dark, { mat: 'metal' }),
+    box(0.62, 0.012, 0.05, 0, 2.515, -1.05, dark, { mat: 'metal' }),
+    box(0.62, 0.012, 0.05, 0, 2.515, -0.93, dark, { mat: 'metal' }),
+    // rear boarding step and rubber mud flaps
+    box(1.0, 0.06, 0.26, 0, 0.3, -2.53, dark, { mat: 'metal' }),
+    box(0.05, 0.26, 0.05, -0.4, 0.46, -2.45, dark, { mat: 'metal' }),
+    box(0.05, 0.26, 0.05, 0.4, 0.46, -2.45, dark, { mat: 'metal' }),
+    box(0.3, 0.34, 0.03, -0.82, 0.4, -1.96, dark, { mat: 'matte' }),
+    box(0.3, 0.34, 0.03, 0.82, 0.4, -1.96, dark, { mat: 'matte' }),
   ],
 })

@@ -97,5 +97,20 @@ export default defineModel({
     rbox(0.05, 1.62, 0.06, 0.01, -0.38, 0.86, -1.08, FRAME, { mat: 'wood' }),
     rbox(0.05, 1.62, 0.06, 0.01, 0.38, 0.86, -1.08, FRAME, { mat: 'wood' }),
     ...rungs.map((y) => box(0.76, 0.045, 0.07, 0, y, -1.08, DECK, { mat: 'wood' })),
+    // tubular hand grips along the top of each side guardrail
+    cyl(0.022, 0.022, 0.32, -0.7, 2.04, -0.56, METAL, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    cyl(0.022, 0.022, 0.32, 0.7, 2.04, -0.56, METAL, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    // bolts fastening the slide cheeks to the bed
+    cyl(0.014, 0.014, 0.02, -0.475, 1.111, 0.264, METAL, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.014, 0.014, 0.02, 0.475, 1.111, 0.264, METAL, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.014, 0.014, 0.02, -0.475, 0.639, 0.636, METAL, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.014, 0.014, 0.02, 0.475, 0.639, 0.636, METAL, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    // rubber landing mat at the run-out
+    box(0.9, 0.02, 0.36, 0, 0.01, 1.0, C.blackMetal, { mat: 'matte' }),
+    // galvanised anchor plates over the footings
+    box(0.14, 0.02, 0.14, -0.7, 0.11, -1.0, METAL, { mat: 'metal' }),
+    box(0.14, 0.02, 0.14, 0.7, 0.11, -1.0, METAL, { mat: 'metal' }),
+    box(0.14, 0.02, 0.14, -0.7, 0.11, -0.12, METAL, { mat: 'metal' }),
+    box(0.14, 0.02, 0.14, 0.7, 0.11, -0.12, METAL, { mat: 'metal' }),
   ],
 })

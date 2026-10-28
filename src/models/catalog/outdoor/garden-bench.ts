@@ -59,5 +59,15 @@ export default defineModel({
     // curved top rail ties the back slats together
     rbox(1.5, 0.068, 0.045, 0.018, 0, 0.885, -0.2525, TEAK_WARM, { mat: 'wood', rot: [-0.09, 0, 0] }),
     ...bolts,
+    // brass cup holder set into the right armrest
+    torus(0.032, 0.006, 0.7, 0.688, -0.1, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
+    cyl(0.026, 0.026, 0.004, 0.7, 0.689, -0.1, C.ink, { mat: 'matte' }),
+    // exposed bolt heads pinning the back slats to the iron posts
+    cyl(0.009, 0.009, 0.008, -0.45, 0.665, -0.2185, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    cyl(0.009, 0.009, 0.008, 0.45, 0.665, -0.2185, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    cyl(0.009, 0.009, 0.008, -0.45, 0.75, -0.2265, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    cyl(0.009, 0.009, 0.008, 0.45, 0.75, -0.2265, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    // shallow rain groove routed along the top rail
+    box(1.42, 0.004, 0.012, 0, 0.9205, -0.255, TEAK_DARK, { mat: 'wood', rot: [-0.09, 0, 0] }),
   ],
 })

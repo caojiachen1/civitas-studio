@@ -8,7 +8,7 @@ export default defineModel({
   category: 'kitchen',
   tags: ['kitchen', 'island', 'counter', '中岛', '岛台', '备餐台'],
   footprint: [1.8, 0.95],
-  height: 0.95,
+  height: 1.0,
   placement: 'indoor',
   parts: [
     // stone top with waterfall ends
@@ -37,5 +37,22 @@ export default defineModel({
     rbox(0.36, 0.024, 0.24, 0.012, -0.52, 0.962, 0.02, C.birch, { mat: 'wood' }),
     cyl(0.155, 0.095, 0.04, 0.42, 0.97, -0.05, C.white, { mat: 'ceramic' }, 24),
     torus(0.152, 0.006, 0.42, 0.985, -0.05, C.cream, { mat: 'ceramic', rot: [Math.PI / 2, 0, 0] }, 24),
+
+    // brass towel bar with a linen towel on the left waterfall end
+    cyl(0.011, 0.011, 0.5, -0.912, 0.74, 0, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
+    cyl(0.009, 0.009, 0.026, -0.9, 0.74, -0.24, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 12),
+    cyl(0.009, 0.009, 0.026, -0.9, 0.74, 0.24, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 12),
+    rbox(0.014, 0.3, 0.34, 0.005, -0.916, 0.6, 0.02, C.linen, { mat: 'fabric' }),
+    box(0.002, 0.006, 0.34, -0.924, 0.53, 0.02, C.sand, { mat: 'fabric' }),
+    // mitre seams on the stone waterfall ends
+    box(0.004, 0.88, 0.006, -0.9005, 0.45, 0.467, C.concrete, { mat: 'stone' }),
+    box(0.004, 0.88, 0.006, -0.9005, 0.45, -0.467, C.concrete, { mat: 'stone' }),
+    box(0.004, 0.88, 0.006, 0.9005, 0.45, 0.467, C.concrete, { mat: 'stone' }),
+    box(0.004, 0.88, 0.006, 0.9005, 0.45, -0.467, C.concrete, { mat: 'stone' }),
+    // adjustable foot glides under the plinth
+    ...[-0.7, 0.7].flatMap((x) => [
+      cyl(0.027, 0.027, 0.004, x, 0.0, -0.3, C.graphite, { mat: 'matte' }, 12),
+      cyl(0.027, 0.027, 0.004, x, 0.0, 0.02, C.graphite, { mat: 'matte' }, 12),
+    ]),
   ],
 })

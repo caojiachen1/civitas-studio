@@ -100,5 +100,21 @@ export default defineModel({
 
     // side stand
     cyl(0.012, 0.012, 0.42, -0.18, 0.2, -0.33, dark, { mat: 'metal', rot: [0.12, 0, 0.3] }, 10),
+
+    // front turn signals on short stalks
+    cyl(0.008, 0.008, 0.1, -0.11, 0.9, 0.7, chrome, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.024, 0.024, 0.035, -0.18, 0.9, 0.715, '#d99a52', { mat: 'gloss', rot: [Math.PI / 2, 0, 0] }, 12),
+    cyl(0.008, 0.008, 0.1, 0.11, 0.9, 0.7, chrome, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.024, 0.024, 0.035, 0.18, 0.9, 0.715, '#d99a52', { mat: 'gloss', rot: [Math.PI / 2, 0, 0] }, 12),
+    // rubber fork gaiters over the lower tubes
+    cyl(0.031, 0.031, 0.2, -0.055, 0.44, 0.735, C.blackMetal, { mat: 'matte', rot: [-0.248, 0, 0] }, 12),
+    cyl(0.031, 0.031, 0.2, 0.055, 0.44, 0.735, C.blackMetal, { mat: 'matte', rot: [-0.248, 0, 0] }, 12),
+    // chain guard above the drive run
+    box(0.02, 0.055, 0.56, 0.088, 0.44, -0.42, paint, { mat: 'gloss', rot: [0.02, 0, 0] }),
+    // pillion footpeg brackets and pegs
+    box(0.02, 0.06, 0.03, -0.13, 0.4, -0.3, dark, { mat: 'metal' }),
+    box(0.02, 0.06, 0.03, 0.13, 0.4, -0.3, dark, { mat: 'metal' }),
+    cyl(0.012, 0.012, 0.1, -0.18, 0.39, -0.3, chrome, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    cyl(0.012, 0.012, 0.1, 0.18, 0.39, -0.3, chrome, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
   ],
 })

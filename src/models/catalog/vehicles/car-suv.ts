@@ -18,8 +18,8 @@ export default defineModel({
   name: '城市SUV',
   category: 'vehicles',
   tags: ['car', 'suv', '越野车', '车辆', '家庭'],
-  footprint: [1.95, 4.7],
-  height: 1.78,
+  footprint: [1.98, 4.7],
+  height: 1.82,
   placement: 'on-road',
   parts: [
     // wheels
@@ -83,5 +83,18 @@ export default defineModel({
     box(1.66, 0.06, 0.22, 0, 1.72, -1.95, paint, { mat: 'gloss' }),
     // shark fin antenna
     rbox(0.06, 0.1, 0.18, 0.02, 0, 1.73, -1.7, dark),
+    // wipers on both screens
+    box(0.5, 0.012, 0.014, -0.36, 1.2, 1.262, dark, { mat: 'matte', rot: [-0.42, 0, 0.2] }),
+    box(0.5, 0.012, 0.014, 0.36, 1.2, 1.262, dark, { mat: 'matte', rot: [-0.42, 0, -0.2] }),
+    box(0.34, 0.012, 0.014, 0.08, 1.25, -2.1, dark, { mat: 'matte', rot: [0.14, 0, -0.2] }),
+    // roof-rack crossbars spanning the rails
+    box(1.58, 0.05, 0.07, 0, 1.795, 0.2, trim, { mat: 'metal' }),
+    box(1.58, 0.05, 0.07, 0, 1.795, -1.0, trim, { mat: 'metal' }),
+    // fog lamps recessed in the bumper
+    cyl(0.052, 0.052, 0.04, -0.62, 0.55, 2.3, '#f3e2bb', { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 14),
+    cyl(0.052, 0.052, 0.04, 0.62, 0.55, 2.3, '#f3e2bb', { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 14),
+    // rubber mud flaps behind the rear wheels
+    box(0.3, 0.3, 0.03, -0.84, 0.42, -1.96, dark, { mat: 'matte' }),
+    box(0.3, 0.3, 0.03, 0.84, 0.42, -1.96, dark, { mat: 'matte' }),
   ],
 })

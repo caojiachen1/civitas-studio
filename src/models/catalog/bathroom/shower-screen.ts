@@ -60,5 +60,19 @@ export default defineModel({
     box(0.54, 0.018, 0.006, 0.31, 0.102, 0.388, C.graphite, { mat: 'matte' }),
     rbox(0.06, 0.012, 0.09, 0.004, -0.59, 0.006, 0.38, C.blackMetal, { mat: 'metal' }),
     rbox(0.06, 0.012, 0.09, 0.004, 0.59, 0.006, 0.38, C.blackMetal, { mat: 'metal' }),
+
+    // towel bar mounted on the outside of the fixed panel
+    cyl(0.011, 0.011, 0.48, -0.32, 1.45, 0.44, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 16),
+    cyl(0.012, 0.012, 0.05, -0.55, 1.45, 0.408, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    cyl(0.012, 0.012, 0.05, -0.09, 1.45, 0.408, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 12),
+    cyl(0.014, 0.014, 0.008, -0.565, 1.45, 0.44, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
+    cyl(0.014, 0.014, 0.008, -0.075, 1.45, 0.44, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 14),
+
+    // clear seal fin closing the gap at the meeting stiles
+    box(0.006, 1.94, 0.004, 0, 1.1, 0.3995, '#cdd3cc', { mat: 'matte' }),
+
+    // silicone beads sealing the threshold to the floor
+    box(1.19, 0.005, 0.012, 0, 0.0025, 0.3435, '#b8b5ac', { mat: 'matte' }),
+    box(1.19, 0.005, 0.012, 0, 0.0025, 0.4165, '#b8b5ac', { mat: 'matte' }),
   ],
 })

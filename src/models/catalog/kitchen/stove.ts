@@ -67,5 +67,24 @@ export default defineModel({
     box(0.78, 0.008, 0.012, 0, 0.112, 0.26, C.ink),
     box(0.008, 0.54, 0.008, -0.386, 0.405, 0.272, C.ink),
     box(0.008, 0.54, 0.008, 0.386, 0.405, 0.272, C.ink),
+
+    // low rear splashboard with a rolled top edge
+    box(0.8, 0.016, 0.024, 0, 0.91, -0.313, C.steel, { mat: 'metal' }),
+    cyl(0.004, 0.004, 0.78, 0, 0.916, -0.313, C.steel, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 12),
+    // cooling vents between the control panel and the oven door
+    ...[-0.018, -0.006, 0.006, 0.018].map((dy) =>
+      box(0.5, 0.006, 0.004, 0, 0.6975 + dy, 0.256, C.ink, { mat: 'matte' }),
+    ),
+    // panel screws and oven hinge pins
+    ...[
+      [-0.36, 0.85],
+      [0.36, 0.85],
+      [-0.36, 0.74],
+      [0.36, 0.74],
+    ].map(([x, y]) =>
+      cyl(0.006, 0.006, 0.005, x, y, 0.2725, C.graphite, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    ),
+    cyl(0.009, 0.009, 0.008, -0.3, 0.155, 0.2895, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
+    cyl(0.009, 0.009, 0.008, 0.3, 0.155, 0.2895, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
   ],
 })

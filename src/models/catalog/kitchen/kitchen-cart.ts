@@ -85,5 +85,19 @@ export default defineModel({
     box(0.02, 0.026, 0.16, 0.285, 0.858, -0.03, OAK_DARK, { mat: 'wood' }),
     rbox(0.22, 0.022, 0.15, 0.008, -0.16, 0.856, 0.09, TOWEL, { mat: 'fabric' }),
     box(0.2, 0.004, 0.018, -0.16, 0.868, 0.09, '#b8ab94', { mat: 'fabric' }),
+
+    // ladle and spatula hanging from brass hooks on the front rail
+    torus(0.017, 0.004, 0.3, 0.6, 0.246, C.brass, { mat: 'metal' }, 16),
+    torus(0.017, 0.004, 0.2, 0.6, 0.246, C.brass, { mat: 'metal' }, 16),
+    cyl(0.007, 0.007, 0.13, 0.3, 0.529, 0.246, C.steel, { mat: 'metal' }, 10),
+    cyl(0.031, 0.022, 0.032, 0.3, 0.448, 0.246, C.steel, { mat: 'metal' }, 20),
+    cyl(0.007, 0.006, 0.1, 0.2, 0.542, 0.246, C.birch, { mat: 'wood' }, 10),
+    rbox(0.05, 0.055, 0.007, 0.005, 0.2, 0.465, 0.246, C.birch, { mat: 'wood' }),
+    // brass end caps on the towel bar and caster plate screws
+    cyl(0.013, 0.009, 0.008, -0.266, 0.62, 0.262, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 12),
+    cyl(0.013, 0.009, 0.008, 0.266, 0.62, 0.262, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 12),
+    ...[-0.35, 0.35].map((x) =>
+      cyl(0.005, 0.005, 0.005, x, 0.098, 0.2065, C.graphite, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    ),
   ],
 })

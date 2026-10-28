@@ -112,6 +112,22 @@ export default defineModel({
     ...bottomPlates,
     ...topPlates,
     ...shoes,
+    // heel blocks, apex strap and end-grain caps
+    ...[-1, 1].map((side) =>
+      box(0.2, 0.26, 0.18, side * 1.94, 0.43, 0, WOOD_DARK, {
+        mat: 'wood',
+        rot: [0, 0, side * -0.25],
+      }),
+    ),
+    box(0.22, 0.08, 0.22, 0, 1.115, 0, WOOD_DARK, { mat: 'wood' }),
+    box(0.05, 0.26, 0.19, 0, 1.03, 0, PLATE, { mat: 'metal' }),
+    ...[0, 1].map((i) =>
+      cyl(0.012, 0.012, 0.2, -0.06 + i * 0.12, 1.03, 0, BOLT, {
+        mat: 'metal',
+        rot: [Math.PI / 2, 0, 0],
+      }, 8),
+    ),
+    ...[-1, 1].map((side) => box(0.035, 0.16, 0.17, side * 2.105, bottomY, 0, WOOD_LIGHT, { mat: 'wood' })),
     // metal hangers under the bottom chord for ceiling ties
     ...[-1.4, 0, 1.4].map((x) => box(0.08, 0.18, 0.1, x, bottomY - 0.16, 0, PLATE, { mat: 'metal' })),
   ],

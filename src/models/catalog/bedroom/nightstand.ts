@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox, sphere } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere, torus } from '../../kit'
 
 export default defineModel({
   id: 'nightstand',
@@ -50,5 +50,13 @@ export default defineModel({
     cyl(0.028, 0.028, 0.012, -0.08, 0.32, -0.214, C.ink, { mat: 'matte', rot: [Math.PI / 2, 0, 0] }, 16),
     box(0.5, 0.006, 0.012, 0, 0.404, 0.205, '#8f6d44', { mat: 'wood' }),
     sphere(0.005, 0.18, 0.442, 0.06, C.brass, { mat: 'metal' }, 8),
+
+    // shade seam and bottom rim, drawer reveal, shelf band and book page blocks
+    box(0.004, 0.055, 0.004, -0.079, 0.53, -0.09, '#dcc9a8', { mat: 'fabric', rot: [0, 0, 0.35] }),
+    torus(0.0615, 0.003, -0.13, 0.5005, -0.09, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 20),
+    box(0.4, 0.004, 0.005, 0, 0.3895, 0.197, '#7d5c38', { mat: 'wood' }),
+    box(0.4, 0.006, 0.008, 0, 0.1325, 0.181, '#8f6d44', { mat: 'wood' }),
+    box(0.164, 0.014, 0.006, 0.09, 0.156, 0.076, '#e9e0d2', { mat: 'matte', rot: [0, 0.08, 0] }),
+    box(0.154, 0.012, 0.006, 0.09, 0.177, 0.077, '#e9e0d2', { mat: 'matte', rot: [0, -0.06, 0] }),
   ],
 })

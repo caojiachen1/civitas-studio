@@ -39,8 +39,8 @@ export default defineModel({
     rounded(0.26, 0.84, 0.16, 0.03, 0, 2.72, 0.06, housing, { mat: 'metal' }),
     rounded(0.28, 0.03, 0.18, 0.012, 0, 3.155, 0.06, C.graphite, { mat: 'metal' }),
     rounded(0.28, 0.03, 0.18, 0.012, 0, 2.285, 0.06, C.graphite, { mat: 'metal' }),
-    cyl(0.012, 0.012, 0.02, 0.11, 2.16, 0.06, C.steel, { mat: 'metal' }, 8),
-    cyl(0.012, 0.012, 0.02, -0.11, 2.16, 0.06, C.steel, { mat: 'metal' }, 8),
+    cyl(0.012, 0.012, 0.02, 0.11, 2.268, 0.06, C.steel, { mat: 'metal' }, 8),
+    cyl(0.012, 0.012, 0.02, -0.11, 2.268, 0.06, C.steel, { mat: 'metal' }, 8),
 
     // lenses: only the red one is lit
     cyl(0.072, 0.072, 0.018, 0, 3.0, 0.148, C.red, { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 24),
@@ -61,5 +61,22 @@ export default defineModel({
     box(0.07, 0.012, 0.004, -0.03, 1.09, 0.103, C.ink),
     box(0.045, 0.012, 0.004, -0.03, 1.06, 0.103, C.leaf),
     box(0.035, 0.012, 0.004, -0.03, 1.03, 0.103, C.brass),
+
+    // backing board behind the signal head
+    rounded(0.34, 0.94, 0.02, 0.008, 0, 2.72, -0.032, C.graphite, { mat: 'metal' }),
+
+    // reflective border framing the housing
+    box(0.34, 0.03, 0.004, 0, 3.175, -0.0205, '#c9b25f', { mat: 'gloss' }),
+    box(0.34, 0.03, 0.004, 0, 2.265, -0.0205, '#c9b25f', { mat: 'gloss' }),
+    box(0.028, 0.88, 0.004, 0.155, 2.72, -0.0205, '#c9b25f', { mat: 'gloss' }),
+    box(0.028, 0.88, 0.004, -0.155, 2.72, -0.0205, '#c9b25f', { mat: 'gloss' }),
+
+    // board fixing bolts
+    ...[
+      [-0.12, 3.175],
+      [0.12, 3.175],
+      [-0.12, 2.265],
+      [0.12, 2.265],
+    ].map(([x, y]) => cyl(0.009, 0.009, 0.008, x, y, -0.019, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 6)),
   ],
 })

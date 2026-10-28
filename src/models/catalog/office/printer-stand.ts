@@ -50,5 +50,18 @@ export default defineModel({
     // power cable
     cyl(0.005, 0.005, 0.5, 0.18, 0.3, -0.24, C.ink, { mat: 'gloss' }, 8),
     torus(0.05, 0.005, 0.18, 0.075, -0.24, C.ink, { mat: 'gloss' }, 16),
+
+    // wrapped paper ream on the open end of the top
+    rbox(0.12, 0.05, 0.28, 0.004, -0.33, 0.575, -0.02, C.white, { mat: 'matte' }),
+    box(0.122, 0.012, 0.282, -0.33, 0.575, -0.02, C.cream, { mat: 'matte' }),
+    box(0.1, 0.002, 0.004, -0.33, 0.601, -0.02, '#d8d4ca', { mat: 'matte' }),
+    // drawer label holders
+    ...[0.4, 0.18].flatMap((y) => [
+      rbox(0.07, 0.03, 0.004, 0.003, 0.24, y, 0.2245, C.brass, { mat: 'metal' }),
+      rbox(0.05, 0.016, 0.002, 0.001, 0.24, y, 0.227, C.white, { mat: 'matte' }),
+    ]),
+    // cable retaining clips on the back panel
+    box(0.024, 0.014, 0.02, 0.18, 0.4, -0.2455, C.graphite, { mat: 'metal' }),
+    box(0.024, 0.014, 0.02, 0.18, 0.24, -0.2455, C.graphite, { mat: 'metal' }),
   ],
 })

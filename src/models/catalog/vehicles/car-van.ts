@@ -84,5 +84,21 @@ export default defineModel({
     rbox(0.04, 0.3, 0.92, 0.02, 0.98, 0.58, 1.7, '#35393c'),
     rbox(0.04, 0.3, 0.92, 0.02, -0.98, 0.58, -1.62, '#35393c'),
     rbox(0.04, 0.3, 0.92, 0.02, 0.98, 0.58, -1.62, '#35393c'),
+
+    // wiper arms on the raked windscreen
+    box(0.5, 0.012, 0.014, -0.36, 1.22, 2.42, dark, { mat: 'matte', rot: [-0.3, 0, 0.16] }),
+    box(0.5, 0.012, 0.014, 0.36, 1.22, 2.42, dark, { mat: 'matte', rot: [-0.3, 0, -0.16] }),
+    // sliding-door rails along the cargo flanks
+    box(0.02, 0.035, 1.6, -0.987, 1.05, -1.0, C.graphite, { mat: 'metal' }),
+    box(0.02, 0.035, 1.6, 0.987, 1.05, -1.0, C.graphite, { mat: 'metal' }),
+    // fuel filler flap behind the cab door
+    cyl(0.06, 0.06, 0.012, -0.985, 0.9, 0.7, '#bab5a9', { mat: 'gloss', rot: [0, 0, Math.PI / 2] }, 14),
+    // rear mud flaps
+    box(0.3, 0.32, 0.03, -0.86, 0.4, -2.0, dark, { mat: 'matte' }),
+    box(0.3, 0.32, 0.03, 0.86, 0.4, -2.0, dark, { mat: 'matte' }),
+    // rear loading step under the bumper
+    box(0.9, 0.06, 0.2, 0, 0.29, -2.5, dark, { mat: 'metal' }),
+    box(0.05, 0.24, 0.05, -0.36, 0.44, -2.46, dark, { mat: 'metal' }),
+    box(0.05, 0.24, 0.05, 0.36, 0.44, -2.46, dark, { mat: 'metal' }),
   ],
 })

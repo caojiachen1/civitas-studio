@@ -43,5 +43,18 @@ export default defineModel({
     ico(0.038, 0.09, 0.22, -0.09, C.leafLight, { mat: 'foliage' }, 0),
     ico(0.03, -0.1, 0.215, 0.03, C.leaf, { mat: 'foliage' }, 0),
     cone(0.016, 0.11, 0.1, 0.27, 0.05, C.leafLight, { mat: 'foliage', rot: [0.08, 0, 0.12] }, 6),
+    // door hinges, letter slot and the flag pivot nut
+    box(0.014, 0.03, 0.01, -0.092, 1.11, 0.276, C.steel, { mat: 'metal' }),
+    box(0.014, 0.03, 0.01, -0.092, 1.01, 0.276, C.steel, { mat: 'metal' }),
+    box(0.12, 0.01, 0.006, 0, 1.12, 0.278, C.ink, { mat: 'metal' }),
+    cyl(0.013, 0.013, 0.008, 0.138, 1.04, 0.02, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 8),
+    // two screws fixing the number plate
+    cyl(0.005, 0.005, 0.006, -0.035, 0.78, -0.0615, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 6),
+    cyl(0.005, 0.005, 0.006, 0.035, 0.78, -0.0615, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 6),
+    // ivy tendril climbing the post
+    cyl(0.004, 0.005, 0.36, 0.05, 0.58, -0.065, C.leafDeep, { mat: 'foliage', rot: [0.05, 0, 0.06] }, 6),
+    ico(0.024, 0.056, 0.5, -0.052, C.leaf, { mat: 'foliage' }, 0),
+    ico(0.02, 0.06, 0.62, -0.05, C.leafLight, { mat: 'foliage' }, 0),
+    ico(0.022, 0.054, 0.72, -0.055, C.leaf, { mat: 'foliage' }, 0),
   ],
 })

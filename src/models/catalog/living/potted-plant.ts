@@ -88,5 +88,15 @@ export default defineModel({
       ico(r, x, y, z, i % 2 === 0 ? '#9b978c' : '#87837a', { mat: 'stone' }, 1),
     ),
     torus(0.238, 0.008, 0, 0.018, 0, '#b98d71', { mat: 'ceramic', rot: [Math.PI / 2, 0, 0] }, 30),
+
+    // inner rim shadow, mulch chips, incised body rings and fresh growth
+    torus(0.198, 0.008, 0, 0.352, 0, '#8a6a52', { mat: 'ceramic', rot: [Math.PI / 2, 0, 0] }, 28),
+    ico(0.018, 0.14, 0.382, -0.10, '#5a4433', { mat: 'matte' }, 0),
+    ico(0.015, -0.16, 0.380, 0.03, '#6b5138', { mat: 'matte' }, 0),
+    ico(0.012, 0.03, 0.382, 0.16, '#5a4433', { mat: 'matte' }, 0),
+    torus(0.185, 0.004, 0, 0.10, 0, '#a87258', { mat: 'ceramic', rot: [Math.PI / 2, 0, 0] }, 28),
+    torus(0.206, 0.004, 0, 0.28, 0, '#a87258', { mat: 'ceramic', rot: [Math.PI / 2, 0, 0] }, 28),
+    leaf(0.15, 0.10, 0.09, 0.98, 0.02, [0.3, -0.6, -1.1], C.leafLight),
+    leaf(0.13, 0.09, -0.08, 0.88, -0.04, [0.25, -2.4, -1.15], C.leaf),
   ],
 })

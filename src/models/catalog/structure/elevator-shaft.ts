@@ -101,6 +101,16 @@ for (const sx of [-1, 1]) {
 parts.push(box(0.5, 0.22, 0.36, 0, 2.92, -0.4, STEEL_DARK, { mat: 'metal' }))
 parts.push(cyl(0.15, 0.15, 0.06, 0, 2.75, -0.4, STEEL, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 20))
 parts.push(box(0.18, 0.6, 0.12, 0.82, 1.6, -0.55, STEEL, { mat: 'metal' }))
+// machine beam across the head frame and two hoist ropes
+parts.push(box(2.1, 0.08, 0.16, 0, 3.06, -0.4, STEEL_DARK, { mat: 'metal' }))
+for (const sx of [-1, 1]) {
+  parts.push(cyl(0.006, 0.006, 1.5, sx * 0.12, 2.0, -0.4, '#8b9296', { mat: 'metal' }, 6))
+}
+// counterweight guide rails and sliding shoes
+for (const sx of [-1, 1]) {
+  parts.push(box(0.02, 1.9, 0.05, 0.82 + sx * 0.1, 1.6, -0.55, STEEL, { mat: 'metal' }))
+  parts.push(box(0.04, 0.06, 0.08, 0.82 + sx * 0.1, 1.35, -0.55, STEEL_DARK, { mat: 'metal' }))
+}
 
 // Anchor bolts at the front feet.
 for (const sx of [-1, 1]) {

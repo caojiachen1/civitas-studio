@@ -60,5 +60,16 @@ export default defineModel({
     cyl(0.019, 0.023, 0.48, -0.198, 0.61, -0.22, C.oak, { mat: 'wood', rot: [-0.1, 0, 0] }, 12),
     cyl(0.019, 0.023, 0.48, 0.198, 0.61, -0.22, C.oak, { mat: 'wood', rot: [-0.1, 0, 0] }, 12),
     box(0.4, 0.03, 0.03, 0, 0.39, -0.232, C.oak, { mat: 'wood' }),
+
+    // lower tuft row, seat edge welt, rear maker's plate and floor glides
+    sphere(0.01, -0.075, 0.6, -0.18, C.cream, { mat: 'fabric' }, 8),
+    sphere(0.01, 0.075, 0.6, -0.18, C.cream, { mat: 'fabric' }, 8),
+    box(0.44, 0.006, 0.006, 0, 0.42, 0.2505, C.linen, { mat: 'fabric' }),
+    box(0.006, 0.006, 0.42, -0.2405, 0.42, 0.005, C.linen, { mat: 'fabric' }),
+    box(0.006, 0.006, 0.42, 0.2405, 0.42, 0.005, C.linen, { mat: 'fabric' }),
+    rbox(0.1, 0.016, 0.004, 0.002, 0, 0.39, -0.2475, C.brass, { mat: 'metal' }),
+    ...LEGS.map(([x, z, tilt]) =>
+      cyl(0.021, 0.021, 0.005, x + tilt * 0.042, 0.0025, z + tilt * 0.014, C.graphite, { mat: 'matte' }, 12),
+    ),
   ],
 })

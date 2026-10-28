@@ -1,4 +1,4 @@
-import { cone, cyl, defineModel, ico } from '../../kit'
+import { box, cone, cyl, defineModel, ico, sphere } from '../../kit'
 
 const BARK = '#6b5540'
 const BARK_DARK = '#574532'
@@ -57,6 +57,42 @@ const roots = [0.9, 3.6].map((a, i) =>
   }, 7),
 )
 
+// Shredded bark strips peel away from the exposed lower trunk.
+const barkStrips = Array.from({ length: 7 }, (_, i) => {
+  const a = i * 0.88 + 0.3
+  const y = 0.45 + (i % 3) * 0.14
+  const r = 0.236 - (i % 3) * 0.006
+  return box(0.032, 0.3 + (i % 2) * 0.04, 0.015, Math.cos(a) * r, y, Math.sin(a) * r, i % 2 === 0 ? '#5d4834' : '#6b5540', {
+    mat: 'wood',
+    rot: [0, -(a + Math.PI / 2), 0.05 * Math.sin(a)],
+  })
+})
+
+// Rounded grey-green cones sit against the outer needle skirt.
+const CONES: [number, number, number][] = [
+  [0.54, 3.0, 0.1],
+  [-0.44, 3.18, 0.04],
+  [0.46, 3.62, 0.1],
+  [-0.5, 3.98, 0.06],
+  [0.42, 4.55, 0.14],
+]
+const cones = CONES.map(([x, y, z], i) =>
+  sphere(0.045, x, y, z, i % 2 === 0 ? '#79825c' : '#6f7954', { mat: 'foliage' }, 8),
+)
+
+// Extra skirt lobes and two dry stubs fill the lower silhouette.
+const lowerLobes = [
+  ico(0.34, 0.36, 2.1, -0.18, NEEDLE_DEEP, { mat: 'foliage' }, 1),
+  ico(0.3, -0.38, 2.28, 0.16, NEEDLE_MID, { mat: 'foliage' }, 0),
+  ico(0.22, 0.1, 1.72, 0.32, NEEDLE_DEEP, { mat: 'foliage' }, 0),
+]
+const lowStubs = [0.6, 2.6].map((a, i) =>
+  cyl(0.022, 0.04, 0.34, Math.cos(a) * 0.2, 0.62 + i * 0.2, Math.sin(a) * 0.2, BARK_DARK, {
+    mat: 'wood',
+    rot: [0, -a, 1.35],
+  }, 6),
+)
+
 const grass = [
   [0.4, 0.3, 0.26],
   [-0.42, 0.1, 0.22],
@@ -86,9 +122,13 @@ export default defineModel({
     cyl(0.16, 0.26, 1.6, 0, 0.8, 0, BARK, { mat: 'wood' }, 12),
     cyl(0.1, 0.16, 1.4, 0, 2.1, 0, BARK_DARK, { mat: 'wood' }, 10),
     ...flutes,
+    ...barkStrips,
+    ...lowStubs,
     ...deadWood,
     ...tiers,
     ...lobes,
+    ...lowerLobes,
+    ...cones,
     // two stacked tips close the crown at the stated height
     cone(0.11, 0.85, 0, 7.55, 0, NEEDLE_MID, { mat: 'foliage', rot: [0, 0.4, 0] }, 8),
     cone(0.06, 0.5, 0.01, 7.95, 0, NEEDLE_LIGHT, { mat: 'foliage', rot: [0, -0.5, 0] }, 7),

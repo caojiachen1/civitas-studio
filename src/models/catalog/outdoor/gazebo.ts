@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere } from '../../kit'
 
 const teak = '#a97a4d'
 const teakDark = '#82603c'
@@ -10,7 +10,7 @@ export default defineModel({
   category: 'outdoor',
   tags: ['gazebo', 'pavilion', 'pergola', '凉亭', '亭子', '庭院'],
   footprint: [3.2, 3.2],
-  height: 2.9,
+  height: 3.0,
   placement: 'outdoor',
   parts: [
     // deck
@@ -65,5 +65,28 @@ export default defineModel({
     box(1.3, 0.1, 0.035, 0, 0.85, -1.325, teak, { mat: 'wood' }),
     box(0.05, 0.45, 0.05, -0.55, 0.73, -1.29, teakDark, { mat: 'wood', rot: [-0.15, 0, 0] }),
     box(0.05, 0.45, 0.05, 0.55, 0.73, -1.29, teakDark, { mat: 'wood', rot: [-0.15, 0, 0] }),
+    // stone-ish plinths and chamfered collars at the foot of each post
+    rbox(0.2, 0.05, 0.2, 0.012, -1.5, 0.15, -1.5, paint, { mat: 'matte' }),
+    rbox(0.2, 0.05, 0.2, 0.012, 1.5, 0.15, -1.5, paint, { mat: 'matte' }),
+    rbox(0.2, 0.05, 0.2, 0.012, -1.5, 0.15, 1.5, paint, { mat: 'matte' }),
+    rbox(0.2, 0.05, 0.2, 0.012, 1.5, 0.15, 1.5, paint, { mat: 'matte' }),
+    box(0.17, 0.03, 0.17, -1.5, 0.19, -1.5, paint, { mat: 'matte' }),
+    box(0.17, 0.03, 0.17, 1.5, 0.19, -1.5, paint, { mat: 'matte' }),
+    box(0.17, 0.03, 0.17, -1.5, 0.19, 1.5, paint, { mat: 'matte' }),
+    box(0.17, 0.03, 0.17, 1.5, 0.19, 1.5, paint, { mat: 'matte' }),
+    // turned finial capping the pavilion roof
+    cyl(0.028, 0.04, 0.06, 0, 2.885, 0, paint, { mat: 'matte' }, 12),
+    sphere(0.042, 0, 2.92, 0, C.brass, { mat: 'metal' }, 14),
+    cyl(0.008, 0.008, 0.03, 0, 2.972, 0, C.brass, { mat: 'metal' }, 8),
+    // seat cushion and two throw pillows on the built-in bench
+    rbox(1.2, 0.055, 0.32, 0.02, 0, 0.5725, -1.05, C.sage, { mat: 'fabric' }),
+    rbox(0.3, 0.26, 0.09, 0.04, -0.32, 0.66, -1.24, C.linen, { mat: 'fabric', rot: [-0.12, 0.1, 0] }),
+    rbox(0.3, 0.26, 0.09, 0.04, 0.32, 0.66, -1.24, C.cream, { mat: 'fabric', rot: [-0.12, -0.1, 0] }),
+    // lantern hanging from the apex on a short chain
+    cyl(0.006, 0.006, 0.7, 0, 2.53, 0, C.blackMetal, { mat: 'metal' }, 6),
+    box(0.11, 0.02, 0.11, 0, 2.21, 0, C.blackMetal, { mat: 'metal' }),
+    box(0.1, 0.17, 0.1, 0, 2.115, 0, C.glass, { mat: 'glass', opacity: 0.4 }),
+    box(0.055, 0.12, 0.055, 0, 2.115, 0, '#ffe9c2', { mat: 'emissive' }),
+    box(0.12, 0.02, 0.12, 0, 2.02, 0, C.blackMetal, { mat: 'metal' }),
   ],
 })

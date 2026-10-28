@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, ico, sphere, torus } from '../../kit'
+import { C, box, cyl, defineModel, ico, rbox, sphere, torus } from '../../kit'
 
 const PADS = Array.from({ length: 4 }, (_, i) => (i / 4) * Math.PI * 2 + Math.PI / 4)
 
@@ -48,5 +48,25 @@ export default defineModel({
     cyl(0.006, 0.006, 0.16, 0.26, 0.96, -0.12, C.leafDeep, { mat: 'matte', rot: [0.1, 0, -0.14] }, 6),
     ico(0.06, 0.24, 1.06, -0.13, C.leaf, { mat: 'foliage' }, 1),
     ico(0.045, 0.3, 1.03, -0.1, C.leafLight, { mat: 'foliage' }, 1),
+
+    // plank seams across the top
+    box(1.0, 0.0015, 0.004, 0, 0.7505, -0.34, C.walnut, { mat: 'wood' }),
+    box(1.22, 0.0015, 0.004, 0, 0.7505, -0.11, C.walnut, { mat: 'wood' }),
+    box(1.22, 0.0015, 0.004, 0, 0.7505, 0.12, C.walnut, { mat: 'wood' }),
+    box(1.0, 0.0015, 0.004, 0, 0.7505, 0.35, C.walnut, { mat: 'wood' }),
+
+    // pair of brass candlesticks opposite the bud vase
+    ...[
+      [-0.28, 0.33],
+      [-0.46, 0.12],
+    ].flatMap(([x, z]) => [
+      cyl(0.048, 0.052, 0.012, x, 0.756, z, C.brass, { mat: 'metal' }, 20),
+      cyl(0.012, 0.02, 0.085, x, 0.8045, z, C.brass, { mat: 'metal' }, 16),
+      cyl(0.023, 0.023, 0.01, x, 0.852, z, C.brass, { mat: 'metal' }, 16),
+      cyl(0.015, 0.015, 0.1, x, 0.907, z, C.cream, { mat: 'ceramic' }, 16),
+    ]),
+    // folded linen napkin with a brass ring
+    rbox(0.15, 0.008, 0.15, 0.006, 0.3, 0.756, 0.34, C.linen, { mat: 'fabric' }),
+    cyl(0.02, 0.02, 0.014, 0.3, 0.767, 0.34, C.brass, { mat: 'metal' }, 18),
   ],
 })

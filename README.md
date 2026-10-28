@@ -1,19 +1,22 @@
 # Civitas Studio · 城市建造工坊
 
-A desktop 3D city & building construction studio built with Tauri 2, React 19 and Three.js. Draw freeform roads, rivers and bridges, assemble walls/doors/windows/roofs, furnish interiors from a 166-piece catalog, and export the result as GLB/glTF/OBJ/STL. A built-in AI Copilot can also build and edit the scene from natural-language instructions.
+A desktop 3D city & building construction studio built with Tauri 2, React 19 and Three.js. Draw freeform roads, rivers and bridges, assemble walls/doors/windows/roofs, place whole building templates that open into editable shells/interiors, furnish rooms from a 166-piece catalog, and export the result as GLB/glTF/OBJ/STL. A built-in AI Copilot can also build and edit the scene from natural-language instructions.
 
 ## Highlights
 
 - **AI Copilot** — press `Ctrl+K` and describe what you want. It turns Chinese/English requests into validated editor actions: whole villas, individual furnished rooms, furniture, freeform roads/rivers/bridges/ponds, vegetation, roofs, levels, selected-object edits, and opening/closing doors to a chosen angle. The local planner works offline; an optional OpenAI-compatible provider can be configured for stronger language understanding. Every AI plan is a single undo step, and dangerous actions require confirmation.
-- **External agent API (MCP)** — the desktop build serves MCP over HTTP on `127.0.0.1` plus a plain REST mirror, exposing 27 tools (`build_room`, `place_model`, `draw_path`, `apply_actions`, `get_screenshot`, …). Any third-party agent can connect to the running app and drive AI auto-modeling end to end. Localhost-only, optional bearer token, whitelisted action schemas, and destructive calls require `confirm=true`.
+- **External agent API (MCP)** — the desktop build serves MCP over HTTP on `127.0.0.1` plus a plain REST mirror, exposing 33 tools (`build_room`, `place_model`, `draw_path`, `apply_actions`, `get_screenshot`, …). Any third-party agent can connect to the running app and drive AI auto-modeling end to end. Localhost-only, optional bearer token, whitelisted action schemas, and destructive calls require `confirm=true`.
 - **2D plan building** — the Plan workspace locks a top-down view and hides roofs/other floors. Drag a rectangle to generate four walls, a floor slab, a door, windows and an optional roof in one gesture; hand-drawn closed wall loops can be completed into slabs/roofs with one click. "Copy to new floor" lifts the current plan to the next elevation, so per-floor 2D plans assemble into a multi-storey 3D building. Exit the plan workspace via the top-right button, the status-bar chip, clicking the Plan rail again, or `Esc`.
+- **Whole buildings with editable interiors** — place a villa, townhouse, office or tower as one object, move/rotate it as a unit, then double-click (or use the Inspector) to enter it. Inside, switch between **shell** (walls, windows, doors, stairs) and **interior** (furniture) modes, change floors in the top bar, and exit back to the city at any time. The city view renders a merged shell derived from the edited exterior walls, so changes made inside are reflected outside.
+- **Skyline brush** — the Buildings panel can place a template at the view centre or generate a 4/6/8-building skyline row with varied tower heights in one click; buildings remain individually movable units.
+- **Visual styles** — switch between Mono, Daylight, Sunset and Blueprint presets in the Select panel; sky, fog, lighting, exposure and ground tint change together.
 - **Freeform infrastructure** — roads, rivers, footpaths, bridges and fences are smooth Catmull-Rom curves with draggable control points. Close a river path to fill a pond; bridges get automatic railings, piers and ramps.
 - **Component library** — 166 modeled components across living, bedroom, dining, kitchen, bathroom, office, laundry, outdoor, street, vegetation, vehicles and structure categories, plus imported custom models.
 - **Construction feedback** — valid placements use a light-grey ghost preview; invalid placements turn red with a specific reason (collision, wall fit, overlap, water, road-only/water-only rules). Walls, path endpoints and wall-backed furniture snap automatically with generous, distance-aware thresholds.
 - **Parametric building** — walls support doors/windows with real openings and frames; doors can be left closed or opened to any angle from -135° to 135° with left/right hinges (single, double and glass leaves swing around the hinge; sliding panels slide along the wall). Slabs have generated surface textures; automatic roofs recognize closed wall loops in gable/hip/flat/shed styles; multi-level floors and roof hiding make interior work easy.
 - **Project workflow** — autosave to local storage, `.civitas` JSON projects, undo/redo, copy/delete, native save/open dialogs, and GLB/glTF/OBJ/STL import & export.
 - **Performance** — shared merged geometry, a single vertex-PBR material per model batch, batched wall/path meshes, on-demand shadow updates, incremental scene sync, frustum culling and a capped pixel ratio. The bundled sample runs at ~180 FPS / ~160 draw calls in headless Chromium, ~200k triangles.
-- **Map fidelity** — 1K procedural ground with a bump map, textured asphalt and pavement with metre-based UVs, 0.32 m curve sampling for roads/rivers, and 1K floor textures for slabs. Quality still scales with the adaptive render presets.
+- **Map fidelity** — 1K procedural ground with a bump map, textured asphalt and pavement with metre-based UVs, 0.32 m curve sampling for roads/rivers, and 1K floor textures for slabs. Roads add lane markings, crosswalks, reflective studs, drainage inlets, raised sidewalks, tactile paving and tree pits; rivers/ponds get three animated wave layers, foam, bank strata, reeds, rocks and lily pads; bridges add railing posts, piers, expansion joints and head reflectors. Quality still scales with the adaptive render presets.
 
 ## Run
 
@@ -72,7 +75,7 @@ curl -X POST http://127.0.0.1:8971/api/tools/build_room \
   -d '{"roomType":"bedroom","width":5,"depth":4.5,"furnish":true}'
 ```
 
-### Tools (27)
+### Tools (33)
 
 | Group | Tools |
 | --- | --- |
@@ -81,9 +84,10 @@ curl -X POST http://127.0.0.1:8971/api/tools/build_room \
 | Build | `build_villa` `build_room` `furnish_room` `place_model` `draw_path` `add_pond` `add_roof` `add_vegetation` |
 | Edit | `modify_selected` `delete_selected` `clear_level` `undo` `redo` |
 | Levels | `add_level` `set_active_level` |
+| Buildings | `list_building_templates` `place_building` `enter_building` `exit_building` `set_building_mode` |
 | Batch | `apply_actions` (same validated action plan the built-in Copilot uses) |
 | Files | `save_project` `export_scene` `new_project` |
-| Runtime | `set_quality` |
+| Runtime | `set_quality` `set_visual_style` |
 
 Every mutating tool returns `{ ok, summary, created?, focusIds?, scene }`, so an agent can read back the new entity counts and immediately screenshot the result for a visual feedback loop. `get_screenshot` returns a downscaled JPEG as base64. With a door selected, `modify_selected` also accepts `openAngle` (-135…135, `0` = closed, negative swings to the other side) and `hinge` (`left` / `right`).
 
@@ -120,7 +124,7 @@ The API is desktop-only: in `npm run dev` (browser) the panel reports that the M
 
 ## Project layout
 
-- `src/editor` — engine, interaction, snapping/validation, parametric builders, 2D plan-to-3D generation (`plan.ts`), project I/O.
+- `src/editor` — engine, interaction, snapping/validation, parametric builders, 2D plan-to-3D generation (`plan.ts`), whole-building templates and inside/outside sessions (`buildings.ts`), project I/O.
 - `src/models/catalog` — one module per component model, auto-registered through `src/models/registry.ts`.
 - `src/ai` — AI planner, action validation/execution, scene-building helpers, provider client and chat store.
 - `src/mcp` — tool schemas and dispatcher, the Tauri event bridge, and the MCP connection settings store.

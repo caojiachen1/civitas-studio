@@ -40,5 +40,14 @@ export default defineModel({
     // ceramic dish on top
     cyl(0.075, 0.055, 0.035, 0.06, 0.5275, 0.03, C.cream, { mat: 'ceramic' }, 24),
     torus(0.073, 0.005, 0.06, 0.544, 0.03, C.cream, { mat: 'ceramic', rot: [Math.PI / 2, 0, 0] }, 24),
+
+    // apron ring, brass leg collars and felt glides
+    torus(0.205, 0.008, 0, 0.4625, 0, C.walnut, { mat: 'wood', rot: [Math.PI / 2, 0, 0] }, 28),
+    cyl(0.019, 0.019, 0.012, 0, 0.448, 0.185, C.brass, { mat: 'metal' }, 12),
+    cyl(0.019, 0.019, 0.012, -0.160, 0.448, -0.0925, C.brass, { mat: 'metal' }, 12),
+    cyl(0.019, 0.019, 0.012, 0.160, 0.448, -0.0925, C.brass, { mat: 'metal' }, 12),
+    cyl(0.016, 0.016, 0.003, 0, 0.0015, 0.185, '#2f2b27', { mat: 'matte' }, 12),
+    cyl(0.016, 0.016, 0.003, -0.160, 0.0015, -0.0925, '#2f2b27', { mat: 'matte' }, 12),
+    cyl(0.016, 0.016, 0.003, 0.160, 0.0015, -0.0925, '#2f2b27', { mat: 'matte' }, 12),
   ],
 })

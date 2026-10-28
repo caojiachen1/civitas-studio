@@ -61,5 +61,23 @@ export default defineModel({
     ...Array.from({ length: count - 1 }, (_, i) =>
       box(width - 0.04, 0.008, 0.012, 0, riser * (i + 1), stepZ(i) + treadDepth / 2 - 0.006, MORTAR, { mat: 'stone' }),
     ),
+    // sawn tread joints
+    ...Array.from({ length: count }, (_, i) => {
+      const top = riser * (i + 1)
+      const z = stepZ(i)
+      return [-0.58, 0.58].map((x) =>
+        box(0.006, 0.004, treadDepth * 0.64, x, top + 0.002, z, MORTAR, { mat: 'stone' }),
+      )
+    }).flat(),
+    // weep holes in the lowest riser
+    ...[-0.8, 0, 0.8].map((x) =>
+      cyl(0.017, 0.017, 0.02, x, 0.085, depth / 2 - 0.01, '#5c5a54', { mat: 'stone', rot: [Math.PI / 2, 0, 0] }, 8),
+    ),
+    // dressed end caps to the cheek walls
+    ...[-1, 1].flatMap((side) =>
+      [-1, 1].map((end) =>
+        box(0.2, 0.05, 0.06, side * (width / 2 - 0.1), 0.68, end * (depth / 2 - 0.01), STONE_LIGHT, { mat: 'stone' }),
+      ),
+    ),
   ],
 })

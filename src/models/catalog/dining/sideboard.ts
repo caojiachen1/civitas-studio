@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, ico, torus } from '../../kit'
+import { C, box, cyl, defineModel, ico, rbox, torus } from '../../kit'
 
 const DOORS = [-0.51, 0, 0.51]
 const FLUTES = [-0.15, -0.09, -0.03, 0.03, 0.09, 0.15]
@@ -65,5 +65,16 @@ export default defineModel({
       cyl(0.006, 0.006, 0.075, 0.44 + dx, 0.843, 0.06, C.glass, { mat: 'glass', opacity: 0.8 }, 8),
       cyl(0.042, 0.028, 0.085, 0.44 + dx, 0.923, 0.06, C.glass, { mat: 'glass', opacity: 0.8 }, 20),
     ]),
+
+    // concealed hinges on each door edge, floor glides and a lock escutcheon
+    ...[-0.762, -0.252, 0.762].flatMap((x) => [
+      rbox(0.014, 0.05, 0.028, 0.005, x, 0.3, 0.2, C.graphite, { mat: 'metal' }),
+      rbox(0.014, 0.05, 0.028, 0.005, x, 0.66, 0.2, C.graphite, { mat: 'metal' }),
+    ]),
+    ...LEG_X.flatMap((x) =>
+      LEG_Z.map((z) => cyl(0.028, 0.028, 0.004, x, 0.001, z, C.graphite, { mat: 'matte' }, 14)),
+    ),
+    cyl(0.012, 0.012, 0.005, 0.225, 0.32, 0.207, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
+    box(0.004, 0.012, 0.004, 0.225, 0.316, 0.212, C.ink),
   ],
 })

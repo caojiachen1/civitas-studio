@@ -97,5 +97,18 @@ export default defineModel({
     // ceiling lamp under the cap
     rounded(0.22, 0.02, 0.22, 0.008, 0, 2.21, 0, frame, { mat: 'metal' }),
     box(0.18, 0.01, 0.18, 0, 2.196, 0, '#f4d3a0', { mat: 'emissive' }),
+
+    // ribbed rubber floor mat
+    box(0.62, 0.008, 0.56, 0, 0.068, 0, '#5c5e58', { mat: 'matte' }),
+    ...[-0.18, 0, 0.18].map((z) => box(0.6, 0.004, 0.02, 0, 0.073, z, '#4a4c47', { mat: 'matte' })),
+
+    // directory card holder beside the telephone
+    rounded(0.16, 0.22, 0.03, 0.006, 0.27, 1.16, -0.4, C.graphite, { mat: 'metal' }),
+    box(0.13, 0.18, 0.004, 0.27, 1.16, -0.383, C.cream, { mat: 'matte' }),
+    box(0.11, 0.014, 0.004, 0.27, 1.235, -0.383, C.navy),
+
+    // lock barrel in the door stile
+    cyl(0.014, 0.014, 0.012, 0.335, 1.02, 0.452, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 14),
+    box(0.004, 0.014, 0.004, 0.335, 1.02, 0.4585, COIN_SLOT, { mat: 'matte' }),
   ],
 })

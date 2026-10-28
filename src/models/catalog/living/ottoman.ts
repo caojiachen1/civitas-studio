@@ -47,5 +47,14 @@ export default defineModel({
     // brass corner studs
     sphere(0.008, -0.33, 0.30, 0.302, C.brass, { mat: 'metal' }, 10),
     sphere(0.008, 0.33, 0.30, 0.302, C.brass, { mat: 'metal' }, 10),
+
+    // nailhead trim along both long sides and a leather pull tab
+    ...[-0.27, -0.09, 0.09, 0.27].flatMap((x) => [
+      sphere(0.008, x, 0.30, -0.312, C.brass, { mat: 'metal' }, 8),
+      sphere(0.008, x, 0.30, 0.312, C.brass, { mat: 'metal' }, 8),
+    ]),
+    rbox(0.012, 0.14, 0.09, 0.005, -0.365, 0.27, 0, LEATHER_DARK, { mat: 'leather' }),
+    sphere(0.007, -0.372, 0.33, 0, C.brass, { mat: 'metal' }, 8),
+    sphere(0.007, -0.372, 0.21, 0, C.brass, { mat: 'metal' }, 8),
   ],
 })

@@ -1,4 +1,4 @@
-import { C, cyl, defineModel, rbox, sphere, torus } from '../../kit'
+import { C, box, cyl, defineModel, rbox, sphere, torus } from '../../kit'
 
 // Rounded boxes are non-indexed; double-siding them keeps them in their own
 // material bucket so the kit never merges indexed and non-indexed geometry.
@@ -82,5 +82,26 @@ export default defineModel({
     cyl(0.011, 0.014, 0.55, 0, 1.09, -0.525, C.water, { mat: 'glass', opacity: 0.75, rot: [0.48, 0, 0] }, 8),
     cyl(0.011, 0.014, 0.55, 0.525, 1.09, 0, C.water, { mat: 'glass', opacity: 0.75, rot: [0, 0, 0.48] }, 8),
     cyl(0.011, 0.014, 0.55, -0.525, 1.09, 0, C.water, { mat: 'glass', opacity: 0.75, rot: [0, 0, -0.48] }, 8),
+
+    // brass nozzles feeding the four perimeter jets
+    ...[
+      [0.297, 0.297],
+      [-0.297, 0.297],
+      [0.297, -0.297],
+      [-0.297, -0.297],
+    ].map(([x, z]) => cyl(0.022, 0.022, 0.016, x, 0.82, z, C.brass, { mat: 'metal' }, 12)),
+
+    // submerged uplights washing the inner basin
+    cyl(0.045, 0.045, 0.008, 0.81, 0.522, 0.81, '#f4d3a0', { mat: 'emissive' }, 16),
+    torus(0.048, 0.006, 0.81, 0.522, 0.81, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 20),
+    cyl(0.045, 0.045, 0.008, -0.81, 0.522, -0.81, '#f4d3a0', { mat: 'emissive' }, 16),
+    torus(0.048, 0.006, -0.81, 0.522, -0.81, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 20),
+
+    // bronze dedication plaque on the basin face
+    rounded(0.34, 0.18, 0.02, 0.006, 0, 0.3, 1.398, C.brass, { mat: 'metal' }),
+    box(0.24, 0.012, 0.004, 0, 0.322, 1.411, C.ink),
+    box(0.18, 0.01, 0.004, 0, 0.298, 1.411, C.ink),
+    sphere(0.008, -0.145, 0.37, 1.411, C.brass, { mat: 'metal' }, 8),
+    sphere(0.008, 0.145, 0.37, 1.411, C.brass, { mat: 'metal' }, 8),
   ],
 })

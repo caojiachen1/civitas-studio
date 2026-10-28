@@ -75,5 +75,16 @@ export default defineModel({
     // roof spoiler and antenna
     box(1.52, 0.07, 0.22, 0, 1.36, -1.65, paint, { mat: 'gloss' }),
     rbox(0.05, 0.09, 0.14, 0.01, 0, 1.435, -0.95, dark),
+    // wiper arms on the windscreen and hatch glass
+    box(0.44, 0.012, 0.014, -0.34, 0.95, 0.845, dark, { mat: 'matte', rot: [-0.5, 0, 0.22] }),
+    box(0.44, 0.012, 0.014, 0.34, 0.95, 0.845, dark, { mat: 'matte', rot: [-0.5, 0, -0.22] }),
+    box(0.3, 0.012, 0.014, 0.06, 1.2, -1.782, dark, { mat: 'matte', rot: [0.26, 0, -0.25] }),
+    // round fog lamps set into the bumper
+    cyl(0.05, 0.05, 0.04, -0.6, 0.5, 1.985, '#f3e2bb', { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 14),
+    cyl(0.05, 0.05, 0.04, 0.6, 0.5, 1.985, '#f3e2bb', { mat: 'emissive', rot: [Math.PI / 2, 0, 0] }, 14),
+    // fuel filler flap on the rear quarter
+    cyl(0.062, 0.062, 0.014, 0.858, 0.72, -1.35, paintDeep, { mat: 'gloss', rot: [0, 0, Math.PI / 2] }, 14),
+    // tailgate release handle above the number plate
+    box(0.14, 0.035, 0.02, 0, 0.7, -1.965, dark),
   ],
 })

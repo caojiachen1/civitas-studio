@@ -1,6 +1,7 @@
 export type PanelId =
   | 'select'
   | 'plan'
+  | 'building'
   | 'wall'
   | 'openings'
   | 'slab'

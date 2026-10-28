@@ -62,7 +62,7 @@ export default defineModel({
     rounded(0.06, 0.04, 0.06, 0.01, 0, 2.4, 0.015, C.graphite, { mat: 'metal' }),
     rounded(0.06, 0.04, 0.06, 0.01, 0, 1.05, 0.015, C.graphite, { mat: 'metal' }),
     cyl(0.008, 0.008, 0.004, 0, 2.46, 0.074, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
-    cyl(0.008, 0.008, 0.004, 0, 1.45, 0.074, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
+    cyl(0.008, 0.008, 0.004, 0, 1.45, 0.069, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 8),
 
     // circular bus stop roundel on top
     cyl(0.17, 0.17, 0.05, 0, 2.71, 0, panel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 28),
@@ -81,5 +81,13 @@ export default defineModel({
     // roundel bracket and finial
     rounded(0.05, 0.14, 0.04, 0.01, 0, 2.55, 0, C.graphite, { mat: 'metal' }),
     sphere(0.012, 0, 2.888, 0, C.brass, { mat: 'metal' }, 10),
+
+    // clear acrylic cover protecting the timetable card
+    box(0.36, 0.72, 0.006, 0, 1.02, 0.0745, C.glass, { mat: 'glass', opacity: 0.5 }),
+    box(0.03, 0.018, 0.012, -0.15, 0.686, 0.08, C.steel, { mat: 'metal' }),
+    box(0.03, 0.018, 0.012, 0.15, 0.686, 0.08, C.steel, { mat: 'metal' }),
+
+    // condensate drain hole low on the pole
+    cyl(0.01, 0.01, 0.006, 0, 0.11, 0.031, C.ink, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 10),
   ],
 })

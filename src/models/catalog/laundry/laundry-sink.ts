@@ -77,5 +77,19 @@ export default defineModel({
     cyl(0.014, 0.014, 0.19, 0.19, 0.445, -0.175, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
     cyl(0.021, 0.021, 0.022, 0.19, 0.445, -0.245, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
     cyl(0.028, 0.028, 0.008, 0.19, 0.445, -0.276, C.steel, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 16),
+
+    // galvanised bucket in the open bay under the mid shelf
+    cyl(0.086, 0.076, 0.165, 0.19, 0.2275, -0.03, C.steel, { mat: 'metal' }, 24),
+    torus(0.086, 0.005, 0.19, 0.31, -0.03, C.graphite, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 24),
+    box(0.09, 0.024, 0.004, 0.19, 0.25, 0.0545, C.cream, { mat: 'matte' }),
+    // scrub brush resting on the basin floor
+    rbox(0.12, 0.02, 0.055, 0.012, -0.12, 0.987, 0.05, C.birch, { mat: 'wood' }),
+    box(0.1, 0.012, 0.04, -0.12, 0.971, 0.05, C.graphite, { mat: 'matte' }),
+    // door hinges, mixer escutcheon and hot / cold index dots
+    rbox(0.014, 0.05, 0.026, 0.005, -0.318, 0.24, 0.244, C.graphite, { mat: 'metal' }),
+    rbox(0.014, 0.05, 0.026, 0.005, -0.318, 0.6, 0.244, C.graphite, { mat: 'metal' }),
+    torus(0.03, 0.006, -0.24, 0.774, -0.22, C.brass, { mat: 'metal', rot: [Math.PI / 2, 0, 0] }, 20),
+    sphere(0.005, -0.285, 0.773, -0.24, C.red, { mat: 'gloss' }, 8),
+    sphere(0.005, -0.265, 0.773, -0.24, C.water, { mat: 'gloss' }, 8),
   ],
 })

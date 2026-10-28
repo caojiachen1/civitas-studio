@@ -1,4 +1,4 @@
-import { C, box, cyl, defineModel, rbox } from '../../kit'
+import { C, box, cyl, defineModel, rbox, torus } from '../../kit'
 
 export default defineModel({
   id: 'bed-double',
@@ -61,5 +61,14 @@ export default defineModel({
     // Folded throw at the foot
     rbox(1.62, 0.055, 0.4, 0.02, 0, 0.883, 0.78, '#9aa88f', { mat: 'fabric' }),
     rbox(1.62, 0.03, 0.1, 0.012, 0, 0.906, 0.6, '#a7b49c', { mat: 'fabric' }),
+
+    // extra duvet topstitch, side rail bolts and headboard roll bands
+    box(1.5, 0.006, 0.01, 0, 0.862, 0.66, '#b7a78d', { mat: 'fabric' }),
+    cyl(0.012, 0.012, 0.018, -0.855, 0.43, 0.6, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.012, 0.012, 0.018, 0.855, 0.43, 0.6, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.012, 0.012, 0.018, -0.855, 0.43, -0.45, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    cyl(0.012, 0.012, 0.018, 0.855, 0.43, -0.45, C.brass, { mat: 'metal', rot: [0, 0, Math.PI / 2] }, 10),
+    torus(0.04, 0.004, -0.4, 1.11, -1.0, '#d2c6b3', { mat: 'fabric', rot: [0, Math.PI / 2, 0] }, 16),
+    torus(0.04, 0.004, 0.4, 1.11, -1.0, '#d2c6b3', { mat: 'fabric', rot: [0, Math.PI / 2, 0] }, 16),
   ],
 })

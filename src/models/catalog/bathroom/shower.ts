@@ -69,5 +69,22 @@ export default defineModel({
     cyl(0.007, 0.007, 0.05, 0.23, 1.492, -0.438, C.steel, { mat: 'metal' }, 10),
     cyl(0.02, 0.021, 0.17, 0.32, 1.445, -0.438, C.sage, { mat: 'gloss' }, 16),
     cyl(0.021, 0.021, 0.018, 0.32, 1.539, -0.438, C.brass, { mat: 'metal' }, 14),
+
+    // grout joints picking out the large-format tiling
+    ...[0.55, 1.05, 1.55, 2.05].map((y) =>
+      box(1.0, 0.004, 0.003, 0, y, -0.4685, '#8b8981', { mat: 'stone' }),
+    ),
+    ...[-0.255, 0.255].map((x) => box(0.004, 2.08, 0.003, x, 1.15, -0.4685, '#8b8981', { mat: 'stone' })),
+
+    // brass slide rail with a handset cradle
+    cyl(0.011, 0.011, 0.95, -0.16, 1.42, -0.447, C.brass, { mat: 'metal' }, 12),
+    box(0.028, 0.03, 0.03, -0.16, 1.885, -0.459, C.brass, { mat: 'metal' }),
+    box(0.028, 0.03, 0.03, -0.16, 0.955, -0.459, C.brass, { mat: 'metal' }),
+    rbox(0.05, 0.075, 0.05, 0.012, -0.16, 1.52, -0.424, C.brass, { mat: 'metal' }),
+    cyl(0.024, 0.03, 0.11, -0.16, 1.51, -0.4, C.steel, { mat: 'metal', rot: [-0.9, 0, 0] }, 16),
+    cyl(0.028, 0.028, 0.01, -0.16, 1.476, -0.357, C.graphite, { mat: 'metal', rot: [-0.9, 0, 0] }, 16),
+
+    // silicone bead where the tray meets the tiled wall
+    box(1.0, 0.006, 0.012, 0, 0.063, -0.462, '#d3cdc1', { mat: 'matte' }),
   ],
 })
