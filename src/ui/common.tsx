@@ -20,6 +20,7 @@ export function IconButton({
       title={label}
       aria-label={label}
       className={`icon-button ${active ? 'is-active' : ''} tone-${tone} ${className}`}
+      data-automation-label={label}
       {...rest}
     >
       <Icon size={16} strokeWidth={1.8} />
@@ -61,7 +62,13 @@ export function Toggle({
   hint?: string
 }) {
   return (
-    <button type="button" className={`toggle-row ${checked ? 'is-on' : ''}`} onClick={() => onChange(!checked)}>
+    <button
+      type="button"
+      className={`toggle-row ${checked ? 'is-on' : ''}`}
+      data-automation-label={label}
+      aria-pressed={checked}
+      onClick={() => onChange(!checked)}
+    >
       <span className="toggle-copy">
         <span className="toggle-label">{label}</span>
         {hint && <span className="toggle-hint">{hint}</span>}
@@ -93,6 +100,7 @@ export function Segmented<T extends string>({
             key={option.value}
             type="button"
             className={option.value === value ? 'is-active' : ''}
+            data-automation-label={option.label}
             onClick={() => onChange(option.value)}
           >
             {Icon && <Icon size={13} />}
@@ -167,6 +175,8 @@ export function NumberField({
           ref={ref}
           type="text"
           inputMode="decimal"
+          aria-label={label}
+          data-automation-label={label}
           value={text}
           disabled={disabled}
           onFocus={() => setFocused(true)}
@@ -225,6 +235,8 @@ export function Slider({
       </div>
       <input
         type="range"
+        aria-label={label}
+        data-automation-label={label}
         min={min}
         max={max}
         step={step}
@@ -251,6 +263,7 @@ export function Swatch({
     <button
       type="button"
       className={`swatch ${selected ? 'is-active' : ''}`}
+      data-automation-label={name}
       title={name}
       aria-label={name}
       onClick={onClick}

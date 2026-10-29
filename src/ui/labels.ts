@@ -13,6 +13,7 @@ import {
 export const TOOL_LABELS: Record<ToolId, string> = {
   select: '选择',
   plan: '平面房间',
+  building: '放置建筑',
   wall: '墙体',
   slab: '楼板',
   door: '门',

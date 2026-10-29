@@ -14,6 +14,7 @@ import { HelpModal, SceneOverlay, Toasts } from './ui/Overlays'
 import { AiDrawer } from './ui/AiDrawer'
 import { initMcp } from './mcp/store'
 import { useMcp } from './mcp/store'
+import { installAutomationIds } from './ui/automation'
 import type { PanelId } from './ui/panels'
 
 export default function App() {
@@ -28,6 +29,8 @@ export default function App() {
     const timer = window.setInterval(() => void useMcp.getState().refresh(), 4000)
     return () => window.clearInterval(timer)
   }, [ready])
+
+  useEffect(() => installAutomationIds(), [])
 
   useEffect(() => {
     const container = containerRef.current
@@ -102,7 +105,7 @@ export default function App() {
     const keepPlan = id === 'plan' || id === 'wall' || id === 'openings' || id === 'slab' || id === 'roof'
     if (store.settings.planMode && !keepPlan) store.patchSettings({ planMode: false })
     setActivePanel(id)
-    if (id === 'select') store.setTool('select')
+    if (id === 'select' || id === 'citygen') store.setTool('select')
     else if (id === 'plan') {
       store.setTool('plan')
       if (!store.settings.planMode) store.patchSettings({ planMode: true })
@@ -121,11 +124,11 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-ui-scope="app">
       <Topbar />
       <ToolRail activePanel={activePanel} onActivate={activatePanel} />
       <LeftPanel activePanel={activePanel} />
-      <main className="viewport" ref={containerRef}>
+      <main className="viewport" ref={containerRef} data-ui-scope="viewport">
         {ready && <SceneOverlay />}
         {!ready && (
           <div className="boot-overlay">

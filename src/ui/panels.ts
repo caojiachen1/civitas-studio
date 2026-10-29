@@ -1,5 +1,6 @@
 export type PanelId =
   | 'select'
+  | 'citygen'
   | 'plan'
   | 'building'
   | 'wall'

@@ -2,6 +2,7 @@ import type { Entity, ModelDef, PathEntity, Vec2, WallEntity } from './types'
 import {
   distanceToPathCenter,
   dist2,
+  getPathBundle,
   isPointOnWater,
   obbOverlap,
   pathCenterlinesCross,
@@ -135,6 +136,93 @@ export function checkOpeningPlacement(
     const bMin = entity.offset - entity.width / 2
     const bMax = entity.offset + entity.width / 2
     if (aMin < bMax + 0.1 && aMax > bMin - 0.1) return { valid: false, reason: '与已有门窗重叠' }
+  }
+  return OK
+}
+
+function pointInOBB(x: number, z: number, obb: OBB, margin: number): boolean {
+  const dx = x - obb.x
+  const dz = z - obb.z
+  const c = Math.cos(obb.rot)
+  const s = Math.sin(obb.rot)
+  const lx = dx * c - dz * s
+  const lz = dx * s + dz * c
+  return Math.abs(lx) <= obb.hw + margin && Math.abs(lz) <= obb.hd + margin
+}
+
+export function checkBuildingPlacement(
+  building: { x: number; z: number; rot: number; width: number; depth: number },
+  levelId: string,
+  entities: Entity[],
+  footprints: Map<string, [number, number]>,
+  ignoreId?: string,
+): CheckResult {
+  if (Math.abs(building.x) + building.width / 2 > 275 || Math.abs(building.z) + building.depth / 2 > 275) {
+    return { valid: false, reason: '超出可建造范围' }
+  }
+  const obb = objectOBB(building.x, building.z, building.rot, building.width, building.depth)
+  const c = Math.cos(building.rot)
+  const s = Math.sin(building.rot)
+  const halfW = building.width / 2
+  const halfD = building.depth / 2
+  const corners: Vec2[] = [
+    [building.x, building.z],
+    ...([[-1, -1], [1, -1], [1, 1], [-1, 1]] as [number, number][]).map(
+      ([sx, sz]) =>
+        [
+          building.x + sx * halfW * c + sz * halfD * s,
+          building.z - sx * halfW * s + sz * halfD * c,
+        ] as Vec2,
+    ),
+  ]
+  for (const point of corners) {
+    if (isPointOnWater(point[0], point[1], entities, 0.2)) {
+      return { valid: false, reason: '建筑不能建在水面上' }
+    }
+  }
+  for (const entity of entities) {
+    if (entity.id === ignoreId) continue
+    if (entity.kind === 'path') {
+      const half = entity.width / 2 + (entity.pathType === 'road' || entity.pathType === 'bridge' ? 1.6 : 0.4)
+      const bundle = getPathBundle(entity)
+      for (const sample of bundle.samples) {
+        if (pointInOBB(sample.pos.x, sample.pos.z, obb, half + 0.3)) {
+          return {
+            valid: false,
+            reason: entity.pathType === 'river' ? '建筑不能压在水面上' : '建筑不能压在道路上',
+          }
+        }
+      }
+      continue
+    }
+    if (entity.kind === 'opening') continue
+    if (entity.kind === 'wall') {
+      if (entity.levelId === levelId && obbOverlap(obb, wallOBB(entity), -0.03)) {
+        return { valid: false, reason: '与已有墙体碰撞' }
+      }
+      continue
+    }
+    if (entity.kind === 'building') {
+      if (obbOverlap(obb, objectOBB(entity.x, entity.z, entity.rot, entity.width, entity.depth), 0.3)) {
+        return { valid: false, reason: '与已有建筑重叠' }
+      }
+      continue
+    }
+    if (entity.kind === 'object') {
+      if (entity.levelId !== levelId) continue
+      const fp = footprints.get(entity.modelId)
+      if (!fp) continue
+      if (obbOverlap(obb, objectOBB(entity.x, entity.z, entity.rot, fp[0], fp[1], entity.scale), -0.02)) {
+        return { valid: false, reason: '与已有物件重叠' }
+      }
+      continue
+    }
+    if (entity.kind === 'slab' || entity.kind === 'roof') {
+      if (entity.levelId !== levelId) continue
+      if (obbOverlap(obb, { x: entity.x, z: entity.z, hw: entity.w / 2, hd: entity.d / 2, rot: entity.rot }, -0.04)) {
+        return { valid: false, reason: '与已有楼板或屋顶重叠' }
+      }
+    }
   }
   return OK
 }

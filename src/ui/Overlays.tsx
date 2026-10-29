@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  Armchair,
   Building2,
   Eye,
   Grid3X3,
@@ -25,10 +26,11 @@ function BuildingSessionBar() {
   const setBuildingMode = useEditor((state) => state.setBuildingMode)
   const setActiveLevel = useEditor((state) => state.setActiveLevel)
   const exitBuilding = useEditor((state) => state.exitBuilding)
+  const furnishLevel = useEditor((state) => state.furnishLevel)
   const toast = useRuntime((state) => state.toast)
   if (!session) return null
   return (
-    <div className="building-session-bar">
+    <div className="building-session-bar" data-ui-scope="building-session">
       <div className="building-session-title">
         <Building2 size={17} />
         <span>
@@ -61,7 +63,26 @@ function BuildingSessionBar() {
       </div>
       <button
         type="button"
+        className="building-action"
+        data-automation-id="session-furnish-level"
+        title="按闭合房间自动布置家具"
+        onClick={() => {
+          const activeLevel = levels.find((level) => level.id === activeLevelId)
+          const result = furnishLevel()
+          toast(
+            result.items > 0
+              ? `已精装「${activeLevel?.name ?? '当前层'}」：${result.items} 件家具`
+              : '当前层没有可精装的闭合房间',
+            result.items > 0 ? 'success' : 'info',
+          )
+        }}
+      >
+        <Armchair size={14} /> 精装本层
+      </button>
+      <button
+        type="button"
         className="building-exit"
+        data-automation-id="session-exit-building"
         onClick={() => {
           exitBuilding()
           toast('已退出建筑，回到城市场景', 'success')
@@ -108,7 +129,7 @@ export function SceneOverlay() {
           <EmptyState
             icon={Sparkles}
             title="一块等待建造的场地"
-            hint="从左侧「平面」拖一个房间，或选择墙体、路径、家具开始；也可以加载示例场景查看完整作品。"
+            hint="从左侧「建城」一键生成街区，或从「平面」拖一个房间、选择墙体/路径/家具开始；也可以加载示例场景查看完整作品。"
           />
         </div>
       )}
@@ -189,6 +210,7 @@ export function HelpModal() {
   return (
     <div
       className="modal-backdrop"
+      data-ui-scope="help-modal"
       onPointerDown={(event) => {
         if (event.target === event.currentTarget) setOpen(false)
       }}
@@ -208,8 +230,12 @@ export function HelpModal() {
             <h3>快速开始</h3>
             <ol className="help-steps">
               <li>
-                <strong>选择工具</strong>
-                <span>在左侧栏选择墙体、路径或组件库。</span>
+                <strong>想省事就一键建城</strong>
+                <span>左侧「建城」选城市气质和规模，一次铺好路网、建筑、树木与街具。</span>
+              </li>
+              <li>
+                <strong>选工具或模板</strong>
+                <span>建筑模板点一下就会跟着鼠标出现预览；墙体、路径与组件库在左侧栏。</span>
               </li>
               <li>
                 <strong>观察预览</strong>
@@ -217,18 +243,19 @@ export function HelpModal() {
               </li>
               <li>
                 <strong>点击确认</strong>
-                <span>家具与道路可连续放置；墙体在右键或 Enter 时完成。</span>
+                <span>建筑、家具与道路可连续放置；墙体在右键或 Enter 时完成。</span>
               </li>
               <li>
                 <strong>继续编辑</strong>
-                <span>用选择工具拖动手柄，或在右侧属性面精修。</span>
+                <span>用选择工具拖动手柄，或在右侧属性面精修；Ctrl+Z 撤销整批操作。</span>
               </li>
             </ol>
           </section>
           <section>
             <h3>吸附与合法性</h3>
             <ul className="help-list">
-              <li>墙体端点吸附半径 0.8 m，道路与河流端点按类型使用 1.2–2.6 m 吸附半径。</li>
+              <li>墙体端点吸附半径 0.8 m；墙端靠近已有墙的中段时也会吸附到墙面，隔墙接上外墙后即可被识别为独立房间。</li>
+              <li>道路与河流端点按类型使用 1.2–2.6 m 吸附半径；绘制路径时默认按 15° 吸附，按住 Shift 自由绘制。</li>
               <li>家具靠墙时会自动转向并贴墙 4 cm；重叠墙体或家具则显示红色禁止预览。</li>
               <li>河流与道路交叉时，需要改用桥梁；道路不能生成在水面上。</li>
               <li>屋顶工具会自动寻找墙体围成的闭合房间，并按房间外接矩形生成屋顶。</li>
@@ -249,10 +276,19 @@ export function HelpModal() {
           <section>
             <h3>建筑内外分离</h3>
             <p className="help-copy">
-              左侧「建筑」面板点击模板即可整栋放置；建筑在城市里始终是一个整体，可拖动/旋转/复制。双击建筑或点右侧「进入建筑」进入内部。
+              左侧「建筑」面板点击模板即进入放置预览：鼠标在地面上移动，白色预览可放置、红色表示冲突，<kbd>R</kbd> 旋转。放下前还能调楼层数、立面颜色、屋顶材质、窗型，并选择自动精装和附带庭院。
             </p>
             <p className="help-copy">
-              进入后顶部栏切换「外骨架 / 内饰」：外骨架显示墙、窗、门、楼梯和屋顶；内饰会把视角放进当前楼层并剖切靠相机一侧的外墙，方便摆家具。楼层按钮可逐层切换，点「退出建筑」或空闲时按 Esc 回到城市。
+              建筑在城市里始终是一个整体，可拖动/旋转/复制。双击建筑或点右侧「进入建筑」进入内部；顶部栏切换「外骨架 / 内饰」，内饰会把视角放进当前楼层并剖切靠相机一侧的外墙。
+            </p>
+          </section>
+          <section>
+            <h3>一键精装与庭院</h3>
+            <p className="help-copy">
+              平面模式画好房间后，点「一键精装本层」会按闭合房间自动识别客厅、卧室、厨房、卫浴与书房，并摆放成套家具；门窗和楼梯周边会自动留空。
+            </p>
+            <p className="help-copy">
+              建筑内部顶部栏的「精装本层」、右侧建筑属性里的「精装整栋」和「布置庭院」做同样的事。庭院会生成门前步道、树木、花坛、路灯和长椅，并避让道路与已有物件。
             </p>
           </section>
           <section className="shortcut-section">

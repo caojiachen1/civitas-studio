@@ -62,7 +62,14 @@ export function CatalogPanel({
           <h2>{title}</h2>
           <p>{subtitle}</p>
         </div>
-        <button type="button" className="panel-action" disabled={busy} onClick={handleImport} title="导入 GLB / glTF / OBJ / STL">
+        <button
+          type="button"
+          className="panel-action"
+          data-automation-id="catalog-import"
+          disabled={busy}
+          onClick={handleImport}
+          title="导入 GLB / glTF / OBJ / STL"
+        >
           <Upload size={14} />
           导入
         </button>
@@ -71,6 +78,8 @@ export function CatalogPanel({
       <div className="search-field">
         <Search size={14} />
         <input
+          aria-label="搜索组件"
+          data-automation-id="catalog-search"
           placeholder="搜索名称、标签或用途…"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -83,7 +92,7 @@ export function CatalogPanel({
       </div>
 
       <div className="category-chips">
-        <button type="button" className={filter === 'all' ? 'is-active' : ''} onClick={() => setFilter('all')}>
+        <button type="button" className={filter === 'all' ? 'is-active' : ''} data-automation-id="catalog-filter-all" onClick={() => setFilter('all')}>
           全部
           <span>{filtered.length}</span>
         </button>
@@ -101,6 +110,7 @@ export function CatalogPanel({
               key={category}
               type="button"
               className={filter === category ? 'is-active' : ''}
+              data-automation-id={`catalog-filter-${category}`}
               onClick={() => setFilter(category)}
             >
               {MODEL_CATEGORY_LABELS[category]}
@@ -112,6 +122,7 @@ export function CatalogPanel({
           <button
             type="button"
             className={filter === 'custom' ? 'is-active' : ''}
+            data-automation-id="catalog-filter-custom"
             onClick={() => setFilter('custom')}
           >
             导入模型
@@ -130,6 +141,7 @@ export function CatalogPanel({
                 key={asset.id}
                 type="button"
                 className={`catalog-card ${activeModelId === asset.id ? 'is-active' : ''}`}
+                data-automation-id={`catalog-custom-${asset.id}`}
                 onClick={() => choose(asset.id)}
               >
                 <CustomThumb />
@@ -160,6 +172,7 @@ export function CatalogPanel({
                     key={model.id}
                     type="button"
                     className={`catalog-card ${activeModelId === model.id ? 'is-active' : ''}`}
+                    data-automation-id={`catalog-model-${model.id}`}
                     onClick={() => choose(model.id)}
                     title={`${model.name} · ${model.footprint[0]} × ${model.footprint[1]} m`}
                   >
@@ -185,6 +198,7 @@ export function CatalogPanel({
                 key={model.id}
                 type="button"
                 className={`catalog-card ${activeModelId === model.id ? 'is-active' : ''}`}
+                data-automation-id={`catalog-model-${model.id}`}
                 onClick={() => choose(model.id)}
               >
                 <ModelThumb model={model} />

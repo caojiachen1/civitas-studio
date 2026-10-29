@@ -4,6 +4,8 @@ import {
   LEVEL_HEIGHT,
   PATH_PRESETS,
   WINDOW_STYLES,
+  type BuildingDraft,
+  type BuildingPlacementOptions,
   type BuildingSession,
   type BuildingTemplateId,
   type CustomAsset,
@@ -18,6 +20,7 @@ import {
   type RoofStyle,
   type SlabStyle,
   type ToolId,
+  type Vec2,
 } from './types'
 import { buildLevelCopy } from './plan'
 import {
@@ -26,6 +29,9 @@ import {
   getBuildingTemplate,
   interiorToWorld,
 } from './buildings'
+import { DEFAULT_CITY_OPTIONS, cityFootprint, findCityAnchor, generateCity, type CityGenOptions, type CityGenResult } from './citygen'
+import { furnishActiveLevel, furnishInterior, type FurnishResult } from './furnish'
+import { landscapeBuilding, type LandscapeResult } from './landscape'
 
 export function uid(prefix = 'e'): string {
   const raw =
@@ -73,11 +79,21 @@ export interface EditorState {
   revision: number
   dirty: boolean
   buildingSession: BuildingSession | null
+  buildingDraft: BuildingDraft | null
+  cityOptions: CityGenOptions
 
   setTool: (tool: ToolId, modelId?: string | null) => void
   setActiveModel: (modelId: string) => void
   select: (id: string | null) => void
   setProjectName: (name: string) => void
+  armBuilding: (templateId: BuildingTemplateId) => void
+  setBuildingDraft: (patch: Partial<BuildingDraft>) => void
+  cancelBuildingDraft: () => void
+  setCityOptions: (patch: Partial<CityGenOptions>) => void
+  generateCity: (options: CityGenOptions, center: Vec2) => CityGenResult | null
+  furnishLevel: () => FurnishResult
+  furnishBuilding: (buildingId: string, maxFloors?: number) => FurnishResult
+  landscapeSelectedBuilding: (buildingId?: string) => LandscapeResult | null
 
   setWallDefaults: (patch: Partial<PlacementDefaults['wall']>) => void
   setSlabDefaults: (patch: Partial<PlacementDefaults['slab']>) => void
@@ -85,7 +101,13 @@ export interface EditorState {
   setRoofDefaults: (patch: Partial<PlacementDefaults['roof']>) => void
   setPathOptions: (patch: Partial<PathOptions>) => void
   setPlanOptions: (patch: Partial<PlacementDefaults['plan']>) => void
-  placeBuilding: (templateId: BuildingTemplateId, x: number, z: number, rot?: number) => string | null
+  placeBuilding: (
+    templateId: BuildingTemplateId,
+    x: number,
+    z: number,
+    rot?: number,
+    options?: BuildingPlacementOptions,
+  ) => string | null
   placeSkyline: (centerX: number, centerZ: number, count?: number) => number
   enterBuilding: (id: string) => void
   exitBuilding: () => void
@@ -197,13 +219,43 @@ export const useEditor = create<EditorState>()((set, get) => ({
   revision: 0,
   dirty: false,
   buildingSession: null,
+  buildingDraft: null,
+  cityOptions: DEFAULT_CITY_OPTIONS,
 
   setTool: (tool, modelId = null) =>
     set((s) => ({
       tool,
       activeModelId: tool === 'object' ? (modelId ?? s.activeModelId) : null,
       selectedId: tool === 'select' ? s.selectedId : null,
+      buildingDraft: tool === 'building' ? s.buildingDraft : null,
     })),
+
+  armBuilding: (templateId) => {
+    const current = get()
+    if (current.tool === 'building' && current.buildingDraft?.templateId === templateId) return
+    const template = getBuildingTemplate(templateId)
+    set({
+      tool: 'building',
+      activeModelId: null,
+      selectedId: null,
+      buildingDraft: {
+        templateId: template.id,
+        floors: template.floors,
+        wallColor: template.wallColor,
+        roofFinish: template.roofFinish,
+        windowStyle: template.windowStyle,
+        furnished: true,
+        garden: true,
+      },
+    })
+  },
+
+  setBuildingDraft: (patch) =>
+    set((s) => (s.buildingDraft ? { buildingDraft: { ...s.buildingDraft, ...patch } } : {})),
+
+  cancelBuildingDraft: () => set({ buildingDraft: null, tool: 'select', selectedId: null }),
+
+  setCityOptions: (patch) => set((s) => ({ cityOptions: { ...s.cityOptions, ...patch } })),
 
   setActiveModel: (modelId) => set({ tool: 'object', activeModelId: modelId, selectedId: null }),
 
@@ -227,7 +279,7 @@ export const useEditor = create<EditorState>()((set, get) => ({
   setPlanOptions: (patch) =>
     set((s) => ({ toolOptions: { ...s.toolOptions, plan: { ...s.toolOptions.plan, ...patch } } })),
 
-  placeBuilding: (templateId, x, z, rot = 0) => {
+  placeBuilding: (templateId, x, z, rot = 0, options) => {
     const state = get()
     if (state.buildingSession) return null
     const level = state.doc.levels.find((item) => item.id === state.doc.activeLevelId) ?? state.doc.levels[0]
@@ -241,11 +293,92 @@ export const useEditor = create<EditorState>()((set, get) => ({
       z,
       rot,
       `${template.name} ${count + 1}`,
+      options?.floors,
+      {
+        wallColor: options?.wallColor,
+        roofFinish: options?.roofFinish,
+        windowStyle: options?.windowStyle,
+      },
     )
+    if (options?.furnished) {
+      furnishInterior(entity.interior, {
+        maxFloors: template.glassy ? 2 : 3,
+        openPlan: template.glassy,
+      })
+    }
     state.beginHistory('放置建筑')
     state.addEntity(entity, false)
+    if (options?.garden) {
+      const landscape = landscapeBuilding(entity, [...Object.values(state.doc.entities), entity])
+      if (landscape.entities.length > 0) state.addEntities(landscape.entities, false)
+    }
     state.select(entity.id)
     return entity.id
+  },
+
+  generateCity: (options, center) => {
+    const state = get()
+    if (state.buildingSession) return null
+    const level = state.doc.levels.find((item) => item.id === state.doc.activeLevelId) ?? state.doc.levels[0]
+    if (!level) return null
+    const span = cityFootprint(options)
+    const anchor = findCityAnchor(state.doc, level.id, span.width, span.depth, center)
+    const result = generateCity(options, level.id, anchor)
+    if (result.entities.length === 0) return null
+    state.beginHistory('一键建城')
+    state.addEntities(result.entities, false)
+    set((s) => ({
+      cityOptions: options,
+      selectedId: null,
+      tool: 'select',
+      activeModelId: null,
+      buildingDraft: null,
+      settings: { ...s.settings, planMode: false },
+    }))
+    return result
+  },
+
+  furnishLevel: () => {
+    const state = get()
+    const session = state.buildingSession
+    const template = session ? getBuildingTemplate(session.templateId) : null
+    const result = furnishActiveLevel(state.doc, state.doc.activeLevelId, {
+      openPlan: Boolean(template?.glassy),
+    })
+    if (result.entities.length > 0) {
+      state.beginHistory('一键精装')
+      state.addEntities(result.entities, false)
+    }
+    return result
+  },
+
+  furnishBuilding: (buildingId, maxFloors = 40) => {
+    const state = get()
+    const building = state.doc.entities[buildingId]
+    if (!building || building.kind !== 'building') {
+      return { entities: [], rooms: 0, items: 0, skipped: 0 }
+    }
+    const interior = structuredClone(building.interior)
+    const template = getBuildingTemplate(building.templateId)
+    const result = furnishInterior(interior, { maxFloors, openPlan: template.glassy })
+    if (result.items > 0) {
+      state.beginHistory('精装建筑')
+      state.updateEntity(buildingId, { interior, floors: interior.levels.length }, false)
+    }
+    return result
+  },
+
+  landscapeSelectedBuilding: (buildingId) => {
+    const state = get()
+    const id = buildingId ?? state.selectedId
+    const selected = id ? state.doc.entities[id] : null
+    if (!selected || selected.kind !== 'building') return null
+    const result = landscapeBuilding(selected, Object.values(state.doc.entities))
+    if (result.entities.length > 0) {
+      state.beginHistory('布置庭院')
+      state.addEntities(result.entities, false)
+    }
+    return result
   },
 
   placeSkyline: (centerX, centerZ, count = 6) => {
@@ -321,6 +454,7 @@ export const useEditor = create<EditorState>()((set, get) => ({
       selectedId: null,
       tool: 'select',
       activeModelId: null,
+      buildingDraft: null,
       past: [],
       future: [],
       revision: s.revision + 1,
@@ -340,6 +474,7 @@ export const useEditor = create<EditorState>()((set, get) => ({
       selectedId: session.buildingId,
       tool: 'select',
       activeModelId: null,
+      buildingDraft: null,
       past: [],
       future: [],
       revision: s.revision + 1,
@@ -644,6 +779,7 @@ export const useEditor = create<EditorState>()((set, get) => ({
       dirty: false,
       tool: 'select',
       activeModelId: null,
+      buildingDraft: null,
       settings: { ...s.settings, planMode: false },
     })),
 
@@ -658,6 +794,7 @@ export const useEditor = create<EditorState>()((set, get) => ({
       dirty: false,
       tool: 'select',
       activeModelId: null,
+      buildingDraft: null,
       toolOptions: { ...s.toolOptions, path: { ...s.toolOptions.path, type: 'road' } },
       settings: { ...s.settings, planMode: false },
     })),

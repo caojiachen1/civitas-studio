@@ -27,7 +27,7 @@ dist-ssr
 src-tauri/target
 
 # Stale release artifacts
-release/old-0.2.0/
+release/old-*/
 
 # Local build progress notes
 /PROGRESS.md

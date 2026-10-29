@@ -19,6 +19,8 @@
         "minHeight": 700,
         "resizable": true,
         "fullscreen": false,
+        "maximized": true,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --force-renderer-accessibility",
         "center": true,
         "backgroundColor": "#0d1115"
       }

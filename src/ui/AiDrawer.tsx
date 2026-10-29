@@ -358,7 +358,7 @@ export function AiDrawer() {
   }
 
   return (
-    <aside className="ai-drawer">
+    <aside className="ai-drawer" data-ui-scope="ai-drawer">
       <div className="ai-header">
         <span className="ai-header-icon">
           <Sparkles size={18} />
@@ -388,7 +388,7 @@ export function AiDrawer() {
           >
             <Settings2 size={15} />
           </button>
-          <button type="button" title="关闭 (Esc)" onClick={() => setOpen(false)}>
+          <button type="button" title="关闭 (Esc)" data-automation-id="ai-close" onClick={() => setOpen(false)}>
             <X size={16} />
           </button>
         </div>

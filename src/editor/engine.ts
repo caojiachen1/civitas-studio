@@ -33,11 +33,14 @@ import { createCustomInstance, hydrateCustomAssets } from '../models/custom'
 import {
   clamp,
   dist2,
+  getPathBundle,
   nearestPointOnWalls,
+  projectPointOnSegment,
   snapAngle,
   snapValue,
 } from './geom'
 import {
+  checkBuildingPlacement,
   checkObjectPlacement,
   checkOpeningPlacement,
   checkPathPlacement,
@@ -45,7 +48,7 @@ import {
 } from './validation'
 import { applyGhost, GHOST_INVALID_MATERIAL, GHOST_VALID_MATERIAL } from './visuals'
 import { createPlanRoom, isTopLevel } from './plan'
-import { buildBuildingShell } from './buildings'
+import { buildBuildingShell, getBuildingTemplate, type BuildingTemplate } from './buildings'
 
 const PLAN_OUTLINE_VALID = new THREE.LineBasicMaterial({
   color: '#e8e8e8',
@@ -90,6 +93,16 @@ interface WallRayHit {
   offset: number
   localY: number
   point: THREE.Vector3
+}
+
+interface BuildingPreview {
+  templateId: string
+  x: number
+  z: number
+  rot: number
+  floors: number
+  valid: boolean
+  reason: string
 }
 
 interface ObjectPreview {
@@ -199,6 +212,8 @@ export class EditorScene {
   private fpsFrames = 0
   private fpsElapsed = 0
   private lastCursorUpdate = 0
+  private lastLodAt = 0
+  private lodHidden = new Set<string>()
   private shadowTarget = new THREE.Vector3(999, 0, 999)
   private shadowDirty = true
   private tcHistoryPushed = false
@@ -209,6 +224,7 @@ export class EditorScene {
   private customLoading = false
   private lastClient = { x: 0, y: 0 }
   private objectPreview: ObjectPreview | null = null
+  private buildingPreview: BuildingPreview | null = null
   private openingPreview: OpeningPreview | null = null
   private roofPreview: RoofEntity | null = null
   private activePointerId: number | null = null
@@ -225,6 +241,11 @@ export class EditorScene {
     this.canvas = document.createElement('canvas')
     this.canvas.className = 'scene-canvas'
     this.canvas.tabIndex = 0
+    this.canvas.id = 'civitas-viewport'
+    this.canvas.setAttribute('data-automation-id', 'civitas-viewport')
+    this.canvas.setAttribute('data-automation-auto', 'false')
+    this.canvas.setAttribute('aria-label', '3D 场景视口')
+    this.canvas.setAttribute('role', 'application')
     container.appendChild(this.canvas)
     this.state = useEditor.getState()
     this.lastDoc = this.state.doc
@@ -473,12 +494,17 @@ export class EditorScene {
     if (prev.tool !== next.tool) {
       this.cancelDrafts()
       this.placementRotation = 0
+      this.buildingPreview = null
       this.clearGhost()
       this.applyCursor()
       this.refreshSelection()
     } else if (prev.activeModelId !== next.activeModelId) {
       this.clearGhost()
       this.placementRotation = 0
+    } else if (prev.buildingDraft !== next.buildingDraft) {
+      this.buildingPreview = null
+      this.clearGhost()
+      if (this.hasPointer && !this.handleDrag) this.refreshPreviewFromLastPointer()
     }
     if (prev.doc.activeLevelId !== next.doc.activeLevelId) {
       this.cancelDrafts()
@@ -785,12 +811,57 @@ export class EditorScene {
     )
   }
 
+  getRenderDiagnostics(): { views: number; visibleViews: number; lodHidden: number } {
+    let visibleViews = 0
+    for (const view of this.viewMap.values()) if (view.group.visible) visibleViews++
+    return { views: this.viewMap.size, visibleViews, lodHidden: this.lodHidden.size }
+  }
+
+  private updateObjectLod() {
+    const state = this.state
+    if (state.buildingSession || state.settings.planMode) return
+    if (state.settings.quality === 'high') {
+      if (this.lodHidden.size > 0) {
+        this.lodHidden.clear()
+        this.applyVisibility()
+      }
+      return
+    }
+    const viewport = this.canvas.clientHeight
+    if (viewport < 50) return
+    const fov = (this.camera.fov * Math.PI) / 180
+    const scale = viewport / (2 * Math.tan(fov / 2))
+    let changed = false
+    for (const [id, view] of this.viewMap) {
+      const entity = view.entity
+      if (entity.kind !== 'object') continue
+      const model = getModel(entity.modelId)
+      const asset = model ? null : state.doc.customAssets.find((item) => item.id === entity.modelId)
+      const worldHeight = (model?.height ?? asset?.height ?? 1) * entity.scale
+      const elevation = this.levelElevation(entity.levelId)
+      const dx = this.camera.position.x - entity.x
+      const dy = this.camera.position.y - (elevation + worldHeight / 2)
+      const dz = this.camera.position.z - entity.z
+      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+      const pixels = (worldHeight / Math.max(distance, 0.1)) * scale
+      const shouldHide = pixels < 6 && id !== state.selectedId && this.isEntityVisible(entity)
+      if (shouldHide !== this.lodHidden.has(id)) {
+        if (shouldHide) this.lodHidden.add(id)
+        else this.lodHidden.delete(id)
+        changed = true
+      }
+    }
+    if (changed) this.applyVisibility()
+  }
+
   private applyVisibility() {
+    const state = this.state
+    if (state.buildingSession || state.settings.planMode) this.lodHidden.clear()
     for (const view of this.viewMap.values()) {
       if (view.entity.kind === 'opening') continue
-      view.group.visible = this.isEntityVisible(view.entity)
+      const lodHidden = this.lodHidden.has(view.entity.id) && view.entity.id !== state.selectedId
+      view.group.visible = this.isEntityVisible(view.entity) && !lodHidden
     }
-    const state = this.state
     if (state.selectedId) {
       const entity = state.doc.entities[state.selectedId]
       const visible = Boolean(entity && this.isEntityVisible(entity))
@@ -1240,7 +1311,13 @@ export class EditorScene {
   private applyCursor() {
     const tool = this.state.tool
     this.canvas.style.cursor =
-      tool === 'select' ? 'default' : tool === 'erase' ? 'pointer' : tool === 'object' ? 'copy' : 'crosshair'
+      tool === 'select'
+        ? 'default'
+        : tool === 'erase'
+          ? 'pointer'
+          : tool === 'object' || tool === 'building'
+            ? 'copy'
+            : 'crosshair'
   }
 
   private updateBaseHint() {
@@ -1295,6 +1372,14 @@ export class EditorScene {
           : '从左侧组件库选择要放置的构件'
         break
       }
+      case 'building': {
+        const draft = s.buildingDraft
+        const template = draft ? getBuildingTemplate(draft.templateId) : null
+        this.baseHint = template
+          ? `左键放置「${template.name}」 · R 旋转 · 松开可连续放置 · Esc 退出`
+          : '从左侧建筑面板选择模板'
+        break
+      }
     }
     this.applyCursor()
   }
@@ -1318,6 +1403,10 @@ export class EditorScene {
     const elapsed = now / 1000
     this.rig.update(dt)
     this.updateInteriorCutaway()
+    if (now - this.lastLodAt > 250) {
+      this.lastLodAt = now
+      this.updateObjectLod()
+    }
     if (this.rig.target.distanceToSquared(this.shadowTarget) > 2.25) {
       this.shadowTarget.copy(this.rig.target)
       this.env.update(this.rig.target)
@@ -1613,6 +1702,22 @@ export class EditorScene {
     return best ? { point: best.point, label: best.label } : null
   }
 
+  private snapToWallSegments(
+    raw: Vec2,
+    excludeWallIds?: Set<string>,
+  ): { point: Vec2; label: string } | null {
+    let best: { point: Vec2; label: string; distance: number } | null = null
+    for (const wall of this.wallsOnActiveLevel()) {
+      if (excludeWallIds?.has(wall.id)) continue
+      const projected = projectPointOnSegment(raw, wall.a, wall.b)
+      if (projected.distance > 0.38 || projected.t < 0.03 || projected.t > 0.97) continue
+      if (!best || projected.distance < best.distance) {
+        best = { point: projected.point, label: '吸附到墙面', distance: projected.distance }
+      }
+    }
+    return best ? { point: best.point, label: best.label } : null
+  }
+
   private computeWallPoint(raw: Vec2): { point: Vec2; label: string } {
     let point: Vec2 = [raw[0], raw[1]]
     let label = ''
@@ -1628,6 +1733,13 @@ export class EditorScene {
       if (d < 0.9 && (!label || d < 0.6)) {
         point = [first[0], first[1]]
         label = '闭合到起点'
+      }
+    }
+    if (!label) {
+      const segmentSnap = this.snapToWallSegments(raw, excluded)
+      if (segmentSnap) {
+        point = segmentSnap.point
+        label = segmentSnap.label
       }
     }
     if (!label && this.wallDraft && this.wallDraft.points.length > 0 && this.state.settings.angleSnap && !this.shiftDown) {
@@ -1699,6 +1811,14 @@ export class EditorScene {
       if (best) {
         point = best.point
         label = best.label
+      }
+    }
+    if (!label && this.pathDraft && this.pathDraft.length > 0 && this.state.settings.angleSnap && !this.shiftDown) {
+      const last = this.pathDraft[this.pathDraft.length - 1]
+      const candidate = snapAngle(last, raw, 15, 5.5)
+      if (Math.hypot(candidate[0] - raw[0], candidate[1] - raw[1]) > 1e-4) {
+        point = candidate
+        label = '角度吸附 15°'
       }
     }
     if (!label && this.state.settings.gridSnap && !this.shiftDown) {
@@ -1822,22 +1942,26 @@ export class EditorScene {
   }
 
   private buildObjectGhost(model: ModelDef, x: number, z: number, rot: number, valid: boolean) {
-    const temp: ObjectEntity = {
-      id: 'preview-object',
-      kind: 'object',
-      levelId: this.state.doc.activeLevelId,
-      modelId: model.id,
-      x,
-      z,
-      rot,
-      scale: 1,
+    const key = `object|${model.id}|${valid}`
+    if (this.ghostKey !== key) {
+      const temp: ObjectEntity = {
+        id: 'preview-object',
+        kind: 'object',
+        levelId: this.state.doc.activeLevelId,
+        modelId: model.id,
+        x,
+        z,
+        rot,
+        scale: 1,
+      }
+      const created = this.makeObjectGroup(temp)
+      applyGhost(created.group, valid)
+      this.setGhostRaw(created.group, key, created.ownGeometry)
     }
-    const created = this.makeObjectGroup(temp)
-    created.group.position.set(x, this.activeElevation(), z)
-    created.group.rotation.y = rot
-    applyGhost(created.group, valid)
-    const key = `object|${model.id}|${x.toFixed(2)}|${z.toFixed(2)}|${rot.toFixed(3)}|${valid}`
-    this.setGhostRaw(created.group, key, false)
+    const group = this.ghostGroup.children[0]
+    if (!group) return
+    group.position.set(x, this.activeElevation(), z)
+    group.rotation.y = rot
   }
 
   private buildWallGhost(a: Vec2, b: Vec2, valid: boolean) {
@@ -1850,9 +1974,36 @@ export class EditorScene {
 
   private buildPathGhost(points: Vec2[], type: string, valid: boolean, closed = false) {
     const path = this.makePathEntity(type, points, closed)
-    const group = buildPath(path, this.activeElevation())
-    applyGhost(group, valid)
     const key = `path|${type}|${closed}|${points.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(';')}|${valid}`
+    if (this.ghostKey === key) return
+    // Drawing a road with the full detail builder rebuilds markings/drains/trees on
+    // every pointer move; a single ribbon is enough for placement feedback.
+    const bundle = getPathBundle(path)
+    const half = type === 'fence' ? 0.16 : Math.max(0.4, path.width / 2)
+    const positions = new Float32Array(bundle.samples.length * 6)
+    bundle.samples.forEach((sample, index) => {
+      const offset = index * 6
+      positions[offset] = sample.pos.x + sample.side.x * half
+      positions[offset + 1] = sample.pos.y + 0.055
+      positions[offset + 2] = sample.pos.z + sample.side.z * half
+      positions[offset + 3] = sample.pos.x - sample.side.x * half
+      positions[offset + 4] = sample.pos.y + 0.055
+      positions[offset + 5] = sample.pos.z - sample.side.z * half
+    })
+    const indices: number[] = []
+    for (let index = 0; index < bundle.samples.length - 1; index++) {
+      const a = index * 2
+      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2)
+    }
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    geometry.setIndex(indices)
+    geometry.computeVertexNormals()
+    const mesh = new THREE.Mesh(geometry, valid ? GHOST_VALID_MATERIAL : GHOST_INVALID_MATERIAL)
+    mesh.renderOrder = 5
+    const group = new THREE.Group()
+    group.position.y = this.activeElevation()
+    group.add(mesh)
     this.setGhostRaw(group, key, true)
   }
 
@@ -2027,6 +2178,145 @@ export class EditorScene {
     this.showSnapMarker([snapped.x, snapped.z], check.valid)
     this.buildObjectGhost(model, snapped.x, snapped.z, snapped.rot, check.valid)
     this.publishHint()
+  }
+
+  private updateBuildingPreview(clientX: number, clientY: number) {
+    const draft = this.state.buildingDraft
+    if (!draft) {
+      this.clearGhost()
+      this.buildingPreview = null
+      this.invalidReason = '请先在建筑面板选择模板'
+      this.hideSnapMarker()
+      this.publishHint()
+      return
+    }
+    if (this.state.buildingSession) {
+      this.clearGhost()
+      this.buildingPreview = null
+      this.invalidReason = '请先退出建筑内部编辑'
+      this.hideSnapMarker()
+      this.publishHint()
+      return
+    }
+    const ground = this.groundPointAt(clientX, clientY)
+    if (!ground) {
+      this.clearGhost()
+      this.buildingPreview = null
+      this.hideSnapMarker()
+      return
+    }
+    const template = getBuildingTemplate(draft.templateId)
+    let x = ground.x
+    let z = ground.z
+    if (this.state.settings.gridSnap && !this.shiftDown) {
+      x = snapValue(x, 0.5)
+      z = snapValue(z, 0.5)
+    }
+    const rot = this.placementRotation
+    const check = checkBuildingPlacement(
+      { x, z, rot, width: template.width, depth: template.depth },
+      this.state.doc.activeLevelId,
+      this.allEntities(),
+      this.footprints,
+    )
+    this.buildingPreview = {
+      templateId: template.id,
+      x,
+      z,
+      rot,
+      floors: draft.floors,
+      valid: check.valid,
+      reason: check.reason,
+    }
+    this.snapLabel = ''
+    this.invalidReason = check.valid ? '' : check.reason
+    this.showSnapMarker([x, z], check.valid)
+    this.buildBuildingGhost(template, draft.floors, x, z, rot, check.valid)
+    this.publishHint()
+  }
+
+  private buildBuildingGhost(
+    template: BuildingTemplate,
+    floors: number,
+    x: number,
+    z: number,
+    rot: number,
+    valid: boolean,
+  ) {
+    const height = floors * template.floorHeight
+    const key = `building|${template.id}|${floors}|${valid}`
+    if (this.ghostKey !== key) {
+      const group = new THREE.Group()
+      const material = valid ? GHOST_VALID_MATERIAL : GHOST_INVALID_MATERIAL
+      const boxGeometry = new THREE.BoxGeometry(template.width, height, template.depth)
+      const box = new THREE.Mesh(boxGeometry, material)
+      box.position.y = height / 2
+      group.add(box)
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(boxGeometry),
+        new THREE.LineBasicMaterial({
+          color: valid ? '#ffffff' : '#ff5a56',
+          transparent: true,
+          opacity: 0.9,
+          depthTest: false,
+        }),
+      )
+      edges.position.y = height / 2
+      group.add(edges)
+      const door = new THREE.Mesh(new THREE.BoxGeometry(1.25, 2.1, 0.16), material)
+      door.position.set(0, 1.05, template.depth / 2 + 0.09)
+      group.add(door)
+      if (template.roofStyle === 'flat') {
+        const parapet = new THREE.Mesh(
+          new THREE.BoxGeometry(template.width + 0.3, 0.4, template.depth + 0.3),
+          material,
+        )
+        parapet.position.y = height + 0.2
+        group.add(parapet)
+      } else {
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(1, 1, 4), material)
+        roof.rotation.y = Math.PI / 4
+        roof.scale.set(template.width * 0.72, 2.4, template.depth * 0.72)
+        roof.position.y = height + 1.2
+        group.add(roof)
+      }
+      this.setGhostRaw(group, key, true)
+    }
+    const group = this.ghostGroup.children[0]
+    if (!group) return
+    group.position.set(x, this.activeElevation(), z)
+    group.rotation.y = rot
+  }
+
+  private placeBuildingDraft() {
+    const preview = this.buildingPreview
+    const draft = this.state.buildingDraft
+    if (!preview || !draft) return
+    if (!preview.valid) {
+      useRuntime.getState().toast(preview.reason || '无法在此处放置建筑', 'warn')
+      return
+    }
+    const id = useEditor.getState().placeBuilding(draft.templateId, preview.x, preview.z, preview.rot, {
+      floors: draft.floors,
+      wallColor: draft.wallColor,
+      roofFinish: draft.roofFinish,
+      windowStyle: draft.windowStyle,
+      furnished: draft.furnished,
+      garden: draft.garden,
+    })
+    if (!id) {
+      useRuntime.getState().toast('请先退出建筑内部编辑', 'warn')
+      return
+    }
+    useEditor.getState().select(null)
+    this.buildingPreview = null
+    this.clearGhost()
+    this.hideSnapMarker()
+    this.invalidReason = ''
+    this.snapLabel = ''
+    this.updateBaseHint()
+    this.publishHint()
+    useRuntime.getState().toast('建筑已放置 · 继续点击可连续放置 · Esc 退出', 'success')
   }
 
   private updateOpeningPreview(clientX: number, clientY: number) {
@@ -2285,6 +2575,7 @@ export class EditorScene {
     else if (this.state.tool === 'wall') this.updateWallPreview(x, y)
     else if (this.state.tool === 'path') this.updatePathPreview(x, y)
     else if (this.state.tool === 'object') this.updateObjectPreview(x, y)
+    else if (this.state.tool === 'building') this.updateBuildingPreview(x, y)
     else if (this.state.tool === 'door' || this.state.tool === 'window') this.updateOpeningPreview(x, y)
     else if (this.state.tool === 'roof') this.updateRoofPreview(x, y)
   }
@@ -2686,6 +2977,11 @@ export class EditorScene {
       this.placeObject()
       return
     }
+    if (tool === 'building') {
+      this.updateBuildingPreview(event.clientX, event.clientY)
+      this.placeBuildingDraft()
+      return
+    }
     if (tool === 'door' || tool === 'window') {
       this.updateOpeningPreview(event.clientX, event.clientY)
       this.placeOpening()
@@ -2788,6 +3084,8 @@ export class EditorScene {
       this.updatePathPreview(event.clientX, event.clientY)
     } else if (tool === 'object') {
       this.updateObjectPreview(event.clientX, event.clientY)
+    } else if (tool === 'building') {
+      this.updateBuildingPreview(event.clientX, event.clientY)
     } else if (tool === 'roof') {
       this.updateRoofPreview(event.clientX, event.clientY)
     } else if (tool === 'slab' && !this.slabDrag) {
@@ -2954,7 +3252,7 @@ export class EditorScene {
         useEditor
           .getState()
           .updateEntity(selected.id, { rot: selected.rot + Math.PI / 12 }, false)
-      } else if (this.state.tool === 'object') {
+      } else if (this.state.tool === 'object' || this.state.tool === 'building') {
         this.placementRotation += Math.PI / 12
         this.refreshPreviewFromLastPointer()
       }

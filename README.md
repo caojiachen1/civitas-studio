@@ -5,9 +5,12 @@ A desktop 3D city & building construction studio built with Tauri 2, React 19 an
 ## Highlights
 
 - **AI Copilot** — press `Ctrl+K` and describe what you want. It turns Chinese/English requests into validated editor actions: whole villas, individual furnished rooms, furniture, freeform roads/rivers/bridges/ponds, vegetation, roofs, levels, selected-object edits, and opening/closing doors to a chosen angle. The local planner works offline; an optional OpenAI-compatible provider can be configured for stronger language understanding. Every AI plan is a single undo step, and dangerous actions require confirmation.
-- **External agent API (MCP)** — the desktop build serves MCP over HTTP on `127.0.0.1` plus a plain REST mirror, exposing 33 tools (`build_room`, `place_model`, `draw_path`, `apply_actions`, `get_screenshot`, …). Any third-party agent can connect to the running app and drive AI auto-modeling end to end. Localhost-only, optional bearer token, whitelisted action schemas, and destructive calls require `confirm=true`.
+- **External agent API (MCP)** — the desktop build serves MCP over HTTP on `127.0.0.1` plus a plain REST mirror, exposing 37 tools (`build_room`, `place_model`, `generate_city`, `furnish_building`, `get_screenshot`, …). Any third-party agent can connect to the running app and drive AI auto-modeling end to end. Localhost-only, optional bearer token, whitelisted action schemas, and destructive calls require `confirm=true`.
+- **Windows UI automation ready** — every control has a unique automation id exposed through WebView2 UIA (stable ids for key controls, generated scope/label ids for the rest), the 3D canvas is `civitas-viewport`, and the window starts maximized. `list_ui_controls` returns the full inventory for agents.
+- **One-click city generator** — the Build-City workspace generates a complete district in a single undo step: road grid with sidewalks and crosswalks, residential blocks or glass towers, a central park (pond, gazebo or plaza), street trees, lamps, benches, planters and parked cars. Four presets (lakeside town, downtown blocks, garden suburb, riverside district) and three sizes; it automatically finds free ground next to the existing scene.
+- **Furnish and landscape in one click** — closed rooms are detected (including rooms sharing a wall) and typed as living room, bedroom, kitchen/dining, bathroom, office or open-plan lobby, then furnished from the existing catalog while avoiding doors, stairs and overlaps. Any building can also get a generated front path, trees, flower beds, lamps, benches and an office plaza.
 - **2D plan building** — the Plan workspace locks a top-down view and hides roofs/other floors. Drag a rectangle to generate four walls, a floor slab, a door, windows and an optional roof in one gesture; hand-drawn closed wall loops can be completed into slabs/roofs with one click. "Copy to new floor" lifts the current plan to the next elevation, so per-floor 2D plans assemble into a multi-storey 3D building. Exit the plan workspace via the top-right button, the status-bar chip, clicking the Plan rail again, or `Esc`.
-- **Whole buildings with editable interiors** — place a villa, townhouse, office or tower as one object, move/rotate it as a unit, then double-click (or use the Inspector) to enter it. Inside, switch between **shell** (walls, windows, doors, stairs) and **interior** (furniture) modes, change floors in the top bar, and exit back to the city at any time. The city view renders a merged shell derived from the edited exterior walls, so changes made inside are reflected outside.
+- **Whole buildings with editable interiors** — pick a villa, townhouse, office or tower template and a valid/invalid ghost follows the cursor; `R` rotates, clicks keep placing, and floors, façade color, roof finish, window style, auto-furnishing and gardens are chosen before you drop it. Buildings move/rotate as one unit; double-click (or use the Inspector) to enter. Inside, switch between **shell** (walls, windows, doors, stairs) and **interior** (furniture) modes, change floors in the top bar, and exit back to the city at any time. The city view renders a merged shell derived from the edited exterior walls, so changes made inside are reflected outside.
 - **Skyline brush** — the Buildings panel can place a template at the view centre or generate a 4/6/8-building skyline row with varied tower heights in one click; buildings remain individually movable units.
 - **Visual styles** — switch between Mono, Daylight, Sunset and Blueprint presets in the Select panel; sky, fog, lighting, exposure and ground tint change together.
 - **Freeform infrastructure** — roads, rivers, footpaths, bridges and fences are smooth Catmull-Rom curves with draggable control points. Close a river path to fill a pond; bridges get automatic railings, piers and ramps.
@@ -15,7 +18,7 @@ A desktop 3D city & building construction studio built with Tauri 2, React 19 an
 - **Construction feedback** — valid placements use a light-grey ghost preview; invalid placements turn red with a specific reason (collision, wall fit, overlap, water, road-only/water-only rules). Walls, path endpoints and wall-backed furniture snap automatically with generous, distance-aware thresholds.
 - **Parametric building** — walls support doors/windows with real openings and frames; doors can be left closed or opened to any angle from -135° to 135° with left/right hinges (single, double and glass leaves swing around the hinge; sliding panels slide along the wall). Slabs have generated surface textures; automatic roofs recognize closed wall loops in gable/hip/flat/shed styles; multi-level floors and roof hiding make interior work easy.
 - **Project workflow** — autosave to local storage, `.civitas` JSON projects, undo/redo, copy/delete, native save/open dialogs, and GLB/glTF/OBJ/STL import & export.
-- **Performance** — shared merged geometry, a single vertex-PBR material per model batch, batched wall/path meshes, on-demand shadow updates, incremental scene sync, frustum culling and a capped pixel ratio. The bundled sample runs at ~180 FPS / ~160 draw calls in headless Chromium, ~200k triangles.
+- **Performance** — shared merged geometry, a single vertex-PBR material per model batch, batched wall/path meshes, on-demand shadow updates, incremental scene sync, frustum culling, a capped pixel ratio, lightweight ribbon previews while drawing roads, and distance LOD that hides sub-pixel street props (automatically off when quality is explicitly set to High). The bundled sample runs at ~180 FPS / ~160 draw calls in headless Chromium, ~200k triangles.
 - **Map fidelity** — 1K procedural ground with a bump map, textured asphalt and pavement with metre-based UVs, 0.32 m curve sampling for roads/rivers, and 1K floor textures for slabs. Roads add lane markings, crosswalks, reflective studs, drainage inlets, raised sidewalks, tactile paving and tree pits; rivers/ponds get three animated wave layers, foam, bank strata, reeds, rocks and lily pads; bridges add railing posts, piers, expansion joints and head reflectors. Quality still scales with the adaptive render presets.
 
 ## Run
@@ -32,11 +35,13 @@ npm run tauri:dev    # desktop shell
 npm run tauri:build
 ```
 
-Prebuilt Windows x64 artifacts are in `release/` (version 0.3.0):
+Prebuilt Windows x64 artifacts are in `release/` (version 0.3.0, rebuilt 2026-10-29 09:32 with the city generator, one-click furnishing, UIA automation ids, maximized startup and distance LOD):
 
-- `Civitas Studio.exe` — portable app
-- `Civitas Studio_0.3.0_x64-setup.exe` — NSIS installer
-- `Civitas Studio_0.3.0_x64_en-US.msi` — MSI installer
+- `Civitas Studio.exe` — portable app (13.52 MB)
+- `Civitas Studio_0.3.0_x64-setup.exe` — NSIS installer (3.44 MiB)
+- `Civitas Studio_0.3.0_x64_en-US.msi` — MSI installer (4.81 MiB)
+
+The previous 2026-10-28 build is kept in `release/old-0.3.0-1028/`.
 
 ## AI Copilot
 
@@ -75,16 +80,16 @@ curl -X POST http://127.0.0.1:8971/api/tools/build_room \
   -d '{"roomType":"bedroom","width":5,"depth":4.5,"furnish":true}'
 ```
 
-### Tools (33)
+### Tools (37)
 
 | Group | Tools |
 | --- | --- |
-| Read | `get_scene` `list_models` `get_selection` `get_screenshot` |
+| Read | `get_scene` `list_ui_controls` `list_models` `get_selection` `get_screenshot` |
 | View | `select_entity` `set_camera` `focus_all` |
 | Build | `build_villa` `build_room` `furnish_room` `place_model` `draw_path` `add_pond` `add_roof` `add_vegetation` |
 | Edit | `modify_selected` `delete_selected` `clear_level` `undo` `redo` |
 | Levels | `add_level` `set_active_level` |
-| Buildings | `list_building_templates` `place_building` `enter_building` `exit_building` `set_building_mode` |
+| Buildings | `list_building_templates` `place_building` `enter_building` `exit_building` `set_building_mode` `generate_city` `furnish_building` `landscape_building` |
 | Batch | `apply_actions` (same validated action plan the built-in Copilot uses) |
 | Files | `save_project` `export_scene` `new_project` |
 | Runtime | `set_quality` `set_visual_style` |
@@ -100,18 +105,29 @@ Every mutating tool returns `{ ok, summary, created?, focusIds?, scene }`, so an
 - **Your LLM key stays local** — the AI provider key lives in local app storage only, is never written into `.civitas` or exported scene files, and desktop inference goes through the Rust proxy.
 - If the configured port is busy, startup tries the next ports (up to 24) and the panel shows the port actually in use. Requests time out after 120 s.
 
+### Windows UI automation
+
+Every interactive control receives a unique HTML `id`, which WebView2 exposes to Windows UI Automation as its **AutomationId**. Key controls use stable ids (`topbar-save`, `topbar-undo`, `tool-citygen`, `tool-building`, `city-generate`, `city-preset-*`, `building-template-*`, `catalog-model-*`, `level-*`, `mcp-*`, `ai-*`, `status-*`, `session-*`); the rest are generated from panel scope + section + label + role with automatic de-duplication. The 3D canvas is exposed as `civitas-viewport` (role `application`).
+
+Call the `list_ui_controls` MCP tool (or inspect the UIA tree) to get every control's automation id, name, role, disabled state and screen rect. The desktop window starts **maximized**; WebView2 is launched with `--force-renderer-accessibility` so the full DOM tree is visible to UIA clients.
+
+```bash
+curl -X POST http://127.0.0.1:8971/api/tools/list_ui_controls   -H "Content-Type: application/json" -d '{"limit":1000}'
+```
+
 The API is desktop-only: in `npm run dev` (browser) the panel reports that the MCP server runs only in the desktop build.
 
 ## Controls
 
 | Input | Action |
 | --- | --- |
+| Tool rail → Build City | Generate a whole district from a preset; one click, one undo step |
 | Tool rail → Plan | Enter the top-down plan workspace; drag a rectangle to create a room |
 | Left click | Select / place / add path or wall point |
 | Alt + left drag | Pan camera |
 | Alt + right drag | Orbit camera |
 | WASD + wheel | Pan / zoom camera |
-| R | Rotate placement preview or selected object |
+| R | Rotate placement preview (furniture, building, path snapping) or selected object |
 | Shift | Temporarily disable snapping |
 | Enter / right click | Finish wall or path |
 | Esc | Cancel current operation / return to Select |
@@ -124,7 +140,7 @@ The API is desktop-only: in `npm run dev` (browser) the panel reports that the M
 
 ## Project layout
 
-- `src/editor` — engine, interaction, snapping/validation, parametric builders, 2D plan-to-3D generation (`plan.ts`), whole-building templates and inside/outside sessions (`buildings.ts`), project I/O.
+- `src/editor` — engine, interaction, snapping/validation, parametric builders, 2D plan-to-3D generation (`plan.ts`), whole-building templates and inside/outside sessions (`buildings.ts`), automatic room furnishing (`furnish.ts`), generated gardens (`landscape.ts`), one-click districts (`citygen.ts`), project I/O.
 - `src/models/catalog` — one module per component model, auto-registered through `src/models/registry.ts`.
 - `src/ai` — AI planner, action validation/execution, scene-building helpers, provider client and chat store.
 - `src/mcp` — tool schemas and dispatcher, the Tauri event bridge, and the MCP connection settings store.

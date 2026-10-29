@@ -11,6 +11,7 @@ import {
   Layers,
   MousePointer2,
   Route,
+  Sparkles,
   Trees,
   Umbrella,
   Waves,
@@ -24,7 +25,8 @@ const ITEMS: {
   group?: number
 }[] = [
   { id: 'select', label: '选择', icon: MousePointer2 },
-  { id: 'plan', label: '平面', icon: Grid2X2, group: 1 },
+  { id: 'citygen', label: '建城', icon: Sparkles, group: 1 },
+  { id: 'plan', label: '平面', icon: Grid2X2 },
   { id: 'building', label: '建筑', icon: Building2 },
   { id: 'wall', label: '墙体', icon: BrickWall },
   { id: 'openings', label: '门窗', icon: DoorOpen },
@@ -49,7 +51,7 @@ export function ToolRail({
   onActivate: (id: PanelId) => void
 }) {
   return (
-    <aside className="tool-rail">
+    <aside className="tool-rail" data-ui-scope="tool-rail">
       <div className="rail-scroll">
         {ITEMS.map((item) => {
           const Icon = item.icon
@@ -60,6 +62,7 @@ export function ToolRail({
                 type="button"
                 className={`rail-item ${activePanel === item.id ? 'is-active' : ''}`}
                 title={item.label}
+                data-automation-id={`tool-${item.id}`}
                 onClick={() => onActivate(item.id)}
               >
                 <span className="rail-icon">

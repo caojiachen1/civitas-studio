@@ -1,7 +1,18 @@
 export type Vec2 = [number, number]
 export type Vec3 = [number, number, number]
 
-export type ToolId = 'select' | 'plan' | 'wall' | 'slab' | 'door' | 'window' | 'roof' | 'path' | 'object' | 'erase'
+export type ToolId =
+  | 'select'
+  | 'plan'
+  | 'building'
+  | 'wall'
+  | 'slab'
+  | 'door'
+  | 'window'
+  | 'roof'
+  | 'path'
+  | 'object'
+  | 'erase'
 
 export type ModelCategory =
   | 'living'
@@ -171,6 +182,28 @@ export interface PathEntity {
 
 export type BuildingTemplateId = 'villa' | 'townhouse' | 'office' | 'tower'
 export type BuildingMode = 'shell' | 'interior'
+
+export interface BuildingStyleOverrides {
+  wallColor?: string
+  roofFinish?: RoofFinish
+  windowStyle?: string
+}
+
+export interface BuildingPlacementOptions extends BuildingStyleOverrides {
+  floors?: number
+  furnished?: boolean
+  garden?: boolean
+}
+
+export interface BuildingDraft {
+  templateId: BuildingTemplateId
+  floors: number
+  wallColor: string
+  roofFinish: RoofFinish
+  windowStyle: string
+  furnished: boolean
+  garden: boolean
+}
 
 export interface BuildingInterior {
   levels: Level[]

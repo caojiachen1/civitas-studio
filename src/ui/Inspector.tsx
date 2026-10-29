@@ -13,6 +13,7 @@ import {
   MousePointer2,
   Route,
   Trash2,
+  Trees,
   Waves,
   X,
 } from 'lucide-react'
@@ -295,6 +296,9 @@ function OpeningFields({
 
 function BuildingFields({ building }: { building: BuildingEntity }) {
   const enterBuilding = useEditor((state) => state.enterBuilding)
+  const furnishBuilding = useEditor((state) => state.furnishBuilding)
+  const landscapeSelectedBuilding = useEditor((state) => state.landscapeSelectedBuilding)
+  const toast = useRuntime((state) => state.toast)
   const template = BUILDING_TEMPLATES.find((item) => item.id === building.templateId) ?? BUILDING_TEMPLATES[0]
   const interiorCount = Object.keys(building.interior.entities).length
   return (
@@ -323,7 +327,39 @@ function BuildingFields({ building }: { building: BuildingEntity }) {
         <button type="button" className="soft-button wide" onClick={() => enterBuilding(building.id)}>
           <Building2 size={14} /> 进入建筑（外骨架 / 内饰）
         </button>
-        <p className="micro-hint">也可以直接双击城市中的建筑进入；进入后顶部栏切换骨架/内饰与楼层。</p>
+        <div className="button-row">
+          <button
+            type="button"
+            className="soft-button"
+            onClick={() => {
+              const result = furnishBuilding(building.id)
+              toast(
+                result.items > 0
+                  ? `已为 ${result.rooms} 个房间摆放 ${result.items} 件家具`
+                  : '没有可精装的闭合房间',
+                result.items > 0 ? 'success' : 'info',
+              )
+            }}
+          >
+            <Armchair size={14} /> 精装整栋
+          </button>
+          <button
+            type="button"
+            className="soft-button"
+            onClick={() => {
+              const result = landscapeSelectedBuilding(building.id)
+              toast(
+                result && result.entities.length > 0
+                  ? `已布置 ${result.props} 个庭院构件${result.path ? '和门前步道' : ''}`
+                  : '周边已有庭院或空间不足，未新增构件',
+                result && result.entities.length > 0 ? 'success' : 'info',
+              )
+            }}
+          >
+            <Trees size={14} /> 布置庭院
+          </button>
+        </div>
+        <p className="micro-hint">也可以直接双击城市中的建筑进入；进入后顶部栏切换骨架/内饰与楼层。「精装整栋」按房间识别类型并自动摆家具。</p>
       </Section>
     </>
   )
@@ -636,7 +672,7 @@ function InspectorEmpty() {
   )
 
   return (
-    <aside className="inspector">
+    <aside className="inspector" data-ui-scope="inspector">
       <div className="inspector-empty">
         <span className="empty-illustration">
           <MousePointer2 size={22} />
@@ -744,7 +780,7 @@ export function Inspector() {
             : entityDisplayName(entity)
 
   return (
-    <aside className="inspector">
+    <aside className="inspector" data-ui-scope="inspector">
       <div className="inspector-head">
         <span className="inspector-icon">
           <Icon size={18} />

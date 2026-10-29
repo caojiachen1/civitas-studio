@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  Armchair,
   ArrowRight,
   Box,
   BrickWall,
@@ -24,6 +25,7 @@ import {
   Route,
   Sparkles,
   Trash2,
+  Trees,
   Waves,
 } from 'lucide-react'
 import {
@@ -38,6 +40,7 @@ import {
   type RoofFinish,
   type RoofStyle,
 } from '../editor/types'
+import { CITY_PRESETS, type CityPresetId, type CitySize } from '../editor/citygen'
 import { useEditor } from '../editor/store'
 import { useRuntime } from '../editor/runtime'
 import { getEditorScene } from '../editor/engineRef'
@@ -247,6 +250,7 @@ function LevelRow({ levelId }: { levelId: string }) {
       <button
         type="button"
         className="level-copy"
+        data-automation-id={`level-copy-${levelId}`}
         title="复制本层平面到新楼层"
         onClick={(event) => {
           event.stopPropagation()
@@ -262,6 +266,7 @@ function LevelRow({ levelId }: { levelId: string }) {
       <button
         type="button"
         className="level-delete"
+        data-automation-id={`level-delete-${levelId}`}
         title={count > 0 ? '请先删除该楼层的构件' : levels.length <= 1 ? '至少保留一个楼层' : '删除楼层'}
         disabled={count > 0 || levels.length <= 1}
         onClick={(event) => {
@@ -336,14 +341,14 @@ function SelectPanel() {
       />
 
       <div className="project-actions">
-        <button type="button" className="project-action" onClick={loadBlank}>
+        <button type="button" className="project-action" data-automation-id="project-new-blank" onClick={loadBlank}>
           <FilePlus2 size={16} />
           <span>
             <strong>新建空白</strong>
             <small>从一块空地开始</small>
           </span>
         </button>
-        <button type="button" className="project-action" onClick={loadSample}>
+        <button type="button" className="project-action" data-automation-id="project-load-sample" onClick={loadSample}>
           <Sparkles size={16} />
           <span>
             <strong>示例场景</strong>
@@ -355,7 +360,7 @@ function SelectPanel() {
       <Section
         title="楼层"
         aside={
-          <button type="button" className="text-button" onClick={() => addLevel()}>
+          <button type="button" className="text-button" data-automation-id="level-add" onClick={() => addLevel()}>
             <Plus size={13} /> 新增楼层
           </button>
         }
@@ -491,28 +496,166 @@ function SelectPanel() {
   )
 }
 
+const CITY_PRESET_ICONS: Record<CityPresetId, typeof Sparkles> = {
+  lakeside: Waves,
+  downtown: Building2,
+  garden: Trees,
+  riverside: Route,
+}
+
+function CityGenPanel() {
+  const options = useEditor((state) => state.cityOptions)
+  const setCityOptions = useEditor((state) => state.setCityOptions)
+  const generate = useEditor((state) => state.generateCity)
+  const session = useEditor((state) => state.buildingSession)
+  const toast = useRuntime((state) => state.toast)
+  const [busy, setBusy] = useState(false)
+
+  const generateNow = () => {
+    if (busy) return
+    if (session) {
+      toast('请先退出建筑内部编辑，再生成城市', 'warn')
+      return
+    }
+    const view = getEditorScene()?.getView()
+    const center: [number, number] = [view?.target[0] ?? 0, view?.target[2] ?? 0]
+    setBusy(true)
+    window.setTimeout(() => {
+      const result = generate(options, center)
+      setBusy(false)
+      if (!result) {
+        toast('生成失败：当前无法放置城市', 'warn')
+        return
+      }
+      toast(
+        `已生成「${result.name}」：${result.buildings} 栋建筑、${result.props} 个街景构件，整片城市可用 Ctrl+Z 一步撤销`,
+        'success',
+      )
+      window.requestAnimationFrame(() => getEditorScene()?.focusAll())
+    }, 40)
+  }
+
+  return (
+    <div className="panel-scroll">
+      <PanelHeading
+        eyebrow="CITY GENERATOR"
+        title="一键建城"
+        subtitle="选一个城市气质，自动铺路网、排建筑、种树、摆街具；生成后仍可逐栋进入精装。"
+        icon={Sparkles}
+      />
+      <Section title="城市气质">
+        <div className="city-preset-list">
+          {CITY_PRESETS.map((preset) => {
+            const Icon = CITY_PRESET_ICONS[preset.id]
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                className={`city-preset ${options.preset === preset.id ? 'is-active' : ''}`}
+                data-automation-id={`city-preset-${preset.id}`}
+                onClick={() => setCityOptions({ preset: preset.id })}
+              >
+                <span className="city-preset-icon">
+                  <Icon size={19} />
+                </span>
+                <span className="city-preset-copy">
+                  <strong>{preset.name}</strong>
+                  <small>{preset.subtitle}</small>
+                </span>
+                {options.preset === preset.id && <Check size={15} />}
+              </button>
+            )
+          })}
+        </div>
+      </Section>
+      <Section title="城市规模">
+        <Segmented
+          compact
+          value={options.size}
+          onChange={(size: CitySize) => setCityOptions({ size })}
+          options={[
+            { value: 'small', label: '小镇 2×2' },
+            { value: 'medium', label: '街区 3×2' },
+            { value: 'large', label: '城区 3×3' },
+          ]}
+        />
+        <p className="micro-hint">规模决定街区数量；建筑会按城市气质自动匹配层数与立面。</p>
+      </Section>
+      <Section title="生成内容">
+        <Toggle
+          checked={options.streetTrees}
+          onChange={(streetTrees) => setCityOptions({ streetTrees })}
+          label="行道树与庭院绿化"
+          hint="沿街乔木、庭院树与花坛"
+        />
+        <Toggle
+          checked={options.streetLights}
+          onChange={(streetLights) => setCityOptions({ streetLights })}
+          label="路灯与街道家具"
+          hint="路灯、长椅、花箱、垃圾桶"
+        />
+        <Toggle
+          checked={options.vehicles}
+          onChange={(vehicles) => setCityOptions({ vehicles })}
+          label="道路车辆"
+          hint="沿街停放轿车、SUV 与出租车"
+        />
+        <Toggle
+          checked={options.furnished}
+          onChange={(furnished) => setCityOptions({ furnished })}
+          label="自动精装室内"
+          hint="每栋建筑按房间自动摆放家具，进入即可查看"
+        />
+      </Section>
+      <button
+        type="button"
+        className={`generate-button ${busy ? 'is-busy' : ''}`}
+        data-automation-id="city-generate"
+        disabled={busy || Boolean(session)}
+        onClick={generateNow}
+      >
+        <Sparkles size={16} />
+        {busy ? '正在生成城市…' : '生成城市'}
+      </button>
+      <Section title="生成规则">
+        <TipList
+          items={[
+            '城市会放在当前视角中心附近的空地上，与已有内容冲突时自动寻找最近空地。',
+            '整片城市、沿街构件、庭院和室内家具合并为一步历史，Ctrl+Z 一次撤销。',
+            '生成后双击任意建筑即可进入内部继续精装；想换风格可在建筑面板单独放置。',
+            '想要更明亮的画面，可在「选择」面板把画面风格切到日光或黄昏。',
+          ]}
+        />
+      </Section>
+      <div className="panel-footnote">
+        <span className="legend-dot valid" /> 自动铺路
+        <span className="footnote-sep">·</span> 单步撤销
+      </div>
+    </div>
+  )
+}
+
 function BuildingPanel() {
-  const placeBuilding = useEditor((state) => state.placeBuilding)
   const placeSkyline = useEditor((state) => state.placeSkyline)
+  const armBuilding = useEditor((state) => state.armBuilding)
+  const setBuildingDraft = useEditor((state) => state.setBuildingDraft)
+  const cancelBuildingDraft = useEditor((state) => state.cancelBuildingDraft)
+  const draft = useEditor((state) => state.buildingDraft)
+  const tool = useEditor((state) => state.tool)
+  const session = useEditor((state) => state.buildingSession)
+  const selected = useEditor((state) => (state.selectedId ? state.doc.entities[state.selectedId] : null))
+  const furnishBuilding = useEditor((state) => state.furnishBuilding)
+  const landscapeSelectedBuilding = useEditor((state) => state.landscapeSelectedBuilding)
+  const placeBuilding = useEditor((state) => state.placeBuilding)
   const buildingCount = useEditor(
     (state) => Object.values(state.doc.entities).filter((entity) => entity.kind === 'building').length,
   )
-  const session = useEditor((state) => state.buildingSession)
   const toast = useRuntime((state) => state.toast)
   const [skylineCount, setSkylineCount] = useState<'4' | '6' | '8'>('6')
 
   const viewTarget = () => {
     const view = getEditorScene()?.getView()
     return { x: view?.target[0] ?? 0, z: view?.target[2] ?? 0 }
-  }
-
-  const place = (templateId: (typeof BUILDING_TEMPLATES)[number]['id']) => {
-    const { x, z } = viewTarget()
-    const id = placeBuilding(templateId, x, z, 0)
-    if (id) {
-      toast('建筑已放置：选中后可整体移动/旋转，双击进入内部', 'success')
-      window.requestAnimationFrame(() => getEditorScene()?.focusSelection())
-    }
   }
 
   const skyline = () => {
@@ -524,12 +667,15 @@ function BuildingPanel() {
     }
   }
 
+  const selectedBuilding = selected?.kind === 'building' ? selected : null
+  const placing = tool === 'building' && Boolean(draft)
+
   return (
     <div className="panel-scroll">
       <PanelHeading
         eyebrow="BUILDINGS"
         title="整栋建筑"
-        subtitle="先以整栋模型放置，再双击进入内部做外骨架和精装内饰；建筑在城市里始终是一个整体。"
+        subtitle="选模板 → 在场景里看到预览 → 点击落地。层数、立面和屋顶都能在放置前调好，还能自动精装和布置庭院。"
         icon={Building2}
       />
       <Section title="建筑模板">
@@ -538,9 +684,10 @@ function BuildingPanel() {
             <button
               key={template.id}
               type="button"
-              className="style-choice building-choice"
+              className={`style-choice building-choice ${draft?.templateId === template.id && placing ? 'is-active' : ''}`}
+              data-automation-id={`building-template-${template.id}`}
               disabled={Boolean(session)}
-              onClick={() => place(template.id)}
+              onClick={() => armBuilding(template.id)}
             >
               <span className="choice-swatch building" />
               <span className="choice-copy">
@@ -550,14 +697,156 @@ function BuildingPanel() {
                 </small>
                 <small className="building-subtitle">{template.subtitle}</small>
               </span>
-              <Building2 size={16} />
+              {draft?.templateId === template.id && placing ? <Check size={15} /> : <Building2 size={16} />}
             </button>
           ))}
         </div>
         <p className="micro-hint">
-          {session ? '正在编辑「' + session.name + '」内部，请先退出建筑再放置新建筑。' : '点击模板即放在当前视角中心；选中后拖动三轴或按 R 整体移动/旋转。'}
+          {session
+            ? '正在编辑「' + session.name + '」内部，请先退出建筑再放置新建筑。'
+            : placing
+              ? '把鼠标移到地面即可看到预览；红色表示此处不能放置。'
+              : '点击任意模板进入放置模式。'}
         </p>
       </Section>
+
+      {draft && (
+        <Section
+          title="建造选项"
+          aside={
+            <button type="button" className="text-button" data-automation-id="building-cancel-placement" onClick={cancelBuildingDraft}>
+              取消放置
+            </button>
+          }
+        >
+          <Slider
+            label="楼层数"
+            value={draft.floors}
+            min={1}
+            max={24}
+            step={1}
+            onChange={(floors) => setBuildingDraft({ floors })}
+            display={`${draft.floors} 层 · ${(draft.floors * 3.2).toFixed(1)} m`}
+          />
+          <div className="field-label spaced">立面颜色</div>
+          <div className="swatch-grid">
+            {WALL_COLORS.map((color) => (
+              <Swatch
+                key={color.id}
+                color={color.color}
+                name={color.name}
+                selected={draft.wallColor === color.color}
+                onClick={() => setBuildingDraft({ wallColor: color.color })}
+              />
+            ))}
+          </div>
+          <div className="field-label spaced">屋顶材质</div>
+          <div className="finish-grid">
+            {FINISHES.map((finish) => (
+              <button
+                key={finish.id}
+                type="button"
+                className={`finish-chip ${draft.roofFinish === finish.id ? 'is-active' : ''}`}
+                onClick={() => setBuildingDraft({ roofFinish: finish.id })}
+              >
+                <span style={{ background: finish.color }} />
+                {ROOF_FINISH_LABELS[finish.id]}
+              </button>
+            ))}
+          </div>
+          <div className="field-label spaced">窗户样式</div>
+          <div className="fence-style-grid">
+            {WINDOW_STYLES.map((style) => (
+              <button
+                key={style.id}
+                type="button"
+                className={`fence-chip ${draft.windowStyle === style.id ? 'is-active' : ''}`}
+                onClick={() => setBuildingDraft({ windowStyle: style.id })}
+              >
+                {style.name}
+              </button>
+            ))}
+          </div>
+          <Toggle
+            checked={draft.furnished}
+            onChange={(furnished) => setBuildingDraft({ furnished })}
+            label="自动精装内饰"
+            hint="按房间自动摆放家具，进入建筑即可看到"
+          />
+          <Toggle
+            checked={draft.garden}
+            onChange={(garden) => setBuildingDraft({ garden })}
+            label="附带庭院与广场"
+            hint="门前步道、树木、花坛、路灯与长椅"
+          />
+          <div className="button-row">
+            <button
+              type="button"
+              className="soft-button"
+              data-automation-id="building-place-center"
+              onClick={() => {
+                const { x, z } = viewTarget()
+                const id = placeBuilding(draft.templateId, x, z, 0, {
+                  floors: draft.floors,
+                  wallColor: draft.wallColor,
+                  roofFinish: draft.roofFinish,
+                  windowStyle: draft.windowStyle,
+                  furnished: draft.furnished,
+                  garden: draft.garden,
+                })
+                if (id) {
+                  useEditor.getState().setTool('select')
+                  toast('已放在视角中心，可拖动定位或双击进入内部', 'success')
+                  window.requestAnimationFrame(() => getEditorScene()?.focusSelection())
+                }
+              }}
+            >
+              <Building2 size={14} /> 放在视角中心
+            </button>
+          </div>
+        </Section>
+      )}
+
+      {selectedBuilding && !session && (
+        <Section title={`已选：${selectedBuilding.name}`}>
+          <div className="button-row">
+            <button
+              type="button"
+              className="soft-button"
+              data-automation-id="building-furnish"
+              onClick={() => {
+                const result = furnishBuilding(selectedBuilding.id)
+                toast(
+                  result.items > 0
+                    ? `已为 ${result.rooms} 个房间摆放 ${result.items} 件家具`
+                    : '没有可精装的闭合房间',
+                  result.items > 0 ? 'success' : 'info',
+                )
+              }}
+            >
+              <Armchair size={14} /> 精装整栋
+            </button>
+            <button
+              type="button"
+              className="soft-button"
+              data-automation-id="building-landscape"
+              onClick={() => {
+                const result = landscapeSelectedBuilding()
+                toast(
+                  result && result.entities.length > 0
+                    ? `已布置 ${result.props} 个庭院构件${result.path ? '和门前步道' : ''}`
+                    : '周边已有庭院或空间不足，未新增构件',
+                  result && result.entities.length > 0 ? 'success' : 'info',
+                )
+              }}
+            >
+              <Trees size={14} /> 布置庭院
+            </button>
+          </div>
+          <p className="micro-hint">精装会按现有墙体和房间识别房间类型；庭院会避让道路和已有物件。</p>
+        </Section>
+      )}
+
       <Section title="天际线排布">
         <Segmented
           compact
@@ -580,12 +869,12 @@ function BuildingPanel() {
             `当前城市已有 ${buildingCount} 栋建筑。`,
             '单击选中整栋建筑，双击或右侧「进入建筑」进入内部。',
             '外骨架模式编辑墙、窗、门、楼梯；内饰模式自动把视角放进楼内。',
-            '内部顶部栏可按楼层切换，退出后整栋建筑回到城市。',
+            '放置时 R 旋转，Esc 结束连续放置；生成器做的城市同样可逐栋精修。',
           ]}
         />
       </Section>
       <div className="panel-footnote">
-        <span className="legend-dot valid" /> 点击模板放置
+        <span className="legend-dot valid" /> 点击模板预览放置
         <span className="footnote-sep">·</span> 双击进入内部
       </div>
     </div>
@@ -602,6 +891,7 @@ function PlanPanel() {
   const doc = useEditor((state) => state.doc)
   const activeLevelId = useEditor((state) => state.doc.activeLevelId)
   const duplicateLevel = useEditor((state) => state.duplicateLevel)
+  const furnishLevel = useEditor((state) => state.furnishLevel)
   const toast = useRuntime((state) => state.toast)
   const [withFurniture, setWithFurniture] = useState(false)
 
@@ -708,13 +998,29 @@ function PlanPanel() {
       </Section>
       <Section title="快速操作">
         <div className="button-row">
-          <button type="button" className="soft-button" onClick={complete}>
+          <button type="button" className="soft-button" data-automation-id="plan-complete-rooms" onClick={complete}>
             <Sparkles size={14} /> 补全闭合房间
           </button>
-          <button type="button" className="soft-button" onClick={copyUp}>
+          <button type="button" className="soft-button" data-automation-id="plan-copy-level" onClick={copyUp}>
             <Copy size={14} /> 复制到新楼层
           </button>
         </div>
+        <button
+          type="button"
+          className="soft-button wide"
+          data-automation-id="plan-furnish-level"
+          onClick={() => {
+            const result = furnishLevel()
+            toast(
+              result.items > 0
+                ? `已精装 ${result.rooms} 个房间，摆放 ${result.items} 件家具`
+                : '没有可精装的闭合房间，请先画好墙或补全房间',
+              result.items > 0 ? 'success' : 'info',
+            )
+          }}
+        >
+          <Armchair size={14} /> 一键精装本层
+        </button>
         <Toggle
           checked={withFurniture}
           onChange={setWithFurniture}
@@ -795,6 +1101,7 @@ function WallPanel() {
         <TipList
           items={[
             '端点吸附半径 0.8 m，靠近已绘制墙体端点会自动接合。',
+            '靠近已有墙的中段会吸附到墙面，方便画隔墙把大房间分成两间。',
             '靠近起点再次点击即可闭合墙体，生成可识别的房间。',
             '墙体会自动补角、添加踢脚线与顶部压线。',
             '在「门窗」工具中点击墙面即可开洞。',
@@ -1326,7 +1633,7 @@ export function LeftPanel({ activePanel }: { activePanel: PanelId }) {
   const catalog = CATALOG_CONFIG[activePanel]
   if (catalog) {
     return (
-      <aside className="side-panel">
+      <aside className="side-panel" data-ui-scope="left-panel" data-automation-id="left-panel-catalog">
         <CatalogPanel
           key={activePanel}
           title={catalog.title}
@@ -1337,8 +1644,9 @@ export function LeftPanel({ activePanel }: { activePanel: PanelId }) {
     )
   }
   return (
-    <aside className="side-panel">
+    <aside className="side-panel" data-ui-scope="left-panel" data-automation-id={`left-panel-${activePanel}`}>
       {activePanel === 'select' && <SelectPanel />}
+      {activePanel === 'citygen' && <CityGenPanel />}
       {activePanel === 'plan' && <PlanPanel />}
       {activePanel === 'building' && <BuildingPanel />}
       {activePanel === 'wall' && <WallPanel />}

@@ -8,6 +8,7 @@ import {
   type BuildingEntity,
   type BuildingInterior,
   type BuildingSession,
+  type BuildingStyleOverrides,
   type BuildingTemplateId,
   type CustomAsset,
   type EditorDocument,
@@ -182,6 +183,7 @@ function addWindows(
   wall: WallEntity,
   template: BuildingTemplate,
   skipCenter: number | null,
+  windowStyle: string,
 ): void {
   const length = wallLength(wall)
   const margin = 0.7
@@ -197,13 +199,25 @@ function addWindows(
   for (let i = 0; i < count; i++) {
     const offset = margin + spacing * (i + 0.5)
     if (skipCenter !== null && Math.abs(offset - skipCenter) < width / 2 + 0.9) continue
-    entities.push(makeOpening('window', wall, template.windowStyle, offset, width, height, sill))
+    entities.push(makeOpening('window', wall, windowStyle, offset, width, height, sill))
   }
+}
+
+function shadeColor(hex: string, factor: number): string {
+  const raw = hex.replace('#', '')
+  const full = raw.length === 3 ? raw.split('').map((char) => char + char).join('') : raw
+  const value = Number.parseInt(full, 16)
+  if (!Number.isFinite(value)) return hex
+  const r = Math.min(255, Math.round(((value >> 16) & 255) * factor))
+  const g = Math.min(255, Math.round(((value >> 8) & 255) * factor))
+  const b = Math.min(255, Math.round((value & 255) * factor))
+  return `#${[r, g, b].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`
 }
 
 export function createTemplateInterior(
   template: BuildingTemplate,
   floorOverride?: number,
+  overrides?: BuildingStyleOverrides,
 ): BuildingInterior {
   const floors = Math.max(1, Math.min(40, floorOverride ?? template.floors))
   const levels: Level[] = Array.from({ length: floors }, (_, index) => ({
@@ -215,6 +229,13 @@ export function createTemplateInterior(
   const shellWallIds: string[] = []
   const halfW = template.width / 2
   const halfD = template.depth / 2
+  const wallColor = overrides?.wallColor ?? template.wallColor
+  const trimColor =
+    overrides?.wallColor !== undefined && overrides.wallColor !== template.wallColor
+      ? shadeColor(overrides.wallColor, 0.86)
+      : template.trimColor
+  const windowStyle = overrides?.windowStyle ?? template.windowStyle
+  const roofFinish = overrides?.roofFinish ?? template.roofFinish
 
   for (let floor = 0; floor < floors; floor++) {
     const level = levels[floor]
@@ -223,11 +244,26 @@ export function createTemplateInterior(
     const x1 = halfW
     const z0 = -halfD
     const z1 = halfD
-    const south = makeWall(level.id, [x0, z0], [x1, z0], template.floorHeight, 0.24, template.wallColor)
-    const east = makeWall(level.id, [x1, z0], [x1, z1], template.floorHeight, 0.24, template.wallColor)
-    const north = makeWall(level.id, [x1, z1], [x0, z1], template.floorHeight, 0.24, template.wallColor)
-    const west = makeWall(level.id, [x0, z1], [x0, z0], template.floorHeight, 0.24, template.wallColor)
-    const exterior = [south, east, north, west]
+    let exterior: WallEntity[]
+    let entranceWall: WallEntity
+    if (template.glassy) {
+      const south = makeWall(level.id, [x0, z0], [x1, z0], template.floorHeight, 0.24, wallColor)
+      const east = makeWall(level.id, [x1, z0], [x1, z1], template.floorHeight, 0.24, wallColor)
+      const north = makeWall(level.id, [x1, z1], [x0, z1], template.floorHeight, 0.24, wallColor)
+      const west = makeWall(level.id, [x0, z1], [x0, z0], template.floorHeight, 0.24, wallColor)
+      exterior = [south, east, north, west]
+      entranceWall = north
+    } else {
+      // Split the long façades at the partition so room detection sees two closed rooms.
+      const southWest = makeWall(level.id, [x0, z0], [0, z0], template.floorHeight, 0.24, wallColor)
+      const southEast = makeWall(level.id, [0, z0], [x1, z0], template.floorHeight, 0.24, wallColor)
+      const east = makeWall(level.id, [x1, z0], [x1, z1], template.floorHeight, 0.24, wallColor)
+      const northEast = makeWall(level.id, [x1, z1], [0, z1], template.floorHeight, 0.24, wallColor)
+      const northWest = makeWall(level.id, [0, z1], [x0, z1], template.floorHeight, 0.24, wallColor)
+      const west = makeWall(level.id, [x0, z1], [x0, z0], template.floorHeight, 0.24, wallColor)
+      exterior = [southWest, southEast, east, northEast, northWest, west]
+      entranceWall = northWest
+    }
     entities.push(...exterior)
     shellWallIds.push(...exterior.map((wall) => wall.id))
 
@@ -246,25 +282,27 @@ export function createTemplateInterior(
     entities.push(slab)
 
     const doorStyle = DOOR_STYLES.find((item) => item.id === template.doorStyle) ?? DOOR_STYLES[0]
-    const doorFits = template.width > doorStyle.width + 1.2
+    const entranceLength = wallLength(entranceWall)
+    const doorFits = entranceLength > doorStyle.width + 0.9
+    const entranceOffset = entranceLength / 2
     if (floor === 0 && doorFits) {
-      entities.push(makeOpening('door', north, doorStyle.id, wallLength(north) / 2, doorStyle.width, doorStyle.height, 0))
+      entities.push(makeOpening('door', entranceWall, doorStyle.id, entranceOffset, doorStyle.width, doorStyle.height, 0))
     }
     for (const wall of exterior) {
-      if (floor === 0 && wall.id === north.id) {
-        addWindows(entities, wall, template, wallLength(wall) / 2)
+      if (floor === 0 && wall.id === entranceWall.id) {
+        addWindows(entities, wall, template, doorFits ? entranceOffset : null, windowStyle)
       } else {
-        addWindows(entities, wall, template, null)
+        addWindows(entities, wall, template, null, windowStyle)
       }
     }
 
     if (template.glassy) {
       const core = 2.15 + (template.id === 'tower' ? 0.35 : 0)
       const coreWalls = [
-        makeWall(level.id, [-core, -core], [core, -core], template.floorHeight, 0.18, template.trimColor),
-        makeWall(level.id, [core, -core], [core, core], template.floorHeight, 0.18, template.trimColor),
-        makeWall(level.id, [core, core], [-core, core], template.floorHeight, 0.18, template.trimColor),
-        makeWall(level.id, [-core, core], [-core, -core], template.floorHeight, 0.18, template.trimColor),
+        makeWall(level.id, [-core, -core], [core, -core], template.floorHeight, 0.18, trimColor),
+        makeWall(level.id, [core, -core], [core, core], template.floorHeight, 0.18, trimColor),
+        makeWall(level.id, [core, core], [-core, core], template.floorHeight, 0.18, trimColor),
+        makeWall(level.id, [-core, core], [-core, -core], template.floorHeight, 0.18, trimColor),
       ]
       entities.push(...coreWalls)
       const coreDoor = DOOR_STYLES.find((item) => item.id === 'single') ?? DOOR_STYLES[0]
@@ -274,11 +312,11 @@ export function createTemplateInterior(
     } else {
       const partition = makeWall(
         level.id,
-        [0, z0 + 0.45],
-        [0, z1 - 0.45],
+        [0, z0],
+        [0, z1],
         template.floorHeight,
         0.12,
-        template.trimColor,
+        trimColor,
       )
       entities.push(partition)
       if (wallLength(partition) > 2.4) {
@@ -314,7 +352,7 @@ export function createTemplateInterior(
         d: template.depth + 1.1,
         rot: 0,
         style: template.roofStyle,
-        finish: template.roofFinish,
+        finish: roofFinish,
         pitch: template.roofStyle === 'flat' ? 0 : 28,
         eaveY: elevation + template.floorHeight + 0.02,
         overhang: 0.5,
@@ -339,9 +377,10 @@ export function createBuildingEntity(
   rot = 0,
   name?: string,
   floors?: number,
+  overrides?: BuildingStyleOverrides,
 ): BuildingEntity {
   const template = getBuildingTemplate(templateId)
-  const count = Math.max(1, floors ?? template.floors)
+  const count = Math.max(1, Math.min(40, floors ?? template.floors))
   return {
     id: bid('building'),
     kind: 'building',
@@ -355,7 +394,7 @@ export function createBuildingEntity(
     depth: template.depth,
     floors: count,
     floorHeight: template.floorHeight,
-    interior: createTemplateInterior(template, count),
+    interior: createTemplateInterior(template, count, overrides),
   }
 }
 
@@ -564,6 +603,42 @@ export function buildBuildingShell(building: BuildingEntity): THREE.Group {
 
 export function buildingHeight(building: BuildingEntity): number {
   return building.floors * building.floorHeight + 0.9
+}
+
+/** Door side of every template points to +Z in local space. */
+export function buildingEntrance(building: BuildingEntity): { x: number; z: number; dirX: number; dirZ: number } {
+  const dirX = Math.sin(building.rot)
+  const dirZ = Math.cos(building.rot)
+  const levelId = building.interior.levels[0]?.id
+  let localX = 0
+  if (levelId) {
+    const northWalls = new Set<string>()
+    for (const entity of Object.values(building.interior.entities)) {
+      if (
+        entity.kind === 'wall' &&
+        entity.levelId === levelId &&
+        Math.abs(entity.a[1] - building.depth / 2) < 0.35 &&
+        Math.abs(entity.b[1] - building.depth / 2) < 0.35
+      ) {
+        northWalls.add(entity.id)
+      }
+    }
+    for (const entity of Object.values(building.interior.entities)) {
+      if (entity.kind !== 'opening' || entity.type !== 'door' || !northWalls.has(entity.wallId)) continue
+      const wall = building.interior.entities[entity.wallId]
+      if (wall?.kind !== 'wall') continue
+      const length = Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]) || 1
+      localX = wall.a[0] + (wall.b[0] - wall.a[0]) * Math.min(1, Math.max(0, entity.offset / length))
+      break
+    }
+  }
+  const localZ = building.depth / 2
+  return {
+    x: building.x + localX * Math.cos(building.rot) + localZ * Math.sin(building.rot),
+    z: building.z - localX * Math.sin(building.rot) + localZ * Math.cos(building.rot),
+    dirX,
+    dirZ,
+  }
 }
 
 export function buildingFromDoc(doc: EditorDocument, id: string): BuildingEntity | null {

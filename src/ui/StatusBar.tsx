@@ -19,12 +19,12 @@ export function StatusBar() {
   const fpsClass = perf.fps >= 50 ? 'good' : perf.fps >= 30 ? 'warn' : 'bad'
 
   return (
-    <footer className="statusbar">
+    <footer className="statusbar" data-ui-scope="statusbar">
       <div className="status-left">
         <span className={`status-indicator ${invalidReason ? 'is-error' : snapLabel ? 'is-snap' : ''}`} />
         <span className="status-tool">{label}</span>
         {planMode && (
-          <button type="button" className="status-chip plan-chip" onClick={() => patchSettings({ planMode: false })}>
+          <button type="button" className="status-chip plan-chip" data-automation-id="status-exit-plan" onClick={() => patchSettings({ planMode: false })}>
             <Grid2X2 size={12} /> 平面模式 · 退出
           </button>
         )}
@@ -46,7 +46,7 @@ export function StatusBar() {
         <span className="metric mono">{perf.drawCalls} calls</span>
         <span className="metric mono">{(perf.triangles / 1000).toFixed(1)}k tris</span>
         <span className="metric mono">{perf.objects} items</span>
-        <button type="button" className="status-help" onClick={() => setHelpOpen(true)} title="帮助与快捷键 (?)">
+        <button type="button" className="status-help" data-automation-id="status-help" onClick={() => setHelpOpen(true)} title="帮助与快捷键 (?)">
           <CircleHelp size={13} />
         </button>
       </div>

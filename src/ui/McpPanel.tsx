@@ -76,7 +76,7 @@ export function McpPanel({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="mcp-panel">
+    <div className="mcp-panel" data-ui-scope="mcp-panel">
       <div className="ai-settings-head">
         <button type="button" className="ai-back" onClick={onBack}>
           ← 返回对话
@@ -116,10 +116,10 @@ export function McpPanel({ onBack }: { onBack: () => void }) {
       <div className="mcp-action-row">
         {status.running ? (
           <>
-            <button type="button" className="mcp-primary is-stop" disabled={busy} onClick={() => void stop()}>
+            <button type="button" className="mcp-primary is-stop" data-automation-id="mcp-stop" disabled={busy} onClick={() => void stop()}>
               {busy ? <Loader2 size={14} className="spin" /> : <Square size={13} />} 停止服务
             </button>
-            <button type="button" className="mcp-secondary" disabled={busy} onClick={() => void start()}>
+            <button type="button" className="mcp-secondary" data-automation-id="mcp-start" disabled={busy} onClick={() => void start()}>
               {busy ? <Loader2 size={14} className="spin" /> : <RefreshCw size={13} />} 重启
             </button>
           </>
@@ -133,7 +133,7 @@ export function McpPanel({ onBack }: { onBack: () => void }) {
             {busy ? <Loader2 size={14} className="spin" /> : <Play size={13} />} 启动 MCP 服务
           </button>
         )}
-        <button type="button" className="mcp-secondary" onClick={() => void refresh()}>
+        <button type="button" className="mcp-secondary" data-automation-id="mcp-refresh" onClick={() => void refresh()}>
           <RefreshCw size={13} /> 刷新
         </button>
       </div>

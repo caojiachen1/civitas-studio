@@ -5,6 +5,8 @@ import { createBlankDocument, useEditor } from '../editor/store'
 import { BUILDING_TEMPLATES } from '../editor/buildings'
 import { createSampleDocument, SAMPLE_VIEW } from '../editor/sample'
 import { getEditorScene } from '../editor/engineRef'
+import { useRuntime } from '../editor/runtime'
+import { auditAutomationIds } from '../ui/automation'
 import { isTauriHost } from '../editor/platform'
 import { getProjectPayload, buildExportScene, type ExportFormat } from '../editor/fileIO'
 import { CATALOG_MODELS, MODEL_MAP } from '../models/registry'
@@ -42,6 +44,24 @@ function selectedPayload() {
   const state = useEditor.getState()
   const entity = state.selectedId ? state.doc.entities[state.selectedId] : null
   if (!entity) return null
+  if (entity.kind === 'building') {
+    return {
+      id: entity.id,
+      kind: entity.kind,
+      levelId: entity.levelId,
+      name: entity.name,
+      templateId: entity.templateId,
+      x: entity.x,
+      z: entity.z,
+      rot: entity.rot,
+      width: entity.width,
+      depth: entity.depth,
+      floors: entity.floors,
+      floorHeight: entity.floorHeight,
+      interiorEntityCount: Object.keys(entity.interior.entities).length,
+      displayName: entity.name,
+    }
+  }
   return {
     ...entity,
     displayName:
@@ -210,6 +230,20 @@ export const MCP_TOOLS: McpToolSpec[] = [
       properties: {
         includeEntities: { type: 'boolean', description: 'Include entity list (default false).' },
         entityLimit: { type: 'number', description: 'Max entities to return (default 300, max 1000).' },
+      },
+    },
+  },
+  {
+    name: 'list_ui_controls',
+    title: '列出 UI 控件与 automation id',
+    description:
+      'Return every interactive control in the app with its Windows UIA automation id, role, accessible name, disabled state, scope/group and screen rect. Use these ids with UIA or an accessibility agent. Read-only.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        includeHidden: { type: 'boolean', description: 'Include controls without a visible box (default false).' },
+        query: { type: 'string', description: 'Filter by automation id, name, role or group.' },
+        limit: { type: 'number', description: 'Max controls to return (default 500, max 1000).' },
       },
     },
   },
@@ -496,7 +530,8 @@ export const MCP_TOOLS: McpToolSpec[] = [
   {
     name: 'place_building',
     title: '放置整栋建筑',
-    description: 'Place a whole building as one entity. It can be moved/rotated as a unit and entered for shell/interior editing.',
+    description:
+      'Place a whole building as one entity. It can be moved/rotated as a unit and entered for shell/interior editing. Optionally set floors, façade color, roof finish, window style, and auto-furnish/garden.',
     inputSchema: {
       type: 'object',
       required: ['templateId'],
@@ -505,7 +540,56 @@ export const MCP_TOOLS: McpToolSpec[] = [
         x: { type: 'number' },
         z: { type: 'number' },
         rot: { type: 'number' },
+        floors: { type: 'number', minimum: 1, maximum: 24 },
+        wallColor: { type: 'string' },
+        roofFinish: { type: 'string', enum: ['terracotta', 'slate', 'charcoal', 'copper', 'shingle'] },
+        windowStyle: { type: 'string', enum: ['standard', 'wide', 'picture', 'slim', 'small'] },
+        furnished: { type: 'boolean' },
+        garden: { type: 'boolean' },
       },
+    },
+  },
+  {
+    name: 'generate_city',
+    title: '一键生成城市',
+    description:
+      'Generate a complete city district in one undo step: road grid, buildings, park/pond or plaza, street trees, lamps and cars. Presets: lakeside, downtown, garden, riverside.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        preset: { type: 'string', enum: ['lakeside', 'downtown', 'garden', 'riverside'] },
+        size: { type: 'string', enum: ['small', 'medium', 'large'] },
+        centerX: { type: 'number' },
+        centerZ: { type: 'number' },
+        furnished: { type: 'boolean' },
+        streetTrees: { type: 'boolean' },
+        streetLights: { type: 'boolean' },
+        vehicles: { type: 'boolean' },
+      },
+    },
+  },
+  {
+    name: 'furnish_building',
+    title: '一键精装',
+    description:
+      'Furnish closed rooms automatically. With id, furnishes every floor inside that building; without id, furnishes the active level.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        maxFloors: { type: 'number', minimum: 1, maximum: 40 },
+      },
+    },
+  },
+  {
+    name: 'landscape_building',
+    title: '布置建筑庭院',
+    description:
+      'Add a front path, trees, flower beds, lamps, benches and (for office/tower) a plaza around the given building, avoiding roads and existing props.',
+    inputSchema: {
+      type: 'object',
+      required: ['id'],
+      properties: { id: { type: 'string' } },
     },
   },
   {
@@ -606,7 +690,29 @@ export async function runMcpTool(name: string, args: Args): Promise<unknown> {
         const entities = includeEntities
           ? Object.values(useEditor.getState().doc.entities).slice(0, limit).map(entitySummary)
           : undefined
-        return toolResult({ context, selection: selectedPayload(), entities, entityLimit: limit })
+        return toolResult({
+          context,
+          perf: useRuntime.getState().perf,
+          render: getEditorScene()?.getRenderDiagnostics() ?? null,
+          selection: selectedPayload(),
+          entities,
+          entityLimit: limit,
+        })
+      }
+      case 'list_ui_controls': {
+        const audit = auditAutomationIds({
+          includeHidden: bool(args.includeHidden, false),
+          query: str(args.query),
+          limit: Math.round(num(args.limit, 500, 1, 1000)),
+        })
+        return toolResult({
+          total: audit.total,
+          interactive: audit.interactive,
+          missing: audit.missing,
+          duplicates: audit.duplicates,
+          count: audit.controls.length,
+          controls: audit.controls,
+        })
       }
       case 'list_models': {
         const category = str(args.category).toLowerCase()
@@ -856,10 +962,98 @@ export async function runMcpTool(name: string, args: Args): Promise<unknown> {
         const x = num(args.x, 0, -400, 400)
         const z = num(args.z, 0, -400, 400)
         const rot = num(args.rot, 0, -Math.PI * 2, Math.PI * 2)
-        const id = useEditor.getState().placeBuilding(templateId as BuildingTemplateId, x, z, rot)
+        const template = BUILDING_TEMPLATES.find((item) => item.id === templateId)!
+        const id = useEditor.getState().placeBuilding(templateId as BuildingTemplateId, x, z, rot, {
+          floors: args.floors === undefined ? template.floors : Math.round(num(args.floors, template.floors, 1, 24)),
+          wallColor: typeof args.wallColor === 'string' ? args.wallColor : undefined,
+          roofFinish: ['terracotta', 'slate', 'charcoal', 'copper', 'shingle'].includes(str(args.roofFinish))
+            ? (str(args.roofFinish) as 'terracotta' | 'slate' | 'charcoal' | 'copper' | 'shingle')
+            : undefined,
+          windowStyle: ['standard', 'wide', 'picture', 'slim', 'small'].includes(str(args.windowStyle))
+            ? str(args.windowStyle)
+            : undefined,
+          furnished: bool(args.furnished, false),
+          garden: bool(args.garden, false),
+        })
         if (!id) return errorResult('当前楼层无法放置建筑。')
         window.requestAnimationFrame(() => getEditorScene()?.focusEntityIds([id]))
         return toolResult({ id, templateId, scene: sceneSummary() }, `已放置建筑 ${templateId}`)
+      }
+      case 'generate_city': {
+        const preset = str(args.preset, 'lakeside')
+        const size = str(args.size, 'medium')
+        if (!['lakeside', 'downtown', 'garden', 'riverside'].includes(preset)) {
+          return errorResult('preset 必须是 lakeside、downtown、garden 或 riverside。')
+        }
+        if (!['small', 'medium', 'large'].includes(size)) {
+          return errorResult('size 必须是 small、medium 或 large。')
+        }
+        const view = getEditorScene()?.getView()
+        const center: [number, number] = [
+          num(args.centerX, view?.target[0] ?? 0, -240, 240),
+          num(args.centerZ, view?.target[2] ?? 0, -240, 240),
+        ]
+        const result = useEditor.getState().generateCity(
+          {
+            preset: preset as 'lakeside' | 'downtown' | 'garden' | 'riverside',
+            size: size as 'small' | 'medium' | 'large',
+            furnished: bool(args.furnished, true),
+            streetTrees: bool(args.streetTrees, true),
+            streetLights: bool(args.streetLights, true),
+            vehicles: bool(args.vehicles, true),
+          },
+          center,
+        )
+        if (!result) return errorResult('当前无法生成城市：请先退出建筑内部编辑。')
+        window.requestAnimationFrame(() => getEditorScene()?.focusAll())
+        return toolResult(
+          {
+            name: result.name,
+            center: result.center,
+            size: [result.width, result.depth],
+            buildings: result.buildings,
+            paths: result.paths,
+            props: result.props,
+            scene: sceneSummary(),
+          },
+          `已生成${result.name}：${result.buildings} 栋建筑、${result.props} 个街景构件`,
+        )
+      }
+      case 'furnish_building': {
+        const id = str(args.id)
+        if (id) {
+          const building = useEditor.getState().doc.entities[id]
+          if (!building || building.kind !== 'building') return errorResult('未找到该建筑。')
+          const result = useEditor
+            .getState()
+            .furnishBuilding(id, Math.round(num(args.maxFloors, 40, 1, 40)))
+          return toolResult(
+            { buildingId: id, rooms: result.rooms, items: result.items, scene: sceneSummary() },
+            result.items > 0 ? `已精装「${building.name}」：${result.items} 件家具` : '没有可精装的闭合房间。',
+          )
+        }
+        const result = useEditor.getState().furnishLevel()
+        return toolResult(
+          { levelId: useEditor.getState().doc.activeLevelId, rooms: result.rooms, items: result.items, scene: sceneSummary() },
+          result.items > 0 ? `已精装当前楼层：${result.items} 件家具` : '当前层没有可精装的闭合房间。',
+        )
+      }
+      case 'landscape_building': {
+        const id = str(args.id)
+        const building = id ? useEditor.getState().doc.entities[id] : null
+        if (!building || building.kind !== 'building') return errorResult('未找到该建筑。')
+        const result = useEditor.getState().landscapeSelectedBuilding(id)
+        if (!result) return errorResult('未找到该建筑。')
+        if (result.entities.length === 0) {
+          return toolResult(
+            { buildingId: id, props: 0, path: false, alreadyLandscaped: true, scene: sceneSummary() },
+            `「${building.name}」周边已有庭院或空间不足，未新增构件`,
+          )
+        }
+        return toolResult(
+          { buildingId: id, props: result.props, path: result.path, scene: sceneSummary() },
+          `已为「${building.name}」布置 ${result.props} 个庭院构件`,
+        )
       }
       case 'enter_building': {
         const id = str(args.id)
