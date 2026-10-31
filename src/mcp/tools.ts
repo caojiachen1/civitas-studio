@@ -946,11 +946,11 @@ export const MCP_TOOLS: McpToolSpec[] = [
     name: 'cut_floor_opening',
     title: '楼板开洞 / 楼梯井',
     description:
-      'Cut a real rectangular opening through the slab above the active (or fromLevelId) level, or through all levels above for an elevator shaft. Use this after placing a stair/escalator, or with levelId to cut a specific level.',
+      'Cut a real rectangular opening through the slab above the active (or fromLevelId) level, or through all levels above for an elevator shaft. Pass objectId to derive the exact stair/escalator/elevator footprint (no gap), or supply x/z/width/depth manually. Use levelId to cut a specific level.',
     inputSchema: {
       type: 'object',
-      required: ['x', 'z', 'width', 'depth'],
       properties: {
+        objectId: { type: 'string', description: 'Stair/escalator/elevator object id; uses its exact footprint, position, rotation and level.' },
         x: { type: 'number' },
         z: { type: 'number' },
         width: { type: 'number', minimum: 0.4, maximum: 40 },
@@ -1899,23 +1899,51 @@ export async function runMcpTool(name: string, args: Args): Promise<unknown> {
         )
       }
       case 'cut_floor_opening': {
-        const result = cutFloorOpening({
-          x: num(args.x, 0, -400, 400),
-          z: num(args.z, 0, -400, 400),
-          width: num(args.width, 3, 0.4, 40),
-          depth: num(args.depth, 3, 0.4, 40),
-          rot: args.rot === undefined ? 0 : num(args.rot, 0, -Math.PI * 2, Math.PI * 2),
-          levelId: typeof args.levelId === 'string' ? args.levelId : undefined,
-          fromLevelId: typeof args.fromLevelId === 'string' ? args.fromLevelId : undefined,
-          allAbove: bool(args.allAbove),
-        })
+        const state = useEditor.getState()
+        let cutInput: Parameters<typeof cutFloorOpening>[0]
+        const objectId = str(args.objectId)
+        if (objectId) {
+          const entity = state.doc.entities[objectId]
+          if (!entity || entity.kind !== 'object') return errorResult('objectId 必须指向一个楼梯/扶梯/电梯对象。')
+          const model = objectModel(entity.modelId)
+          if (!model) return errorResult('无法读取该对象的占地尺寸。')
+          cutInput = {
+            x: entity.x,
+            z: entity.z,
+            width: model.footprint[0] * entity.scale,
+            depth: model.footprint[1] * entity.scale,
+            rot: entity.rot,
+            fromLevelId: entity.levelId,
+            allAbove: bool(args.allAbove),
+          }
+        } else {
+          if (
+            args.x === undefined ||
+            args.z === undefined ||
+            args.width === undefined ||
+            args.depth === undefined
+          ) {
+            return errorResult('需要 objectId，或同时提供 x/z/width/depth。')
+          }
+          cutInput = {
+            x: num(args.x, 0, -400, 400),
+            z: num(args.z, 0, -400, 400),
+            width: num(args.width, 3, 0.4, 40),
+            depth: num(args.depth, 3, 0.4, 40),
+            rot: args.rot === undefined ? 0 : num(args.rot, 0, -Math.PI * 2, Math.PI * 2),
+            levelId: typeof args.levelId === 'string' ? args.levelId : undefined,
+            fromLevelId: typeof args.fromLevelId === 'string' ? args.fromLevelId : undefined,
+            allAbove: bool(args.allAbove),
+          }
+        }
+        const result = cutFloorOpening(cutInput)
         if ('error' in result) return errorResult(result.error)
         const levelNames = result.levels
           .map((id) => useEditor.getState().doc.levels.find((level) => level.id === id)?.name ?? id)
           .join('、')
         return toolResult(
           result,
-          `已在 ${levelNames} 开洞（${result.slabs.length} 块楼板）`,
+          `已在 ${levelNames} 开洞（${result.slabs.length} 块楼板，尺寸 ${cutInput.width.toFixed(2)} × ${cutInput.depth.toFixed(2)} m）`,
         )
       }
       case 'furnish_room': {

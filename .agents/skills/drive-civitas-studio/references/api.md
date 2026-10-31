@@ -131,8 +131,8 @@ Rectangular slab/deck. Slab styles: `wood`, `oak`, `concrete`, `tile`, `stone`, 
 `holes` are **world-space** rectangular voids cut through the slab (real geometry, not a decal); each hole must fit inside the slab.
 
 ### `cut_floor_opening`
-`{ x, z, width, depth, rot?, levelId?, fromLevelId?, allAbove? }`
-Cut a real rectangular opening in the slab above the active level (or `fromLevelId`), or in every level above when `allAbove:true` (elevator shafts). `levelId` targets one exact level. Use it after placing a stair/escalator; the Inspector also exposes one-click buttons on stair/escalator/elevator objects. Returns affected slab and level ids. Each hole must fit inside a single slab.
+`{ objectId?, x?, z?, width?, depth?, rot?, levelId?, fromLevelId?, allAbove? }`
+Cut a real rectangular opening in the slab above the active level (or `fromLevelId`), or in every level above when `allAbove:true` (elevator shafts). Prefer `objectId` for a stair/escalator/elevator: it derives the exact model footprint, position, rotation and source level, so the opening hugs the model with no extra gap. Manual `x/z/width/depth` must match the footprint exactly. `levelId` targets one exact level. Returns affected slab and level ids. Each hole must fit inside a single slab.
 
 ### `furnish_room`
 `{ roomType?, centerX?, centerZ? }`

@@ -705,12 +705,11 @@ function ObjectFields({ entity, update }: { entity: Extract<Entity, { kind: 'obj
   const stairLike = /(stair|escalator|elevator)/.test(entity.modelId)
   const footprint = model?.footprint ?? asset?.footprint ?? [2.4, 2.4]
   const cutOpening = (allAbove: boolean) => {
-    const margin = model?.placement === 'indoor' ? 1 : 0.8
     const result = cutFloorOpening({
       x: entity.x,
       z: entity.z,
-      width: footprint[0] + margin,
-      depth: footprint[1] + margin,
+      width: footprint[0] * entity.scale,
+      depth: footprint[1] * entity.scale,
       rot: entity.rot,
       fromLevelId: entity.levelId,
       allAbove,
@@ -760,7 +759,7 @@ function ObjectFields({ entity, update }: { entity: Extract<Entity, { kind: 'obj
             )}
           </div>
           <p className="micro-hint">
-            按当前模型占地尺寸自动在楼板上切出真实洞口；电梯井可一次贯穿所有上层。
+            洞口按当前模型占地尺寸精确切割（不留边距）；电梯井可一次贯穿所有上层。
           </p>
         </Section>
       )}

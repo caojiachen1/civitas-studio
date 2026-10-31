@@ -60,16 +60,19 @@ A stair model on a solid slab is decorative: it has no floor opening above. Plac
 # 1) place a stair on the active level (scaleY matches a 4.6 m storey)
 node scripts/civitas.mjs call place_model '{"modelId":"stair-open-double","x":52,"z":32,"scaleY":1.48}'
 
-# 2) cut the floor above (default source = active level)
-node scripts/civitas.mjs call cut_floor_opening '{"x":52,"z":32,"width":5.6,"depth":4.8}'
+# 2) find its id, then cut the floor above using its exact footprint
+node scripts/civitas.mjs call get_scene '{"includeEntities":true,"kind":"object","modelId":"stair-open-double"}'
+node scripts/civitas.mjs call cut_floor_opening '{"objectId":"obj_xxx"}'
 ```
 
 For an elevator shaft, place the cab on the lowest level and cut every level above:
 
 ```bash
 node scripts/civitas.mjs call place_model '{"modelId":"elevator-shaft","x":30,"z":33,"scaleY":1.44}'
-node scripts/civitas.mjs call cut_floor_opening '{"x":30,"z":33,"width":3.4,"depth":3.4,"allAbove":true}'
+node scripts/civitas.mjs call cut_floor_opening '{"objectId":"obj_xxx","allAbove":true}'
 ```
+
+Manual dimensions are allowed (`x/z/width/depth`) but must equal the model footprint exactly; otherwise you get a visible gap. Stair footprint e.g. `stair-open-double` 4.2 × 3.4 m, `elevator-shaft` 2.2 × 2.2 m, `escalator` 1.2 × 7.6 m.
 
 The hole must fit inside one slab. For rotated slabs/openings pass `rot`; for a specific target level pass `levelId`; for a different source level pass `fromLevelId`. In the GUI, select a stair/escalator/elevator and use **楼层洞口 → 在上一层开洞** (elevators also have **贯穿上方所有楼层**). Slabs selected in the Inspector expose/delete their `holes` directly.
 

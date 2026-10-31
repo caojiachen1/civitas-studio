@@ -86,11 +86,11 @@ Stairs/escalators are models: placing one does **not** automatically cut the sla
 
 ```bash
 node scripts/civitas.mjs call place_model '{"modelId":"stair-open-double","x":52,"z":32,"scaleY":1.48}'
-node scripts/civitas.mjs call cut_floor_opening '{"x":52,"z":32,"width":5.6,"depth":4.8}'
-node scripts/civitas.mjs call cut_floor_opening '{"x":30,"z":33,"width":3.4,"depth":3.4,"allAbove":true}'
+node scripts/civitas.mjs call cut_floor_opening '{"objectId":"obj_stair_id"}'
+node scripts/civitas.mjs call cut_floor_opening '{"objectId":"obj_lift_id","allAbove":true}'
 ```
 
-The hole must fit inside a single slab. Slabs also accept world-space `holes` directly in `add_slab`/`update_entity`, and the Inspector can add/delete/resize them.
+`objectId` derives the exact model footprint (no surrounding gap). Manual `x/z/width/depth` is also supported, but must match the footprint exactly for a tight opening. The hole must fit inside a single slab. Slabs also accept world-space `holes` directly in `add_slab`/`update_entity`, and the Inspector can add/delete/resize them.
 
 ## Coordinates and units
 
