@@ -10,6 +10,7 @@ const defaults: AiSettings = {
   model: 'gpt-4o-mini',
   temperature: 0.3,
   autoExecute: true,
+  vision: 'current',
 }
 
 function readSettings(): AiSettings {
@@ -22,6 +23,10 @@ function readSettings(): AiSettings {
       ...parsed,
       mode: parsed.mode === 'llm' ? 'llm' : 'local',
       temperature: typeof parsed.temperature === 'number' ? parsed.temperature : defaults.temperature,
+      vision:
+        parsed.vision === 'off' || parsed.vision === 'multi' || parsed.vision === 'current'
+          ? parsed.vision
+          : defaults.vision,
     }
   } catch {
     return defaults

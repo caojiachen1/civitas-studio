@@ -37,7 +37,43 @@ const SUGGESTIONS = [
   '在附近种 8 棵树',
   '在河上画一座桥',
   '场景里现在有什么？',
+  '看看现在的场景，说说哪里还能改进',
 ]
+
+const VISION_LABELS: Record<string, string> = {
+  current: '当前视角',
+  overview: '总览',
+  top: '俯视',
+  north: '北',
+  east: '东',
+  south: '南',
+  west: '西',
+  northeast: '东北',
+  southeast: '东南',
+  southwest: '西南',
+  northwest: '西北',
+  result: '结果快照',
+}
+
+function VisionStrip({ message }: { message: AiChatMessage }) {
+  if ((!message.images || message.images.length === 0) && !message.snapshot) return null
+  return (
+    <div className="ai-vision-strip">
+      {message.images?.map((shot, index) => (
+        <figure key={`${shot.label}-${index}`}>
+          <img src={shot.dataUrl} alt={VISION_LABELS[shot.label] ?? shot.label} />
+          <figcaption>{VISION_LABELS[shot.label] ?? shot.label}</figcaption>
+        </figure>
+      ))}
+      {message.snapshot && (
+        <figure className="is-result">
+          <img src={message.snapshot.dataUrl} alt="结果快照" />
+          <figcaption>{VISION_LABELS.result}</figcaption>
+        </figure>
+      )}
+    </div>
+  )
+}
 
 function PlanCard({ message }: { message: AiChatMessage }) {
   const plan = message.plan
@@ -132,6 +168,7 @@ function ChatMessageView({ message }: { message: AiChatMessage }) {
             <span className="ai-message-text">{message.content}</span>
           )}
         </div>
+        <VisionStrip message={message} />
         <PlanCard message={message} />
       </div>
     </div>
@@ -284,6 +321,31 @@ function SettingsView({ onBack }: { onBack: () => void }) {
             <span className="switch-knob" />
           </span>
         </button>
+      </section>
+
+      <section>
+        <h3>场景视觉</h3>
+        <div className="ai-vision-choice">
+          {(
+            [
+              { id: 'off', label: '关闭' },
+              { id: 'current', label: '当前视角' },
+              { id: 'multi', label: '多角度' },
+            ] as const
+          ).map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={settings.vision === option.id ? 'is-active' : ''}
+              onClick={() => setSettings({ vision: option.id })}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <p className="ai-settings-note">
+          开启后，大模型模式会在每次指令前截取实时画面一起发送，并在执行完成后附上结果快照。「多角度」会同时发送总览、俯视和东南西北六个视角。截图只发给你自己配置的模型接口。
+        </p>
       </section>
     </div>
   )
@@ -470,6 +532,10 @@ export function AiDrawer() {
                 <span className="status-indicator" />
                 {settings.autoExecute ? '自动执行' : '执行前确认'}
               </button>
+              <span className={`ai-vision-pill ${settings.vision === 'off' ? 'is-off' : ''}`} title="在 AI 设置中调整场景视觉">
+                <Eye size={11} />
+                {settings.vision === 'off' ? '无视觉' : settings.vision === 'multi' ? '多角度视觉' : '当前视角视觉'}
+              </span>
               <span className="ai-shortcut">Enter 发送 · Shift+Enter 换行</span>
               {messages.length > 0 && (
                 <button

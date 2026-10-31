@@ -63,6 +63,39 @@ const PLAN_OUTLINE_INVALID = new THREE.LineBasicMaterial({
   depthTest: false,
 })
 
+function boundsPayload(box: THREE.Box3): SceneBounds {
+  const center = box.getCenter(new THREE.Vector3())
+  const size = box.getSize(new THREE.Vector3())
+  return {
+    center: [center.x, center.y, center.z],
+    size: [size.x, size.y, size.z],
+  }
+}
+
+function readCanvas(source: HTMLCanvasElement, options: SceneCaptureOptions): SceneCaptureResult {
+  const maxSize = Math.max(96, Math.min(4096, Math.round(options.maxSize ?? 1280)))
+  const ratio = Math.min(1, maxSize / Math.max(source.width, source.height))
+  const width = Math.max(1, Math.round(source.width * ratio))
+  const height = Math.max(1, Math.round(source.height * ratio))
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('无法创建截图画布。')
+  ctx.fillStyle = '#202020'
+  ctx.fillRect(0, 0, width, height)
+  ctx.drawImage(source, 0, 0, width, height)
+  const mime = options.format === 'png' ? 'image/png' : 'image/jpeg'
+  const dataUrl = canvas.toDataURL(mime, options.quality ?? 0.86)
+  return {
+    mime,
+    dataUrl,
+    base64: dataUrl.split(',')[1] ?? '',
+    width,
+    height,
+  }
+}
+
 interface EntityView {
   entity: Entity
   group: THREE.Group
@@ -161,6 +194,30 @@ const PLACEHOLDER_MATERIAL = new THREE.MeshStandardMaterial({
   opacity: 0.5,
   wireframe: true,
 })
+
+export interface SceneBounds {
+  center: [number, number, number]
+  size: [number, number, number]
+}
+
+export interface SceneCaptureOptions {
+  view?: ViewState
+  eye?: [number, number, number]
+  target?: [number, number, number]
+  fov?: number
+  maxSize?: number
+  clean?: boolean
+  format?: 'jpeg' | 'png'
+  quality?: number
+}
+
+export interface SceneCaptureResult {
+  mime: string
+  dataUrl: string
+  base64: string
+  width: number
+  height: number
+}
 
 export class EditorScene {
   private container: HTMLElement
@@ -1514,6 +1571,89 @@ export class EditorScene {
       if (view.group.visible) box.expandByObject(view.group)
     }
     if (!box.isEmpty()) this.rig.focusBox(box)
+  }
+
+  getEntityBounds(id: string): SceneBounds | null {
+    const view = this.viewMap.get(id)
+    if (!view) return null
+    view.group.updateWorldMatrix(true, true)
+    const box = new THREE.Box3().setFromObject(view.group)
+    if (box.isEmpty()) return null
+    return boundsPayload(box)
+  }
+
+  getSceneBounds(visibleOnly = true): SceneBounds | null {
+    const box = new THREE.Box3()
+    for (const view of this.viewMap.values()) {
+      if (visibleOnly && !view.group.visible) continue
+      box.expandByObject(view.group)
+    }
+    if (box.isEmpty()) return null
+    return boundsPayload(box)
+  }
+
+  getCameraPosition(): [number, number, number] {
+    return [this.camera.position.x, this.camera.position.y, this.camera.position.z]
+  }
+
+  capture(options: SceneCaptureOptions = {}): SceneCaptureResult {
+    const originalView = this.rig.getView()
+    const originalTarget = this.rig.target.clone()
+    const originalPosition = this.camera.position.clone()
+    const originalQuaternion = this.camera.quaternion.clone()
+    const originalFov = this.camera.fov
+    const decorations = [
+      this.selectionBox,
+      this.hoverBox,
+      this.snapMarker,
+      this.ghostGroup,
+      this.handleGroup,
+      this.draftGroup,
+      this.transformControls.getHelper(),
+      this.planGrid,
+    ]
+    const visibility = decorations.map((object) => object.visible)
+    try {
+      if (options.view) {
+        this.rig.setView(options.view)
+        this.env.update(this.rig.target)
+        this.shadowTarget.copy(this.rig.target)
+      } else if (options.eye) {
+        this.camera.position.set(options.eye[0], options.eye[1], options.eye[2])
+        const target = options.target
+          ? new THREE.Vector3(options.target[0], options.target[1], options.target[2])
+          : originalTarget.clone()
+        this.camera.lookAt(target)
+        this.camera.updateMatrixWorld()
+        this.env.update(target)
+        this.shadowTarget.copy(target)
+      }
+      if (typeof options.fov === 'number' && Number.isFinite(options.fov)) {
+        this.camera.fov = clamp(options.fov, 24, 90)
+        this.camera.updateProjectionMatrix()
+      }
+      this.updateInteriorCutaway()
+      if (options.clean) {
+        for (const object of decorations) object.visible = false
+      }
+      this.renderer.shadowMap.needsUpdate = true
+      this.renderer.render(this.scene, this.camera)
+      return readCanvas(this.canvas, options)
+    } finally {
+      for (let index = 0; index < decorations.length; index++) {
+        decorations[index].visible = visibility[index]
+      }
+      this.rig.setView(originalView)
+      this.camera.position.copy(originalPosition)
+      this.camera.quaternion.copy(originalQuaternion)
+      this.camera.fov = originalFov
+      this.camera.updateProjectionMatrix()
+      this.camera.updateMatrixWorld()
+      this.env.update(originalTarget)
+      this.shadowTarget.copy(originalTarget)
+      this.shadowDirty = true
+      this.updateInteriorCutaway()
+    }
   }
 
   dispose() {

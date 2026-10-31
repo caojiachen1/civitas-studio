@@ -1,7 +1,13 @@
-import type { PathType, RoofFinish, RoofStyle, Vec2 } from '../editor/types'
+import type { DoorHinge, PathType, RoofFinish, RoofStyle, SlabStyle, Vec2 } from '../editor/types'
 import { MODEL_MAP } from '../models/registry'
 
 export type AiMode = 'local' | 'llm'
+export type AiVisionMode = 'off' | 'current' | 'multi'
+
+export interface AiVisionShot {
+  dataUrl: string
+  label: string
+}
 
 export type AiRoomType =
   | 'living'
@@ -42,6 +48,39 @@ export type AiAction =
       depth?: number
     }
   | { type: 'place_model'; modelId: string; x?: number; z?: number; rot?: number; scale?: number }
+  | {
+      type: 'add_wall'
+      id?: string
+      a: Vec2
+      b: Vec2
+      height?: number
+      thickness?: number
+      color?: string
+      levelId?: string
+    }
+  | {
+      type: 'add_opening'
+      wallId: string
+      openingType: 'door' | 'window'
+      style?: string
+      offset?: number
+      width?: number
+      height?: number
+      sill?: number
+      openAngle?: number
+      hinge?: DoorHinge
+    }
+  | {
+      type: 'add_slab'
+      x: number
+      z: number
+      width?: number
+      depth?: number
+      rot?: number
+      thickness?: number
+      style?: SlabStyle
+      levelId?: string
+    }
   | {
       type: 'draw_path'
       pathType: PathType
@@ -117,6 +156,8 @@ export interface AiChatMessage {
   plan?: AiActionPlan
   status?: AiMessageStatus
   result?: AiExecutionResult
+  images?: AiVisionShot[]
+  snapshot?: AiVisionShot
 }
 
 export interface AiSettings {
@@ -126,6 +167,7 @@ export interface AiSettings {
   model: string
   temperature: number
   autoExecute: boolean
+  vision: AiVisionMode
 }
 
 export interface AiRoomContext {
@@ -176,6 +218,12 @@ export function actionLabel(action: AiAction): string {
       return `布置${ROOM_TYPE_LABELS[action.roomType ?? 'living']}`
     case 'place_model':
       return `放置「${MODEL_MAP.get(action.modelId)?.name ?? action.modelId}」`
+    case 'add_wall':
+      return `绘制墙体（${Math.hypot(action.b[0] - action.a[0], action.b[1] - action.a[1]).toFixed(1)} m）`
+    case 'add_opening':
+      return action.openingType === 'door' ? '在墙上开门' : '在墙上开窗'
+    case 'add_slab':
+      return `绘制楼板 ${action.width ?? 6} × ${action.depth ?? 4} m`
     case 'draw_path': {
       const labels: Record<string, string> = {
         road: '道路',

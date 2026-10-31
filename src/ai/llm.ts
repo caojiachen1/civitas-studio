@@ -3,9 +3,20 @@ import { catalogPromptText } from './context'
 import { parsePlanContent } from './planParse'
 import type { AiActionPlan, AiChatMessage, AiSceneContext, AiSettings } from './types'
 
-interface LlmMessage {
+export interface LlmContentPart {
+  type: 'text' | 'image_url'
+  text?: string
+  image_url?: { url: string }
+}
+
+export interface LlmMessage {
   role: 'system' | 'user' | 'assistant'
-  content: string
+  content: string | LlmContentPart[]
+}
+
+export interface LlmVisionImage {
+  dataUrl: string
+  label: string
 }
 
 function endpointFromBase(baseUrl: string): string {
@@ -19,6 +30,7 @@ function systemPrompt(context: AiSceneContext): string {
   return `You are Civitas Copilot, a careful AI operator for a 3D city and building editor.
 You do NOT write code. You return a strict JSON plan using only the actions below. The app validates and executes them.
 Respond to the user in Chinese.
+When screenshots of the live scene are attached, STUDY them first: they show the current build from the labelled cameras. Use what you see to judge layout, scale, style, empty space and whether the user's request already succeeded. Mention concrete visual observations in "reply" when helpful.
 
 Return EXACTLY one JSON object with this shape:
 {"reply":"short explanation in Chinese","actions":[ ... ]}
@@ -32,6 +44,12 @@ Allowed actions (all fields except type are optional unless marked):
    Furnish an EXISTING enclosed room. Omit coordinates to use the selected room or nearest room.
 4. {"type":"place_model","modelId":"one valid catalog id","x":number,"z":number,"rot":number,"scale":number}
    Place one item. Prefer omitting x/z; the app finds a legal spot (indoor objects go inside the nearest room).
+4b. {"type":"add_wall","id":"optional-stable-id","a":[x,z],"b":[x,z],"height":number,"thickness":number,"color":"#rrggbb"}
+   Draw one wall segment. Use for custom layouts, extensions or partitions that the room builder cannot express. Give it an id when a later add_opening in the same plan must reference it.
+4c. {"type":"add_opening","wallId":"wall id","openingType":"door|window","style":"single|double|sliding|glass|garage|standard|wide|picture|slim|small","offset":number,"width":number,"height":number,"sill":number,"openAngle":number,"hinge":"left|right"}
+   Cut a door/window into an existing wall. Get wall ids from the scene context or from earlier add_wall results. Offset is metres from wall point A.
+4d. {"type":"add_slab","x":number,"z":number,"width":number,"depth":number,"rot":number,"thickness":number,"style":"wood|oak|concrete|tile|stone|deck"}
+   Add a rectangular floor slab or outdoor deck.
 5. {"type":"draw_path","pathType":"road|river|bridge|footpath|fence","points":[[x,z],...],"width":number,"closed":boolean,"sidewalk":boolean,"lanes":2|4,"bridgeHeight":number,"length":number,"curve":number,"centerX":number,"centerZ":number}
    Freeform curved path. Omit points to let the app generate one; bridge automatically crosses the nearest river when points are omitted.
 6. {"type":"add_pond","radius":number,"centerX":number,"centerZ":number}
@@ -144,7 +162,22 @@ export async function requestAiPlan(
   userText: string,
   context: AiSceneContext,
   history: AiChatMessage[],
+  images: LlmVisionImage[] = [],
 ): Promise<AiActionPlan> {
+  const labels = images.map((image) => image.label).join(', ')
+  const userContent: string | LlmContentPart[] =
+    images.length > 0
+      ? [
+          {
+            type: 'text',
+            text: `${userText}\n\n（附现场截图，视角：${labels}。请先观察画面，再给出动作计划。）`,
+          },
+          ...images.map((image) => ({
+            type: 'image_url' as const,
+            image_url: { url: image.dataUrl },
+          })),
+        ]
+      : userText
   const messages: LlmMessage[] = [
     { role: 'system', content: systemPrompt(context) },
     ...history
@@ -154,7 +187,7 @@ export async function requestAiPlan(
         role: message.role,
         content: message.content.slice(0, 2000),
       })),
-    { role: 'user', content: userText },
+    { role: 'user', content: userContent },
   ]
   const content = await requestCompletion(settings, messages)
   return parsePlanContent(content, 'llm')

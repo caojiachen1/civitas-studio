@@ -1027,3 +1027,76 @@
 .ai-shortcut {
   color: #707070 !important;
 }
+
+.ai-vision-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ai-vision-strip figure {
+  margin: 0;
+  width: 168px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1c1c1c;
+}
+
+.ai-vision-strip figure.is-result {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.ai-vision-strip img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ai-vision-strip figcaption {
+  padding: 4px 7px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #9c9c9c;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-vision-choice {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.ai-vision-choice button {
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: #bcbcbc;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ai-vision-choice button.is-active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #ffffff;
+}
+
+.ai-vision-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #b9b9b9;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+.ai-vision-pill.is-off {
+  color: #757575;
+  border-color: rgba(255, 255, 255, 0.08);
+}

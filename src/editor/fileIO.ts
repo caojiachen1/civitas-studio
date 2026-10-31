@@ -87,6 +87,21 @@ export async function saveProjectToFile(engine: EditorScene | null): Promise<boo
   }
 }
 
+export function parseProjectText(text: string): { doc: EditorDocument; view?: ViewState } {
+  const parsed = JSON.parse(text) as Partial<ProjectPayload> | EditorDocument
+  let doc: EditorDocument | null = null
+  let view: ViewState | undefined
+  if ('doc' in parsed && parsed.doc) {
+    if (!isValidDocument(parsed.doc)) throw new Error('项目文件结构无效')
+    doc = parsed.doc
+    view = (parsed as ProjectPayload).view
+  } else if (isValidDocument(parsed)) {
+    doc = parsed
+  }
+  if (!doc) throw new Error('无法识别的 Civitas 项目文件')
+  return { doc, view }
+}
+
 export async function openProjectFromFile(engine: EditorScene | null): Promise<boolean> {
   try {
     if (useEditor.getState().buildingSession) {
@@ -96,17 +111,7 @@ export async function openProjectFromFile(engine: EditorScene | null): Promise<b
     const file = await openFileWithDialog(PROJECT_FILTERS, '.civitas,.json')
     if (!file) return false
     const text = new TextDecoder().decode(file.bytes)
-    const parsed = JSON.parse(text) as Partial<ProjectPayload> | EditorDocument
-    let doc: EditorDocument | null = null
-    let view: ViewState | undefined
-    if ('doc' in parsed && parsed.doc) {
-      if (!isValidDocument(parsed.doc)) throw new Error('项目文件结构无效')
-      doc = parsed.doc
-      view = (parsed as ProjectPayload).view
-    } else if (isValidDocument(parsed)) {
-      doc = parsed
-    }
-    if (!doc) throw new Error('无法识别的 Civitas 项目文件')
+    const { doc, view } = parseProjectText(text)
     useEditor.getState().loadDocument(doc)
     if (engine) {
       if (view) engine.setView(view)
@@ -188,46 +193,50 @@ async function objectToGlb(object: THREE.Object3D): Promise<ArrayBuffer> {
   return result
 }
 
+export async function importModelFromBytes(fileName: string, bytes: ArrayBuffer): Promise<CustomAsset> {
+  const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
+  const baseName = fileName.replace(/\.[^.]+$/, '')
+  let object: THREE.Object3D
+  let dataUrl: string
+  if (ext === 'glb' || ext === 'gltf') {
+    const loader = new GLTFLoader()
+    const input = ext === 'gltf' ? new TextDecoder().decode(bytes) : bytes
+    const gltf = await loader.parseAsync(input, '')
+    object = prepareImportedObject(gltf.scene)
+    dataUrl =
+      ext === 'glb'
+        ? bytesToDataUrl(new Uint8Array(bytes), 'model/gltf-binary')
+        : bytesToDataUrl(new Uint8Array(await objectToGlb(object)), 'model/gltf-binary')
+  } else if (ext === 'obj') {
+    const loader = new OBJLoader()
+    object = prepareImportedObject(loader.parse(new TextDecoder().decode(bytes)))
+    dataUrl = bytesToDataUrl(new Uint8Array(await objectToGlb(object)), 'model/gltf-binary')
+  } else if (ext === 'stl') {
+    const loader = new STLLoader()
+    const geometry = loader.parse(bytes)
+    geometry.computeVertexNormals()
+    object = prepareImportedObject(new THREE.Mesh(geometry, defaultMaterialForImported()))
+    dataUrl = bytesToDataUrl(new Uint8Array(await objectToGlb(object)), 'model/gltf-binary')
+  } else {
+    throw new Error('不支持的文件格式，请选择 GLB、glTF、OBJ 或 STL')
+  }
+  const box = new THREE.Box3().setFromObject(object)
+  if (box.isEmpty()) throw new Error('模型中没有可用的几何体')
+  const size = box.getSize(new THREE.Vector3())
+  return {
+    id: `custom_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+    name: baseName || '导入模型',
+    dataUrl,
+    footprint: [Math.max(0.2, size.x), Math.max(0.2, size.z)],
+    height: Math.max(0.2, size.y),
+  }
+}
+
 export async function importModelFromFile(): Promise<boolean> {
   try {
     const file = await openFileWithDialog(MODEL_FILTERS, '.glb,.gltf,.obj,.stl')
     if (!file) return false
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-    const baseName = file.name.replace(/\.[^.]+$/, '')
-    let object: THREE.Object3D
-    let dataUrl: string
-    if (ext === 'glb' || ext === 'gltf') {
-      const loader = new GLTFLoader()
-      const input = ext === 'gltf' ? new TextDecoder().decode(file.bytes) : file.bytes
-      const gltf = await loader.parseAsync(input, '')
-      object = prepareImportedObject(gltf.scene)
-      dataUrl =
-        ext === 'glb'
-          ? bytesToDataUrl(new Uint8Array(file.bytes), 'model/gltf-binary')
-          : bytesToDataUrl(new Uint8Array(await objectToGlb(object)), 'model/gltf-binary')
-    } else if (ext === 'obj') {
-      const loader = new OBJLoader()
-      object = prepareImportedObject(loader.parse(new TextDecoder().decode(file.bytes)))
-      dataUrl = bytesToDataUrl(new Uint8Array(await objectToGlb(object)), 'model/gltf-binary')
-    } else if (ext === 'stl') {
-      const loader = new STLLoader()
-      const geometry = loader.parse(file.bytes)
-      geometry.computeVertexNormals()
-      object = prepareImportedObject(new THREE.Mesh(geometry, defaultMaterialForImported()))
-      dataUrl = bytesToDataUrl(new Uint8Array(await objectToGlb(object)), 'model/gltf-binary')
-    } else {
-      throw new Error('不支持的文件格式，请选择 GLB、glTF、OBJ 或 STL')
-    }
-    const box = new THREE.Box3().setFromObject(object)
-    if (box.isEmpty()) throw new Error('模型中没有可用的几何体')
-    const size = box.getSize(new THREE.Vector3())
-    const asset: CustomAsset = {
-      id: `custom_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
-      name: baseName || '导入模型',
-      dataUrl,
-      footprint: [Math.max(0.2, size.x), Math.max(0.2, size.z)],
-      height: Math.max(0.2, size.y),
-    }
+    const asset = await importModelFromBytes(file.name, file.bytes)
     const loaded = await loadCustomAsset(asset)
     if (!loaded) throw new Error('模型解析成功，但加载到场景失败')
     useEditor.getState().registerCustomAsset(asset)
@@ -235,7 +244,7 @@ export async function importModelFromFile(): Promise<boolean> {
     useRuntime
       .getState()
       .toast(
-        `已导入「${asset.name}」（${size.x.toFixed(1)} × ${size.z.toFixed(1)} m），点击场景放置`,
+        `已导入「${asset.name}」（${asset.footprint[0].toFixed(1)} × ${asset.footprint[1].toFixed(1)} m），点击场景放置`,
         'success',
       )
     return true

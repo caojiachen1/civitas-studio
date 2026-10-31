@@ -1,5 +1,4 @@
 import {
-  WALL_COLORS,
   type Entity,
   type PathEntity,
   type PathType,
@@ -13,6 +12,8 @@ import { getModel } from '../models/registry'
 import { getPathBundle } from '../editor/geom'
 import { roomAt, nearestRoom, roomsForDocument, type RoomHit } from './context'
 import { SceneBuilder } from './builder'
+import { resolveColor } from '../editor/colors'
+import { createOpeningEntity, createSlabEntity, createWallEntity } from '../editor/entityOps'
 import {
   defaultRoomSize,
   layoutForRoom,
@@ -68,39 +69,6 @@ function anchorPoint(): Vec2 {
 
 function cameraAnchor(): Vec2 {
   return anchorPoint()
-}
-
-function resolveColor(value: string | undefined): string | null {
-  if (!value) return null
-  if (/^#[0-9a-f]{6}$/i.test(value)) return value.toLowerCase()
-  const normalized = value.replace(/\s+/g, '')
-  const alias: Record<string, string> = {
-    白色: '#f1efea',
-    暖白: '#e8e0d2',
-    灰绿: '#a8b5a1',
-    沙岩: '#d6c3a3',
-    陶土: '#bd8a73',
-    深蓝: '#55606e',
-    石墨: '#565b5d',
-    灰粉: '#c7a9a3',
-    white: '#f1efea',
-    ivory: '#e8e0d2',
-    sage: '#a8b5a1',
-    sand: '#d6c3a3',
-    clay: '#bd8a73',
-    navy: '#55606e',
-    graphite: '#565b5d',
-    rose: '#c7a9a3',
-  }
-  if (alias[normalized]) return alias[normalized]
-  const fuzzyAlias = Object.entries(alias).find(
-    ([name]) => normalized.includes(name) || name.includes(normalized),
-  )
-  if (fuzzyAlias) return fuzzyAlias[1]
-  const match = WALL_COLORS.find(
-    (color) => color.name.replace(/\s+/g, '').includes(normalized) || color.id === normalized,
-  )
-  return match?.color ?? null
 }
 
 function outcomeFromBuilder(builder: SceneBuilder, note: string): Outcome {
@@ -166,9 +134,17 @@ export function planHasDestructive(plan: AiActionPlan): boolean {
 
 export function planShouldFocus(plan: AiActionPlan): boolean {
   return plan.actions.some((action) =>
-    ['build_villa', 'build_room', 'furnish_room', 'draw_path', 'add_pond', 'add_vegetation', 'add_roof'].includes(
-      action.type,
-    ),
+    [
+      'build_villa',
+      'build_room',
+      'furnish_room',
+      'draw_path',
+      'add_pond',
+      'add_vegetation',
+      'add_roof',
+      'add_wall',
+      'add_slab',
+    ].includes(action.type),
   )
 }
 
@@ -292,6 +268,12 @@ function applyAction(action: AiAction): Outcome {
       return furnishRoom(action)
     case 'place_model':
       return placeModel(action)
+    case 'add_wall':
+      return addWall(action)
+    case 'add_opening':
+      return addOpening(action)
+    case 'add_slab':
+      return addSlab(action)
     case 'draw_path':
       return drawPath(action)
     case 'add_pond':
@@ -331,6 +313,67 @@ function applyAction(action: AiAction): Outcome {
     case 'undo':
     case 'redo':
       throw new Error('撤销/重做不能与其他动作组合执行。')
+  }
+}
+
+function addWall(action: Extract<AiAction, { type: 'add_wall' }>): Outcome {
+  const wall = createWallEntity({
+    id: action.id,
+    a: action.a,
+    b: action.b,
+    height: action.height,
+    thickness: action.thickness,
+    color: action.color,
+    levelId: action.levelId,
+  })
+  useEditor.getState().addEntity(wall, false)
+  const length = Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1])
+  return {
+    notes: [`绘制墙体（${fmt(length)} m）`],
+    warnings: [],
+    created: [wall],
+    changed: true,
+  }
+}
+
+function addOpening(action: Extract<AiAction, { type: 'add_opening' }>): Outcome {
+  const opening = createOpeningEntity({
+    wallId: action.wallId,
+    openingType: action.openingType,
+    style: action.style,
+    offset: action.offset,
+    width: action.width,
+    height: action.height,
+    sill: action.sill,
+    openAngle: action.openAngle,
+    hinge: action.hinge,
+  })
+  useEditor.getState().addEntity(opening, false)
+  return {
+    notes: [`在墙上开出${opening.type === 'door' ? '门' : '窗'}`],
+    warnings: [],
+    created: [opening],
+    changed: true,
+  }
+}
+
+function addSlab(action: Extract<AiAction, { type: 'add_slab' }>): Outcome {
+  const slab = createSlabEntity({
+    x: action.x,
+    z: action.z,
+    width: action.width,
+    depth: action.depth,
+    rot: action.rot,
+    thickness: action.thickness,
+    style: action.style,
+    levelId: action.levelId,
+  })
+  useEditor.getState().addEntity(slab, false)
+  return {
+    notes: [`绘制楼板（${fmt(slab.w)} × ${fmt(slab.d)} m）`],
+    warnings: [],
+    created: [slab],
+    changed: true,
   }
 }
 

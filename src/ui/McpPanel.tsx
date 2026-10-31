@@ -218,7 +218,7 @@ export function McpPanel({ onBack }: { onBack: () => void }) {
         </div>
         <p className="mcp-note">
           先调用 <span className="mono">get_scene</span> 与 <span className="mono">list_models</span> 获取上下文；复杂的多步建模可用
-          <span className="mono"> apply_actions</span> 作为单步撤销提交。
+          <span className="mono"> apply_actions</span> 作为单步撤销提交。用 <span className="mono">capture_views</span> 做多角度截图验收，图片会以 MCP 原生 image 内容返回。
         </p>
       </section>
 

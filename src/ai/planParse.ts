@@ -1,5 +1,5 @@
 import { MODEL_MAP } from '../models/registry'
-import type { PathType, RoofFinish, RoofStyle, Vec2 } from '../editor/types'
+import type { PathType, RoofFinish, RoofStyle, SlabStyle, Vec2 } from '../editor/types'
 import type { AiAction, AiActionPlan, AiMode, AiRoomType } from './types'
 
 const ROOM_TYPES = new Set<AiRoomType>([
@@ -44,6 +44,14 @@ function points(value: unknown): Vec2[] | undefined {
     result.push([Math.min(270, Math.max(-270, x)), Math.min(270, Math.max(-270, z))])
   }
   return result.length >= 2 ? result : undefined
+}
+
+function point(value: unknown): Vec2 | undefined {
+  if (!Array.isArray(value) || value.length < 2) return undefined
+  const x = Number(value[0])
+  const z = Number(value[1])
+  if (!Number.isFinite(x) || !Number.isFinite(z)) return undefined
+  return [Math.min(280, Math.max(-280, x)), Math.min(280, Math.max(-280, z))]
 }
 
 function normalizeAction(raw: unknown, warnings: string[]): AiAction | null {
@@ -99,6 +107,65 @@ function normalizeAction(raw: unknown, warnings: string[]): AiAction | null {
         z: optionalNumber(input.z, -270, 270),
         rot: optionalNumber(input.rot, -Math.PI * 20, Math.PI * 20),
         scale: optionalNumber(input.scale, 0.2, 8),
+      }
+    }
+    case 'add_wall': {
+      const a = point(input.a)
+      const b = point(input.b)
+      if (!a || !b) {
+        warnings.push('忽略墙体：端点无效')
+        return null
+      }
+      return {
+        type,
+        id: typeof input.id === 'string' && input.id.trim() ? input.id.trim().slice(0, 60) : undefined,
+        a,
+        b,
+        height: optionalNumber(input.height, 0.6, 8),
+        thickness: optionalNumber(input.thickness, 0.06, 0.6),
+        color: typeof input.color === 'string' ? input.color.slice(0, 20) : undefined,
+        levelId: typeof input.levelId === 'string' ? input.levelId : undefined,
+      }
+    }
+    case 'add_opening': {
+      const wallId = typeof input.wallId === 'string' ? input.wallId : ''
+      const openingType = input.openingType
+      if (!wallId || (openingType !== 'door' && openingType !== 'window')) {
+        warnings.push('忽略门窗：缺少 wallId 或 openingType')
+        return null
+      }
+      const hinge = input.hinge === 'left' || input.hinge === 'right' ? input.hinge : undefined
+      return {
+        type,
+        wallId,
+        openingType,
+        style: typeof input.style === 'string' ? input.style.slice(0, 30) : undefined,
+        offset: optionalNumber(input.offset, 0.1, 80),
+        width: optionalNumber(input.width, 0.3, 8),
+        height: optionalNumber(input.height, 0.3, 4),
+        sill: optionalNumber(input.sill, 0, 3),
+        openAngle: optionalNumber(input.openAngle, -135, 135),
+        hinge,
+      }
+    }
+    case 'add_slab': {
+      const x = optionalNumber(input.x, -280, 280)
+      const z = optionalNumber(input.z, -280, 280)
+      if (x === undefined || z === undefined) {
+        warnings.push('忽略楼板：缺少 x/z')
+        return null
+      }
+      const slabStyles = ['wood', 'oak', 'concrete', 'tile', 'stone', 'deck']
+      return {
+        type,
+        x,
+        z,
+        width: optionalNumber(input.width, 0.3, 200),
+        depth: optionalNumber(input.depth, 0.3, 200),
+        rot: optionalNumber(input.rot, -Math.PI * 20, Math.PI * 20),
+        thickness: optionalNumber(input.thickness, 0.04, 1),
+        style: slabStyles.includes(String(input.style)) ? (input.style as SlabStyle) : undefined,
+        levelId: typeof input.levelId === 'string' ? input.levelId : undefined,
       }
     }
     case 'draw_path': {

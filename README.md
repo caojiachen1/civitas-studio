@@ -2,11 +2,14 @@
 
 A desktop 3D city & building construction studio built with Tauri 2, React 19 and Three.js. Draw freeform roads, rivers and bridges, assemble walls/doors/windows/roofs, place whole building templates that open into editable shells/interiors, furnish rooms from a 166-piece catalog, and export the result as GLB/glTF/OBJ/STL. A built-in AI Copilot can also build and edit the scene from natural-language instructions.
 
+> **AI agents receiving this repo:** start at [`AGENTS.md`](AGENTS.md). It explains how to run the desktop app, connect to the local MCP API, import the bundled `drive-civitas-studio` skill (`npm run skill:install`), and verify all 57 tools.
+
 ## Highlights
 
-- **AI Copilot** — press `Ctrl+K` and describe what you want. It turns Chinese/English requests into validated editor actions: whole villas, individual furnished rooms, furniture, freeform roads/rivers/bridges/ponds, vegetation, roofs, levels, selected-object edits, and opening/closing doors to a chosen angle. The local planner works offline; an optional OpenAI-compatible provider can be configured for stronger language understanding. Every AI plan is a single undo step, and dangerous actions require confirmation.
-- **External agent API (MCP)** — the desktop build serves MCP over HTTP on `127.0.0.1` plus a plain REST mirror, exposing 37 tools (`build_room`, `place_model`, `generate_city`, `furnish_building`, `get_screenshot`, …). Any third-party agent can connect to the running app and drive AI auto-modeling end to end. Localhost-only, optional bearer token, whitelisted action schemas, and destructive calls require `confirm=true`.
+- **AI Copilot** — press `Ctrl+K` and describe what you want. It turns Chinese/English requests into validated editor actions: whole villas, individual furnished rooms, furniture, freeform roads/rivers/bridges/ponds, vegetation, roofs, walls/doors/windows/slabs, levels, selected-object edits, and opening/closing doors to a chosen angle. With an OpenAI-compatible provider it also **sees the live scene**: current view or multi-angle screenshots are attached to every request, and a result snapshot is shown after each build. The local planner works offline; an optional OpenAI-compatible provider can be configured for stronger language understanding. Every AI plan is a single undo step, and dangerous actions require confirmation.
+- **External agent API (MCP)** — the desktop build serves MCP over HTTP on `127.0.0.1` plus a plain REST mirror, exposing 57 tools (`build_room`, `add_wall`, `capture_views`, `generate_city`, `furnish_building`, …). Screenshots come back as native MCP image content, so an external agent can look at the scene from any angle, act, and look again. Any third-party agent can connect to the running app and drive AI auto-modeling end to end. Localhost-only, optional bearer token, whitelisted action schemas, and destructive calls require `confirm=true`.
 - **Windows UI automation ready** — every control has a unique automation id exposed through WebView2 UIA (stable ids for key controls, generated scope/label ids for the rest), the 3D canvas is `civitas-viewport`, and the window starts maximized. `list_ui_controls` returns the full inventory for agents.
+- **Bundled agent skill** — `.agents/skills/drive-civitas-studio/` contains a ready-to-import skill in the vendor-neutral Agent Skills layout (SKILL.md, full 57-tool API reference, workflow recipes, and a zero-dependency CLI). `npm run skill:install` copies it to the generic user-level `~/.agents/skills`; AI agents receiving this repo should start at `AGENTS.md`.
 - **One-click city generator** — the Build-City workspace generates a complete district in a single undo step: road grid with sidewalks and crosswalks, residential blocks or glass towers, a central park (pond, gazebo or plaza), street trees, lamps, benches, planters and parked cars. Four presets (lakeside town, downtown blocks, garden suburb, riverside district) and three sizes; it automatically finds free ground next to the existing scene.
 - **Furnish and landscape in one click** — closed rooms are detected (including rooms sharing a wall) and typed as living room, bedroom, kitchen/dining, bathroom, office or open-plan lobby, then furnished from the existing catalog while avoiding doors, stairs and overlaps. Any building can also get a generated front path, trees, flower beds, lamps, benches and an office plaza.
 - **2D plan building** — the Plan workspace locks a top-down view and hides roofs/other floors. Drag a rectangle to generate four walls, a floor slab, a door, windows and an optional roof in one gesture; hand-drawn closed wall loops can be completed into slabs/roofs with one click. "Copy to new floor" lifts the current plan to the next elevation, so per-floor 2D plans assemble into a multi-storey 3D building. Exit the plan workspace via the top-right button, the status-bar chip, clicking the Plan rail again, or `Esc`.
@@ -41,12 +44,16 @@ Prebuilt Windows x64 artifacts are in `release/` (version 0.3.0, rebuilt 2026-10
 - `Civitas Studio_0.3.0_x64-setup.exe` — NSIS installer (3.44 MiB)
 - `Civitas Studio_0.3.0_x64_en-US.msi` — MSI installer (4.81 MiB)
 
+The 2026-10-31 API-completeness + vision batch (57 tools, `capture_views`, Copilot vision) is source-only so far; run `npm run tauri:build` to produce artifacts that include it.
+
+
 The previous 2026-10-28 build is kept in `release/old-0.3.0-1028/`.
 
 ## AI Copilot
 
 - **内置规划器** — works offline and sends no data. Understands Chinese build/edit instructions and creates deterministic action plans.
 - **大语言模型** — optional. Configure any OpenAI-compatible `/v1/chat/completions` endpoint, model and API key under the AI panel's gear icon. The key is stored only in local app storage, never in project files. Desktop requests go through the Rust backend to avoid browser CORS limits.
+- **场景视觉** — with vision enabled, each request carries labelled JPEG screenshots of the live viewport (current view or overview + top + four compass directions). The model is told to inspect them before planning, the chat shows the exact frames it saw, and a result snapshot is attached after execution. Use `场景视觉 → 关闭` for text-only endpoints.
 - AI edits are applied as a single history entry; undo once with `Ctrl+Z`. Destructive plans (currently clearing a floor) always ask for confirmation.
 
 ## External agent API (MCP / HTTP)
@@ -80,28 +87,65 @@ curl -X POST http://127.0.0.1:8971/api/tools/build_room \
   -d '{"roomType":"bedroom","width":5,"depth":4.5,"furnish":true}'
 ```
 
-### Tools (37)
+### Tools (57)
 
 | Group | Tools |
 | --- | --- |
-| Read | `get_scene` `list_ui_controls` `list_models` `get_selection` `get_screenshot` |
-| View | `select_entity` `set_camera` `focus_all` |
-| Build | `build_villa` `build_room` `furnish_room` `place_model` `draw_path` `add_pond` `add_roof` `add_vegetation` |
-| Edit | `modify_selected` `delete_selected` `clear_level` `undo` `redo` |
-| Levels | `add_level` `set_active_level` |
-| Buildings | `list_building_templates` `place_building` `enter_building` `exit_building` `set_building_mode` `generate_city` `furnish_building` `landscape_building` |
+| Read | `get_scene` `get_entity` `list_ui_controls` `list_models` `get_selection` |
+| View & vision | `select_entity` `set_camera` `focus_selection` `set_transform_mode` `focus_all` `get_screenshot` `capture_views` |
+| Build | `build_villa` `build_room` `add_wall` `add_opening` `add_slab` `furnish_room` `place_model` `draw_path` `add_pond` `add_roof` `add_vegetation` |
+| Edit | `modify_selected` `update_entity` `duplicate_selected` `delete_selected` `delete_entities` `clear_level` `undo` `redo` |
+| Levels & plan | `add_level` `set_active_level` `update_level` `duplicate_level` `delete_level` `complete_rooms` `set_plan_options` |
+| Buildings | `list_building_templates` `place_building` `place_skyline` `generate_city` `furnish_building` `landscape_building` `enter_building` `exit_building` `set_building_mode` |
 | Batch | `apply_actions` (same validated action plan the built-in Copilot uses) |
-| Files | `save_project` `export_scene` `new_project` |
-| Runtime | `set_quality` `set_visual_style` |
+| Files & project | `save_project` `open_project` `new_project` `set_project_name` `import_model` `export_scene` |
+| Settings | `set_settings` `set_quality` `set_visual_style` |
 
-Every mutating tool returns `{ ok, summary, created?, focusIds?, scene }`, so an agent can read back the new entity counts and immediately screenshot the result for a visual feedback loop. `get_screenshot` returns a downscaled JPEG as base64. With a door selected, `modify_selected` also accepts `openAngle` (-135…135, `0` = closed, negative swings to the other side) and `hinge` (`left` / `right`).
+Every tool returns `{ ok, summary?, data?, scene, error? }` (`apply_actions` also reports `created` / `focusIds`), so an agent can read back the new entity counts and immediately screenshot the result for a visual feedback loop. `get_scene` also returns the live camera, settings and undo/redo labels; `get_entity` returns all editable fields plus bounds.
+
+`update_entity` is the API equivalent of the Inspector and accepts kind-aware fields for every entity type (wall endpoints/height/thickness/color, opening style/offset/sill/openAngle/hinge, object x/z/rot/scale, slab/roof dimensions and finish, path control points/lanes/railings, building x/z/rot). `add_wall` accepts an optional stable `id` so a single `apply_actions` plan can draw walls and then cut doors/windows into them atomically.
+
+### Seeing the scene
+
+| Tool | What it does |
+| --- | --- |
+| `get_screenshot` | One JPEG of the live viewport, or from an explicit `eye`/`target`/`view`. `clean=true` hides selection boxes and gizmos. |
+| `capture_views` | Multi-angle capture: `views: ["overview","top","north","east","south","west",corners]`, `ring: 8` for an 8-direction orbit, optional `id`/`x,y,z` target, `distance`, `elevation`, `maxSize`. Each image carries a label plus camera eye/target. |
+| `set_camera` | Move the live camera (`target/distance/azimuth/polar`, `eye`, `top=true`, `focusId`). |
+
+Images are returned as **native MCP image content blocks** (`type: "image"`), followed by a text/structured copy of the result with the base64 removed and a `bytes` hint. REST callers still receive the full base64 inside `data.images[]`.
+
+```bash
+# Look at a building from eight angles, then read back the geometry
+curl -X POST http://127.0.0.1:8971/api/tools/capture_views -H "Content-Type: application/json" \
+  -d '{"ring":8,"elevation":32,"maxSize":900}'
+```
+
+The built-in Copilot uses the same capture pipeline: in AI settings choose **场景视觉 → 当前视角 / 多角度** to attach screenshots to each model request; after execution it appends a result snapshot to the chat. Text-only models fall back automatically to a text-only retry.
+
+### Bundled agent skill (for AI assistants)
+
+This repository ships a complete skill for agents that should operate the app:
+
+```text
+.agents/skills/drive-civitas-studio/
+├── SKILL.md                 # trigger words, golden workflow, critical rules
+├── references/api.md        # all 57 tools, result shape, limits
+├── references/workflows.md  # recipes: custom house, city, interior, visual QA, import, troubleshooting
+└── scripts/civitas.mjs      # status/scene/find/call/batch/views/shot CLI, saves screenshots
+```
+
+- **Project-level** — the skill lives in the generic `.agents/skills/` directory. Agents that support the Agent Skills convention can load it directly; otherwise point them at `SKILL.md` or install the user-level copy.
+- **Install for all projects** — `npm run skill:install` copies it to `~/.agents/skills/drive-civitas-studio` (optional `--target <dir>`, `--dry-run`).
+- **Other runtimes** — read `SKILL.md` directly and use `scripts/civitas.mjs` or the raw REST/MCP endpoints; no installation required.
+- **AI receiving this repo** — read `AGENTS.md` for the complete handoff: start the desktop app, wait for MCP, install the skill, and verify with `node .agents/skills/drive-civitas-studio/scripts/civitas.mjs tools` (must print 57 tools).
 
 ### Safety model
 
 - **Localhost only** — the listener binds `127.0.0.1`. Nothing is reachable from the network.
 - **Optional bearer token** — send `Authorization: Bearer <token>` or `X-Mcp-Token`. Empty token means no auth (safe because of the localhost bind, but set one for shared machines).
 - **Whitelisted actions, never code** — the server accepts only the validated tool/action schemas above. There is no endpoint that evaluates scripts.
-- **Destructive calls need an explicit opt-in** — `clear_level` and `new_project` (and any `apply_actions` plan containing them) fail unless you pass `confirm=true`; the editor also shows a confirmation dialog.
+- **Destructive calls need an explicit opt-in** — `clear_level`, `new_project` and `open_project` (and any `apply_actions` plan containing `clear_level`) fail unless you pass `confirm=true`; the editor also shows a confirmation dialog.
 - **Your LLM key stays local** — the AI provider key lives in local app storage only, is never written into `.civitas` or exported scene files, and desktop inference goes through the Rust proxy.
 - If the configured port is busy, startup tries the next ports (up to 24) and the panel shows the port actually in use. Requests time out after 120 s.
 
@@ -140,9 +184,12 @@ The API is desktop-only: in `npm run dev` (browser) the panel reports that the M
 
 ## Project layout
 
-- `src/editor` — engine, interaction, snapping/validation, parametric builders, 2D plan-to-3D generation (`plan.ts`), whole-building templates and inside/outside sessions (`buildings.ts`), automatic room furnishing (`furnish.ts`), generated gardens (`landscape.ts`), one-click districts (`citygen.ts`), project I/O.
+- `src/editor` — engine, interaction, snapping/validation, parametric builders, multi-angle capture (`capture.ts`), shared wall/opening/slab factory (`entityOps.ts`), 2D plan-to-3D generation (`plan.ts`), whole-building templates and inside/outside sessions (`buildings.ts`), automatic room furnishing (`furnish.ts`), generated gardens (`landscape.ts`), one-click districts (`citygen.ts`), project I/O.
 - `src/models/catalog` — one module per component model, auto-registered through `src/models/registry.ts`.
 - `src/ai` — AI planner, action validation/execution, scene-building helpers, provider client and chat store.
 - `src/mcp` — tool schemas and dispatcher, the Tauri event bridge, and the MCP connection settings store.
 - `src/ui` — React panels, catalog, inspector, status bar and overlays.
 - `src-tauri` — Tauri 2 shell, native file dialogs, file read/write commands, the AI provider proxy, and the axum MCP/HTTP server (`src/mcp.rs`).
+- `.agents/skills/drive-civitas-studio` — agent skill in the generic Agent Skills layout: `SKILL.md`, 57-tool API reference, workflow recipes and the `civitas.mjs` CLI.
+- `scripts/install-skill.mjs` — copies the bundled skill to `~/.agents/skills` (`npm run skill:install`).
+- `AGENTS.md` — handoff instructions for AI agents receiving this repository (run the app, connect MCP, import the skill, verify 57 tools).

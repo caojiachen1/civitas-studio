@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "oxlint src",
+    "skill:install": "node scripts/install-skill.mjs",
+    "skill:status": "node .agents/skills/drive-civitas-studio/scripts/civitas.mjs status",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"

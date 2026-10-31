@@ -282,6 +282,46 @@ async fn call_tool(state: &ServerState, name: &str, args: Value) -> Result<Value
     result
 }
 
+fn tool_content(value: &Value) -> (Vec<Value>, Value) {
+    let mut structured = value.clone();
+    let mut content: Vec<Value> = Vec::new();
+    let images = value
+        .pointer("/data/images")
+        .and_then(|entry| entry.as_array())
+        .or_else(|| value.get("images").and_then(|entry| entry.as_array()));
+    if let Some(images) = images {
+        for image in images {
+            let Some(data) = image.get("data").and_then(|entry| entry.as_str()) else {
+                continue;
+            };
+            let mime = image
+                .get("mime")
+                .and_then(|entry| entry.as_str())
+                .unwrap_or("image/jpeg");
+            content.push(json!({ "type": "image", "data": data, "mimeType": mime }));
+        }
+    }
+    let image_path = if structured.pointer("/data/images").is_some() {
+        "/data/images"
+    } else {
+        "/images"
+    };
+    if let Some(images) = structured.pointer_mut(image_path).and_then(|entry| entry.as_array_mut()) {
+        for image in images {
+            if let Some(object) = image.as_object_mut() {
+                if let Some(data) = object.remove("data") {
+                    if let Some(text) = data.as_str() {
+                        object.insert("bytes".to_string(), json!(text.len() * 3 / 4));
+                    }
+                }
+            }
+        }
+    }
+    let text = serde_json::to_string_pretty(&structured).unwrap_or_else(|_| "{}".to_string());
+    content.push(json!({ "type": "text", "text": text }));
+    (content, structured)
+}
+
 async fn handle_mcp(
     State(state): State<Arc<ServerState>>,
     headers: HeaderMap,
@@ -341,13 +381,12 @@ async fn handle_mcp(
                             .and_then(|v| v.as_bool())
                             .map(|ok| !ok)
                             .unwrap_or(false);
-                        let text = serde_json::to_string_pretty(&value)
-                            .unwrap_or_else(|_| "{}".to_string());
+                        let (content, structured) = tool_content(&value);
                         rpc_result(
                             id,
                             json!({
-                                "content": [{ "type": "text", "text": text }],
-                                "structuredContent": value,
+                                "content": content,
+                                "structuredContent": structured,
                                 "isError": is_error
                             }),
                         )

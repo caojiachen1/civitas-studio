@@ -20,7 +20,7 @@ fn read_file_base64(path: String) -> Result<String, String> {
 #[derive(Deserialize, Serialize)]
 struct AiMessage {
     role: String,
-    content: String,
+    content: serde_json::Value,
 }
 
 #[tauri::command]
@@ -68,8 +68,12 @@ async fn ai_chat(
         .and_then(|choices| choices.get(0))
         .and_then(|choice| choice.get("message"))
         .and_then(|message| message.get("content"))
-        .and_then(|content| content.as_str())
-        .map(|content| content.to_string())
+        .map(|content| {
+            content
+                .as_str()
+                .map(|text| text.to_string())
+                .unwrap_or_else(|| content.to_string())
+        })
         .ok_or_else(|| "模型响应中缺少 choices[0].message.content。".to_string())
 }
 
