@@ -6,7 +6,7 @@ import type { ModelDef } from '../editor/types'
 type Callback = (url: string | null) => void
 
 const cache = new Map<string, string>()
-const queue: { key: string; build: () => THREE.Group | null; callback: Callback }[] = []
+const queue: { key: string; build: () => THREE.Group | null; callbacks: Callback[] }[] = []
 let renderer: THREE.WebGLRenderer | null = null
 let scene: THREE.Scene | null = null
 let camera: THREE.PerspectiveCamera | null = null
@@ -150,12 +150,18 @@ function pump() {
       scheduleIdleDispose()
       return
     }
-    if (!cache.has(item.key)) {
-      const url = renderThumbnail(item.build())
-      if (url) cache.set(item.key, url)
-      item.callback(url)
+    if (cache.has(item.key)) {
+      const cached = cache.get(item.key)!
+      item.callbacks.forEach((cb) => cb(cached))
     } else {
-      item.callback(cache.get(item.key)!)
+      let url: string | null = null
+      try {
+        url = renderThumbnail(item.build())
+      } catch (error) {
+        console.warn('Thumbnail render failed', item.key, error)
+      }
+      if (url) cache.set(item.key, url)
+      item.callbacks.forEach((cb) => cb(url))
     }
     window.setTimeout(step, 24)
   }
@@ -173,8 +179,12 @@ export function requestModelThumbnail(model: ModelDef, callback: Callback) {
     callback(cached)
     return
   }
-  if (queue.some((item) => item.key === key)) return
-  queue.push({ key, build: () => createModelObject(model), callback })
+  const pending = queue.find((item) => item.key === key)
+  if (pending) {
+    pending.callbacks.push(callback)
+    return
+  }
+  queue.push({ key, build: () => createModelObject(model), callbacks: [callback] })
   pump()
 }
 
@@ -185,8 +195,12 @@ export function requestCustomThumbnail(assetId: string, callback: Callback) {
     callback(cached)
     return
   }
-  if (queue.some((item) => item.key === key)) return
-  queue.push({ key, build: () => createCustomInstance(assetId), callback })
+  const pending = queue.find((item) => item.key === key)
+  if (pending) {
+    pending.callbacks.push(callback)
+    return
+  }
+  queue.push({ key, build: () => createCustomInstance(assetId), callbacks: [callback] })
   pump()
 }
 

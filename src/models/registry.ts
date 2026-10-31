@@ -30,7 +30,7 @@ export const CATALOG_SECTIONS: {
     id: 'city',
     title: '城市设施',
     subtitle: '街道、车辆与公共空间',
-    categories: ['street', 'vehicles'],
+    categories: ['street', 'infrastructure', 'vehicles'],
   },
   {
     id: 'structure',

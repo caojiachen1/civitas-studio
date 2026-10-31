@@ -25,6 +25,7 @@ export type ModelCategory =
   | 'outdoor'
   | 'vegetation'
   | 'street'
+  | 'infrastructure'
   | 'vehicles'
   | 'structure'
   | 'custom'

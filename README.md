@@ -1,6 +1,6 @@
 # Civitas Studio · 城市建造工坊
 
-A desktop 3D city & building construction studio built with Tauri 2, React 19 and Three.js. Draw freeform roads, rivers and bridges, assemble walls/doors/windows/roofs, place whole building templates that open into editable shells/interiors, furnish rooms from a 166-piece catalog, and export the result as GLB/glTF/OBJ/STL. A built-in AI Copilot can also build and edit the scene from natural-language instructions.
+A desktop 3D city & building construction studio built with Tauri 2, React 19 and Three.js. Draw freeform roads, rivers and bridges, assemble walls/doors/windows/roofs, place whole building templates that open into editable shells/interiors, furnish rooms from a 214-piece catalog, and export the result as GLB/glTF/OBJ/STL. A built-in AI Copilot can also build and edit the scene from natural-language instructions.
 
 > **AI agents receiving this repo:** start at [`AGENTS.md`](AGENTS.md). It explains how to run the desktop app, connect to the local MCP API, import the bundled `drive-civitas-studio` skill (`npm run skill:install`), and verify all 57 tools.
 
@@ -17,7 +17,7 @@ A desktop 3D city & building construction studio built with Tauri 2, React 19 an
 - **Skyline brush** — the Buildings panel can place a template at the view centre or generate a 4/6/8-building skyline row with varied tower heights in one click; buildings remain individually movable units.
 - **Visual styles** — switch between Mono, Daylight, Sunset and Blueprint presets in the Select panel; sky, fog, lighting, exposure and ground tint change together.
 - **Freeform infrastructure** — roads, rivers, footpaths, bridges and fences are smooth Catmull-Rom curves with draggable control points. Close a river path to fill a pond; bridges get automatic railings, piers and ramps.
-- **Component library** — 166 modeled components across living, bedroom, dining, kitchen, bathroom, office, laundry, outdoor, street, vegetation, vehicles and structure categories, plus imported custom models.
+- **Component library** — 214 modeled components across living, bedroom, dining, kitchen, bathroom, office, laundry, outdoor, street, infrastructure, vegetation, vehicles and structure categories, plus imported custom models. The infrastructure set covers viaduct decks, curved/ramp segments, Y-piers, cloverleaf loops, pedestrian bridges, tunnel portals and toll booths alongside W-beam/concrete/pedestrian guardrails, sound barriers, median strips, sign gantries, highway lighting and lane markings; structure adds U-shaped, curved, public-plaza, stone, open-double, square-spiral and terrace stairs plus fire escapes, ladders and escalators.
 - **Construction feedback** — valid placements use a light-grey ghost preview; invalid placements turn red with a specific reason (collision, wall fit, overlap, water, road-only/water-only rules). Walls, path endpoints and wall-backed furniture snap automatically with generous, distance-aware thresholds.
 - **Parametric building** — walls support doors/windows with real openings and frames; doors can be left closed or opened to any angle from -135° to 135° with left/right hinges (single, double and glass leaves swing around the hinge; sliding panels slide along the wall). Slabs have generated surface textures; automatic roofs recognize closed wall loops in gable/hip/flat/shed styles; multi-level floors and roof hiding make interior work easy.
 - **Project workflow** — autosave to local storage, `.civitas` JSON projects, undo/redo, copy/delete, native save/open dialogs, and GLB/glTF/OBJ/STL import & export.
@@ -38,14 +38,13 @@ npm run tauri:dev    # desktop shell
 npm run tauri:build
 ```
 
-Prebuilt Windows x64 artifacts are in `release/` (version 0.3.0, rebuilt 2026-10-29 09:32 with the city generator, one-click furnishing, UIA automation ids, maximized startup and distance LOD):
+Prebuilt Windows x64 artifacts are in `release/` (version 0.3.0, rebuilt 2026-10-31 02:43):
 
-- `Civitas Studio.exe` — portable app (13.52 MB)
-- `Civitas Studio_0.3.0_x64-setup.exe` — NSIS installer (3.44 MiB)
-- `Civitas Studio_0.3.0_x64_en-US.msi` — MSI installer (4.81 MiB)
+- `Civitas Studio.exe` — portable app (13.55 MB)
+- `Civitas Studio_0.3.0_x64-setup.exe` — NSIS installer (3.46 MiB)
+- `Civitas Studio_0.3.0_x64_en-US.msi` — MSI installer (4.84 MiB)
 
-The 2026-10-31 API-completeness + vision batch (57 tools, `capture_views`, Copilot vision) is source-only so far; run `npm run tauri:build` to produce artifacts that include it.
-
+The later 2026-10-31 API-completeness + vision batch (57 tools, `capture_views`, Copilot vision, bundled skill) is source-only so far; run `npm run tauri:build` to produce artifacts that include it.
 
 The previous 2026-10-28 build is kept in `release/old-0.3.0-1028/`.
 

@@ -813,6 +813,7 @@ export const MODEL_CATEGORY_LABELS: Record<ModelCategory, string> = {
   outdoor: '户外生活',
   vegetation: '植被园艺',
   street: '街道设施',
+  infrastructure: '道路与市政',
   vehicles: '交通工具',
   structure: '结构构件',
   custom: '导入模型',

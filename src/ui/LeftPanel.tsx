@@ -84,8 +84,8 @@ const CATALOG_CONFIG: Record<
   },
   city: {
     title: '城市设施',
-    subtitle: '街道家具、公共艺术与城市照明。',
-    categories: ['street'],
+    subtitle: '街道家具、公共艺术、城市照明与道路市政。',
+    categories: ['street', 'infrastructure'],
   },
   vegetation: {
     title: '植被园艺',
