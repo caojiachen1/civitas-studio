@@ -31,3 +31,6 @@ release/old-*/
 
 # Local build progress notes
 /PROGRESS.md
+
+# Local generated example projects
+/civitas-grand-galleria.civitas
