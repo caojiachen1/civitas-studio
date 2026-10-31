@@ -2,14 +2,14 @@
 
 A desktop 3D city & building construction studio built with Tauri 2, React 19 and Three.js. Draw freeform roads, rivers and bridges, assemble walls/doors/windows/roofs, place whole building templates that open into editable shells/interiors, furnish rooms from a 214-piece catalog, and export the result as GLB/glTF/OBJ/STL. A built-in AI Copilot can also build and edit the scene from natural-language instructions.
 
-> **AI agents receiving this repo:** start at [`AGENTS.md`](AGENTS.md). It explains how to run the desktop app, connect to the local MCP API, import the bundled `drive-civitas-studio` skill (`npm run skill:install`), and verify all 57 tools.
+> **AI agents receiving this repo:** start at [`AGENTS.md`](AGENTS.md). It explains how to run the desktop app, connect to the local MCP API, import the bundled `drive-civitas-studio` skill (`npm run skill:install`), and verify all 58 tools.
 
 ## Highlights
 
 - **AI Copilot** — press `Ctrl+K` and describe what you want. It turns Chinese/English requests into validated editor actions: whole villas, individual furnished rooms, furniture, freeform roads/rivers/bridges/ponds, vegetation, roofs, walls/doors/windows/slabs, levels, selected-object edits, and opening/closing doors to a chosen angle. With an OpenAI-compatible provider it also **sees the live scene**: current view or multi-angle screenshots are attached to every request, and a result snapshot is shown after each build. The local planner works offline; an optional OpenAI-compatible provider can be configured for stronger language understanding. Every AI plan is a single undo step, and dangerous actions require confirmation.
-- **External agent API (MCP)** — the desktop build serves MCP over HTTP on `127.0.0.1` plus a plain REST mirror, exposing 57 tools (`build_room`, `add_wall`, `capture_views`, `generate_city`, `furnish_building`, …). Screenshots come back as native MCP image content, so an external agent can look at the scene from any angle, act, and look again. Any third-party agent can connect to the running app and drive AI auto-modeling end to end. Localhost-only, optional bearer token, whitelisted action schemas, and destructive calls require `confirm=true`.
+- **External agent API (MCP)** — the desktop build serves MCP over HTTP on `127.0.0.1` plus a plain REST mirror, exposing 58 tools (`build_room`, `add_wall`, `capture_views`, `generate_city`, `furnish_building`, …). Screenshots come back as native MCP image content, so an external agent can look at the scene from any angle, act, and look again. Any third-party agent can connect to the running app and drive AI auto-modeling end to end. Localhost-only, optional bearer token, whitelisted action schemas, and destructive calls require `confirm=true`.
 - **Windows UI automation ready** — every control has a unique automation id exposed through WebView2 UIA (stable ids for key controls, generated scope/label ids for the rest), the 3D canvas is `civitas-viewport`, and the window starts maximized. `list_ui_controls` returns the full inventory for agents.
-- **Bundled agent skill** — `.agents/skills/drive-civitas-studio/` contains a ready-to-import skill in the vendor-neutral Agent Skills layout (SKILL.md, full 57-tool API reference, workflow recipes, and a zero-dependency CLI). `npm run skill:install` copies it to the generic user-level `~/.agents/skills`; AI agents receiving this repo should start at `AGENTS.md`.
+- **Bundled agent skill** — `.agents/skills/drive-civitas-studio/` contains a ready-to-import skill in the vendor-neutral Agent Skills layout (SKILL.md, full 58-tool API reference, workflow recipes, and a zero-dependency CLI). `npm run skill:install` copies it to the generic user-level `~/.agents/skills`; AI agents receiving this repo should start at `AGENTS.md`.
 - **One-click city generator** — the Build-City workspace generates a complete district in a single undo step: road grid with sidewalks and crosswalks, residential blocks or glass towers, a central park (pond, gazebo or plaza), street trees, lamps, benches, planters and parked cars. Four presets (lakeside town, downtown blocks, garden suburb, riverside district) and three sizes; it automatically finds free ground next to the existing scene.
 - **Furnish and landscape in one click** — closed rooms are detected (including rooms sharing a wall) and typed as living room, bedroom, kitchen/dining, bathroom, office or open-plan lobby, then furnished from the existing catalog while avoiding doors, stairs and overlaps. Any building can also get a generated front path, trees, flower beds, lamps, benches and an office plaza.
 - **2D plan building** — the Plan workspace locks a top-down view and hides roofs/other floors. Drag a rectangle to generate four walls, a floor slab, a door, windows and an optional roof in one gesture; hand-drawn closed wall loops can be completed into slabs/roofs with one click. "Copy to new floor" lifts the current plan to the next elevation, so per-floor 2D plans assemble into a multi-storey 3D building. Exit the plan workspace via the top-right button, the status-bar chip, clicking the Plan rail again, or `Esc`.
@@ -19,7 +19,7 @@ A desktop 3D city & building construction studio built with Tauri 2, React 19 an
 - **Freeform infrastructure** — roads, rivers, footpaths, bridges and fences are smooth Catmull-Rom curves with draggable control points. Close a river path to fill a pond; bridges get automatic railings, piers and ramps.
 - **Component library** — 214 modeled components across living, bedroom, dining, kitchen, bathroom, office, laundry, outdoor, street, infrastructure, vegetation, vehicles and structure categories, plus imported custom models. The infrastructure set covers viaduct decks, curved/ramp segments, Y-piers, cloverleaf loops, pedestrian bridges, tunnel portals and toll booths alongside W-beam/concrete/pedestrian guardrails, sound barriers, median strips, sign gantries, highway lighting and lane markings; structure adds U-shaped, curved, public-plaza, stone, open-double, square-spiral and terrace stairs plus fire escapes, ladders and escalators.
 - **Construction feedback** — valid placements use a light-grey ghost preview; invalid placements turn red with a specific reason (collision, wall fit, overlap, water, road-only/water-only rules). Walls, path endpoints and wall-backed furniture snap automatically with generous, distance-aware thresholds.
-- **Parametric building** — walls support doors/windows with real openings and frames; doors can be left closed or opened to any angle from -135° to 135° with left/right hinges (single, double and glass leaves swing around the hinge; sliding panels slide along the wall). Slabs have generated surface textures; automatic roofs recognize closed wall loops in gable/hip/flat/shed styles; multi-level floors and roof hiding make interior work easy.
+- **Parametric building** — walls support doors/windows with real openings and frames; doors can be left closed or opened to any angle from -135° to 135° with left/right hinges (single, double and glass leaves swing around the hinge; sliding panels slide along the wall). Slabs have generated surface textures and real floor openings: stair/escalator placements can cut the slab above, elevator shafts can cut every floor above, and hole outlines are editable in the Inspector. Automatic roofs recognize closed wall loops in gable/hip/flat/shed styles; multi-level floors and roof hiding make interior work easy.
 - **Project workflow** — autosave to local storage, `.civitas` JSON projects, undo/redo, copy/delete, native save/open dialogs, and GLB/glTF/OBJ/STL import & export.
 - **Performance** — shared merged geometry, a single vertex-PBR material per model batch, batched wall/path meshes, on-demand shadow updates, incremental scene sync, frustum culling, a capped pixel ratio, lightweight ribbon previews while drawing roads, and distance LOD that hides sub-pixel street props (automatically off when quality is explicitly set to High). The bundled sample runs at ~180 FPS / ~160 draw calls in headless Chromium, ~200k triangles.
 - **Map fidelity** — 1K procedural ground with a bump map, textured asphalt and pavement with metre-based UVs, 0.32 m curve sampling for roads/rivers, and 1K floor textures for slabs. Roads add lane markings, crosswalks, reflective studs, drainage inlets, raised sidewalks, tactile paving and tree pits; rivers/ponds get three animated wave layers, foam, bank strata, reeds, rocks and lily pads; bridges add railing posts, piers, expansion joints and head reflectors. Quality still scales with the adaptive render presets.
@@ -44,7 +44,7 @@ Prebuilt Windows x64 artifacts are in `release/` (version 0.3.0, rebuilt 2026-10
 - `Civitas Studio_0.3.0_x64-setup.exe` — NSIS installer (3.46 MiB)
 - `Civitas Studio_0.3.0_x64_en-US.msi` — MSI installer (4.84 MiB)
 
-The later 2026-10-31 API-completeness + vision batch (57 tools, `capture_views`, Copilot vision, bundled skill) is source-only so far; run `npm run tauri:build` to produce artifacts that include it.
+The later 2026-10-31 API-completeness + vision batch (58 tools, `capture_views`, Copilot vision, bundled skill) is source-only so far; run `npm run tauri:build` to produce artifacts that include it.
 
 The previous 2026-10-28 build is kept in `release/old-0.3.0-1028/`.
 
@@ -86,13 +86,13 @@ curl -X POST http://127.0.0.1:8971/api/tools/build_room \
   -d '{"roomType":"bedroom","width":5,"depth":4.5,"furnish":true}'
 ```
 
-### Tools (57)
+### Tools (58)
 
 | Group | Tools |
 | --- | --- |
 | Read | `get_scene` `get_entity` `list_ui_controls` `list_models` `get_selection` |
 | View & vision | `select_entity` `set_camera` `focus_selection` `set_transform_mode` `focus_all` `get_screenshot` `capture_views` |
-| Build | `build_villa` `build_room` `add_wall` `add_opening` `add_slab` `furnish_room` `place_model` `draw_path` `add_pond` `add_roof` `add_vegetation` |
+| Build | `build_villa` `build_room` `add_wall` `add_opening` `add_slab` `cut_floor_opening` `furnish_room` `place_model` `draw_path` `add_pond` `add_roof` `add_vegetation` |
 | Edit | `modify_selected` `update_entity` `duplicate_selected` `delete_selected` `delete_entities` `clear_level` `undo` `redo` |
 | Levels & plan | `add_level` `set_active_level` `update_level` `duplicate_level` `delete_level` `complete_rooms` `set_plan_options` |
 | Buildings | `list_building_templates` `place_building` `place_skyline` `generate_city` `furnish_building` `landscape_building` `enter_building` `exit_building` `set_building_mode` |
@@ -102,7 +102,7 @@ curl -X POST http://127.0.0.1:8971/api/tools/build_room \
 
 Every tool returns `{ ok, summary?, data?, scene, error? }` (`apply_actions` also reports `created` / `focusIds`), so an agent can read back the new entity counts and immediately screenshot the result for a visual feedback loop. `get_scene` also returns the live camera, settings and undo/redo labels; `get_entity` returns all editable fields plus bounds.
 
-`update_entity` is the API equivalent of the Inspector and accepts kind-aware fields for every entity type (wall endpoints/height/thickness/color, opening style/offset/sill/openAngle/hinge, object x/z/rot/scale, slab/roof dimensions and finish, path control points/lanes/railings, building x/z/rot). `add_wall` accepts an optional stable `id` so a single `apply_actions` plan can draw walls and then cut doors/windows into them atomically.
+`update_entity` is the API equivalent of the Inspector and accepts kind-aware fields for every entity type (wall endpoints/height/thickness/color, opening style/offset/sill/openAngle/hinge, object x/z/rot/scale/scaleY, slab/roof dimensions and finish, path control points/lanes/railings, building x/z/rot). Slabs support real world-space holes; `add_slab` can cut them directly and `cut_floor_opening` cuts the slab above a stair/escalator or every level above an elevator. `add_wall` accepts an optional stable `id` so a single `apply_actions` plan can draw walls and then cut doors/windows into them atomically.
 
 ### Seeing the scene
 
@@ -129,7 +129,7 @@ This repository ships a complete skill for agents that should operate the app:
 ```text
 .agents/skills/drive-civitas-studio/
 ├── SKILL.md                 # trigger words, golden workflow, critical rules
-├── references/api.md        # all 57 tools, result shape, limits
+├── references/api.md        # all 58 tools, result shape, limits
 ├── references/workflows.md  # recipes: custom house, city, interior, visual QA, import, troubleshooting
 └── scripts/civitas.mjs      # status/scene/find/call/batch/views/shot CLI, saves screenshots
 ```
@@ -137,7 +137,7 @@ This repository ships a complete skill for agents that should operate the app:
 - **Project-level** — the skill lives in the generic `.agents/skills/` directory. Agents that support the Agent Skills convention can load it directly; otherwise point them at `SKILL.md` or install the user-level copy.
 - **Install for all projects** — `npm run skill:install` copies it to `~/.agents/skills/drive-civitas-studio` (optional `--target <dir>`, `--dry-run`).
 - **Other runtimes** — read `SKILL.md` directly and use `scripts/civitas.mjs` or the raw REST/MCP endpoints; no installation required.
-- **AI receiving this repo** — read `AGENTS.md` for the complete handoff: start the desktop app, wait for MCP, install the skill, and verify with `node .agents/skills/drive-civitas-studio/scripts/civitas.mjs tools` (must print 57 tools).
+- **AI receiving this repo** — read `AGENTS.md` for the complete handoff: start the desktop app, wait for MCP, install the skill, and verify with `node .agents/skills/drive-civitas-studio/scripts/civitas.mjs tools` (must print 58 tools).
 
 ### Safety model
 
@@ -189,6 +189,6 @@ The API is desktop-only: in `npm run dev` (browser) the panel reports that the M
 - `src/mcp` — tool schemas and dispatcher, the Tauri event bridge, and the MCP connection settings store.
 - `src/ui` — React panels, catalog, inspector, status bar and overlays.
 - `src-tauri` — Tauri 2 shell, native file dialogs, file read/write commands, the AI provider proxy, and the axum MCP/HTTP server (`src/mcp.rs`).
-- `.agents/skills/drive-civitas-studio` — agent skill in the generic Agent Skills layout: `SKILL.md`, 57-tool API reference, workflow recipes and the `civitas.mjs` CLI.
+- `.agents/skills/drive-civitas-studio` — agent skill in the generic Agent Skills layout: `SKILL.md`, 58-tool API reference, workflow recipes and the `civitas.mjs` CLI.
 - `scripts/install-skill.mjs` — copies the bundled skill to `~/.agents/skills` (`npm run skill:install`).
-- `AGENTS.md` — handoff instructions for AI agents receiving this repository (run the app, connect MCP, import the skill, verify 57 tools).
+- `AGENTS.md` — handoff instructions for AI agents receiving this repository (run the app, connect MCP, import the skill, verify 58 tools).

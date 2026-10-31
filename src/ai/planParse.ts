@@ -46,6 +46,29 @@ function points(value: unknown): Vec2[] | undefined {
   return result.length >= 2 ? result : undefined
 }
 
+function parseSlabHoles(value: unknown): { x: number; z: number; w: number; d: number; rot: number }[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const holes: { x: number; z: number; w: number; d: number; rot: number }[] = []
+  for (const entry of value.slice(0, 12)) {
+    if (!entry || typeof entry !== 'object') continue
+    const input = entry as Record<string, unknown>
+    const x = Number(input.x)
+    const z = Number(input.z)
+    const w = Number(input.w ?? input.width)
+    const d = Number(input.d ?? input.depth)
+    if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(w) || !Number.isFinite(d)) continue
+    if (w < 0.2 || d < 0.2) continue
+    holes.push({
+      x: Math.min(280, Math.max(-280, x)),
+      z: Math.min(280, Math.max(-280, z)),
+      w: Math.min(40, w),
+      d: Math.min(40, d),
+      rot: Number.isFinite(Number(input.rot)) ? Number(input.rot) : 0,
+    })
+  }
+  return holes.length ? holes : undefined
+}
+
 function point(value: unknown): Vec2 | undefined {
   if (!Array.isArray(value) || value.length < 2) return undefined
   const x = Number(value[0])
@@ -166,6 +189,7 @@ function normalizeAction(raw: unknown, warnings: string[]): AiAction | null {
         thickness: optionalNumber(input.thickness, 0.04, 1),
         style: slabStyles.includes(String(input.style)) ? (input.style as SlabStyle) : undefined,
         levelId: typeof input.levelId === 'string' ? input.levelId : undefined,
+        holes: parseSlabHoles(input.holes),
       }
     }
     case 'draw_path': {

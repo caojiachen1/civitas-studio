@@ -6,7 +6,7 @@ import {
   type RoofStyle,
   type Vec2,
 } from '../editor/types'
-import { useEditor } from '../editor/store'
+import { useEditor, uid } from '../editor/store'
 import { getEditorScene } from '../editor/engineRef'
 import { getModel } from '../models/registry'
 import { getPathBundle } from '../editor/geom'
@@ -367,6 +367,14 @@ function addSlab(action: Extract<AiAction, { type: 'add_slab' }>): Outcome {
     thickness: action.thickness,
     style: action.style,
     levelId: action.levelId,
+    holes: action.holes?.map((hole, index) => ({
+      id: `hole-${uid('hole')}-${index}`,
+      x: hole.x,
+      z: hole.z,
+      w: hole.w,
+      d: hole.d,
+      rot: hole.rot ?? 0,
+    })),
   })
   useEditor.getState().addEntity(slab, false)
   return {

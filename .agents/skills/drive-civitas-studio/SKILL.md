@@ -80,6 +80,18 @@ node scripts/civitas.mjs call complete_rooms '{}'
 
 Limits: 24 actions per plan, ~600 created entities, whole plan rolls back on any failure. `clear_level` requires `allowDestructive:true`.
 
+## Stairs and floor openings
+
+Stairs/escalators are models: placing one does **not** automatically cut the slab. Add a real opening with `cut_floor_opening`, or select the model in the Inspector and use **楼层洞口 → 在上一层开洞** (elevators also have **贯穿上方所有楼层**). Stretch a low stair/elevator to the storey height with `scaleY` (e.g. `scaleY: 1.48` for a 3.1 m stair under a 4.6 m floor):
+
+```bash
+node scripts/civitas.mjs call place_model '{"modelId":"stair-open-double","x":52,"z":32,"scaleY":1.48}'
+node scripts/civitas.mjs call cut_floor_opening '{"x":52,"z":32,"width":5.6,"depth":4.8}'
+node scripts/civitas.mjs call cut_floor_opening '{"x":30,"z":33,"width":3.4,"depth":3.4,"allAbove":true}'
+```
+
+The hole must fit inside a single slab. Slabs also accept world-space `holes` directly in `add_slab`/`update_entity`, and the Inspector can add/delete/resize them.
+
 ## Coordinates and units
 
 - Metres; X/Z ground plane, +Y up.
@@ -93,6 +105,7 @@ Limits: 24 actions per plan, ~600 created entities, whole plan rolls back on any
 - `add_opening` cannot reference a wall created earlier unless that `add_wall` had an explicit `id`.
 - `enter_building` switches the document to interior levels. Call `exit_building` before city/building-wide operations; `generate_city`/`place_building` fail inside a session.
 - `update_entity` validates geometry. If it errors, adjust coordinates instead of forcing via multiple edits.
+- A stair/escalator model alone does not cut the floor: call `cut_floor_opening` or use the Inspector's stairwell buttons; use `scaleY` so the flight reaches the next floor.
 - Destructive: `clear_level`, `new_project`, `open_project` require explicit confirmation; save before replacing the project.
 - File tools need absolute paths and the desktop app; imported models are embedded into the project file.
 - MCP calls time out after 120 s. Split huge cities or batches.
@@ -111,7 +124,7 @@ Limits: 24 actions per plan, ~600 created entities, whole plan rolls back on any
 ## Resources
 
 - `scripts/civitas.mjs` — zero-dependency CLI: `status`, `scene`, `find`, `tools`, `call`, `batch`, `views`, `shot`, `undo`, `redo`, `focus-all`. Saves screenshots and never prints base64.
-- `references/api.md` — all 57 tools, parameters, result shape, constants and limits.
+- `references/api.md` — all 58 tools, parameters, result shape, constants and limits.
 - `references/workflows.md` — full recipes: custom house, villa/interior, city generation, visual QA, import, save/open, editing, direct MCP calls, troubleshooting.
 
 For deeper API semantics read `references/api.md`; for step-by-step modeling sessions read `references/workflows.md`.

@@ -693,7 +693,7 @@ export class EditorScene {
       ownGeometry = created.ownGeometry
       group.position.set(entity.x, elevation, entity.z)
       group.rotation.y = entity.rot
-      group.scale.setScalar(entity.scale)
+      group.scale.set(entity.scale, entity.scale * (entity.scaleY ?? 1), entity.scale)
     } else if (entity.kind === 'building') {
       group = buildBuildingShell(entity)
       group.position.set(entity.x, elevation, entity.z)
@@ -733,7 +733,12 @@ export class EditorScene {
       return prev.modelId === next.modelId && prev.levelId === next.levelId
     }
     if (next.kind === 'slab' && prev.kind === 'slab') {
+      const holesChanged =
+        JSON.stringify(prev.holes ?? []) !== JSON.stringify(next.holes ?? [])
+      const hasHoles = (prev.holes?.length ?? 0) > 0 || (next.holes?.length ?? 0) > 0
       return (
+        !hasHoles &&
+        !holesChanged &&
         prev.levelId === next.levelId &&
         prev.w === next.w &&
         prev.d === next.d &&
@@ -772,7 +777,7 @@ export class EditorScene {
     if (entity.kind === 'object' && view.entity.kind === 'object') {
       view.group.position.set(entity.x, elevation, entity.z)
       view.group.rotation.y = entity.rot
-      view.group.scale.setScalar(entity.scale)
+      view.group.scale.set(entity.scale, entity.scale * (entity.scaleY ?? 1), entity.scale)
     } else if (entity.kind === 'slab') {
       view.group.position.set(entity.x, elevation, entity.z)
       view.group.rotation.y = entity.rot

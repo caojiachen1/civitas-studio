@@ -127,6 +127,16 @@ export interface ObjectEntity {
   z: number
   rot: number
   scale: number
+  scaleY?: number
+}
+
+export interface SlabHole {
+  id: string
+  x: number
+  z: number
+  w: number
+  d: number
+  rot: number
 }
 
 export interface SlabEntity {
@@ -140,6 +150,7 @@ export interface SlabEntity {
   rot: number
   thickness: number
   style: SlabStyle
+  holes?: SlabHole[]
 }
 
 export type SlabStyle = 'wood' | 'oak' | 'concrete' | 'tile' | 'stone' | 'deck'

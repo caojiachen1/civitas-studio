@@ -133,12 +133,123 @@ function topPlane(w: number, d: number, tile: number): THREE.BufferGeometry {
   return geo
 }
 
+interface LocalHole {
+  cx: number
+  cz: number
+  w: number
+  d: number
+  rot: number
+}
+
+function localHole(entity: SlabEntity, hole: { x: number; z: number; w: number; d: number; rot?: number }): LocalHole {
+  const dx = hole.x - entity.x
+  const dz = hole.z - entity.z
+  const c = Math.cos(entity.rot)
+  const s = Math.sin(entity.rot)
+  return {
+    cx: c * dx - s * dz,
+    cz: s * dx + c * dz,
+    w: Math.abs(hole.w),
+    d: Math.abs(hole.d),
+    rot: (hole.rot ?? 0) - entity.rot,
+  }
+}
+
+function holeCorners(hole: LocalHole): THREE.Vector2[] {
+  const c = Math.cos(hole.rot)
+  const s = Math.sin(hole.rot)
+  return ([[-1, -1], [1, -1], [1, 1], [-1, 1]] as [number, number][]).map(([sx, sz]) => {
+    const lx = (sx * hole.w) / 2
+    const lz = (sz * hole.d) / 2
+    const x = hole.cx + c * lx + s * lz
+    const z = hole.cz - s * lx + c * lz
+    return new THREE.Vector2(x, -z)
+  })
+}
+
+function isInsideSlab(hole: LocalHole, entity: SlabEntity): boolean {
+  const halfW = entity.w / 2
+  const halfD = entity.d / 2
+  return holeCorners(hole).every(
+    (point) => Math.abs(point.x) <= halfW - 0.001 && Math.abs(point.y) <= halfD - 0.001,
+  )
+}
+
+export function slabHoleFits(
+  entity: SlabEntity,
+  hole: { x: number; z: number; w: number; d: number; rot?: number },
+): boolean {
+  return isInsideSlab(localHole(entity, hole), entity)
+}
+
+function slabShape(entity: SlabEntity): { shape: THREE.Shape; holes: number } {
+  const outer = [
+    new THREE.Vector2(-entity.w / 2, entity.d / 2),
+    new THREE.Vector2(entity.w / 2, entity.d / 2),
+    new THREE.Vector2(entity.w / 2, -entity.d / 2),
+    new THREE.Vector2(-entity.w / 2, -entity.d / 2),
+  ]
+  if (THREE.ShapeUtils.isClockWise(outer)) outer.reverse()
+  const shape = new THREE.Shape(outer)
+  let count = 0
+  for (const raw of entity.holes ?? []) {
+    if (raw.w <= 0.05 || raw.d <= 0.05) continue
+    const hole = localHole(entity, raw)
+    if (!isInsideSlab(hole, entity)) continue
+    const points = holeCorners(hole)
+    if (!THREE.ShapeUtils.isClockWise(points)) points.reverse()
+    shape.holes.push(new THREE.Path(points))
+    count++
+  }
+  return { shape, holes: count }
+}
+
+function slabTopWithHoles(shape: THREE.Shape, tile: number): THREE.BufferGeometry {
+  const geo = new THREE.ShapeGeometry(shape, 1)
+  geo.rotateX(-Math.PI / 2)
+  const position = geo.getAttribute('position') as THREE.BufferAttribute
+  const uv = new Float32Array(position.count * 2)
+  for (let i = 0; i < position.count; i++) {
+    uv[i * 2] = position.getX(i) / tile
+    uv[i * 2 + 1] = position.getZ(i) / tile
+  }
+  geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2))
+  geo.computeVertexNormals()
+  return geo
+}
+
 export function buildSlab(entity: SlabEntity, elevation: number): THREE.Group {
   const def = SLAB_STYLES.find((s) => s.id === entity.style) ?? SLAB_STYLES[0]
   const group = new THREE.Group()
   group.position.set(entity.x, elevation, entity.z)
   group.rotation.y = entity.rot
   group.userData.entityId = entity.id
+
+  const tile = entity.style === 'tile' ? 4 : entity.style === 'wood' || entity.style === 'oak' ? 2.2 : entity.style === 'deck' ? 2.4 : 3.5
+  const { shape, holes } = slabShape(entity)
+
+  if (holes > 0) {
+    const body = new THREE.Mesh(
+      new THREE.ExtrudeGeometry(shape, {
+        depth: entity.thickness,
+        bevelEnabled: false,
+        curveSegments: 1,
+      }),
+      new THREE.MeshStandardMaterial({ color: def.color, roughness: def.roughness + 0.05 }),
+    )
+    body.rotation.x = -Math.PI / 2
+    body.position.y = -entity.thickness
+    body.castShadow = true
+    body.receiveShadow = true
+    group.add(body)
+
+    const top = new THREE.Mesh(slabTopWithHoles(shape, tile), getTopMaterial(entity.style))
+    top.position.y = 0.002
+    top.receiveShadow = true
+    top.userData.surface = 'floor-top'
+    group.add(top)
+    return group
+  }
 
   const body = new THREE.Mesh(
     new THREE.BoxGeometry(entity.w, entity.thickness, entity.d),
@@ -149,7 +260,6 @@ export function buildSlab(entity: SlabEntity, elevation: number): THREE.Group {
   body.receiveShadow = true
   group.add(body)
 
-  const tile = entity.style === 'tile' ? 4 : entity.style === 'wood' || entity.style === 'oak' ? 2.2 : entity.style === 'deck' ? 2.4 : 3.5
   const top = new THREE.Mesh(topPlane(entity.w, entity.d, tile), getTopMaterial(entity.style))
   top.position.y = 0.002
   top.receiveShadow = true

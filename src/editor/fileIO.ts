@@ -337,7 +337,7 @@ export async function buildExportScene(doc: EditorDocument): Promise<THREE.Group
       if (object) {
         object.position.set(entity.x, levels.get(entity.levelId) ?? 0, entity.z)
         object.rotation.y = entity.rot
-        object.scale.setScalar(entity.scale)
+        object.scale.set(entity.scale, entity.scale * (entity.scaleY ?? 1), entity.scale)
       }
     }
     if (object) {

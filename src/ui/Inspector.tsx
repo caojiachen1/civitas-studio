@@ -17,9 +17,10 @@ import {
   Waves,
   X,
 } from 'lucide-react'
-import { useEditor } from '../editor/store'
+import { useEditor, uid } from '../editor/store'
 import { useRuntime } from '../editor/runtime'
 import { getEditorScene } from '../editor/engineRef'
+import { cutFloorOpening } from '../editor/slabHoles'
 import { BUILDING_TEMPLATES } from '../editor/buildings'
 import { getModel } from '../models/registry'
 import {
@@ -507,6 +508,15 @@ function PathFields({ path, update }: { path: PathEntity; update: Update }) {
 }
 
 function SlabFields({ slab, update }: { slab: SlabEntity; update: Update }) {
+  const toast = useRuntime((state) => state.toast)
+  const holes = slab.holes ?? []
+  const updateHole = (index: number, patch: Record<string, number>) => {
+    update({
+      holes: holes.map((hole, holeIndex) =>
+        holeIndex === index ? { ...hole, ...patch } : hole,
+      ),
+    })
+  }
   return (
     <>
       <Section title="楼板尺寸">
@@ -523,6 +533,86 @@ function SlabFields({ slab, update }: { slab: SlabEntity; update: Update }) {
             onChange={(degrees) => update({ rot: (degrees * Math.PI) / 180 })}
           />
         </div>
+      </Section>
+      <Section
+        title="楼板洞口 / 楼梯井"
+        aside={
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => {
+              const hole = {
+                id: uid('hole'),
+                x: slab.x,
+                z: slab.z,
+                w: 3,
+                d: 4,
+                rot: 0,
+              }
+              update({ holes: [...holes, hole] })
+              toast('已在楼板中心开洞，可继续调整位置和尺寸', 'success')
+            }}
+          >
+            + 添加洞口
+          </button>
+        }
+      >
+        {holes.length === 0 ? (
+          <p className="micro-hint">暂无洞口，楼板是实心的。</p>
+        ) : (
+          <div className="hole-list">
+            {holes.map((hole, index) => (
+              <div className="hole-item" key={hole.id}>
+                <div className="point-row">
+                  <span className="point-index">{index + 1}</span>
+                  <NumberField
+                    value={hole.x}
+                    step={0.25}
+                    compact
+                    onChange={(x) => updateHole(index, { x })}
+                  />
+                  <NumberField
+                    value={hole.z}
+                    step={0.25}
+                    compact
+                    onChange={(z) => updateHole(index, { z })}
+                  />
+                  <button
+                    type="button"
+                    className="point-delete"
+                    title="删除洞口"
+                    onClick={() => update({ holes: holes.filter((_, holeIndex) => holeIndex !== index) })}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+                <div className="field-grid two">
+                  <NumberField
+                    label="洞宽"
+                    value={hole.w}
+                    min={0.2}
+                    max={40}
+                    step={0.1}
+                    suffix="m"
+                    onChange={(w) => updateHole(index, { w })}
+                  />
+                  <NumberField
+                    label="洞深"
+                    value={hole.d}
+                    min={0.2}
+                    max={40}
+                    step={0.1}
+                    suffix="m"
+                    onChange={(d) => updateHole(index, { d })}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="micro-hint">
+          选中楼梯、扶梯或电梯时，可在右侧属性中一键在上一层或贯穿上方楼层开洞。
+        </p>
       </Section>
       <Section title="面层材质">
         <div className="slab-style-grid compact">
@@ -600,6 +690,7 @@ function RoofFields({ roof, update }: { roof: RoofEntity; update: Update }) {
 function ObjectFields({ entity, update }: { entity: Extract<Entity, { kind: 'object' }>; update: Update }) {
   const model = getModel(entity.modelId)
   const asset = useEditor((state) => state.doc.customAssets.find((item) => item.id === entity.modelId))
+  const toast = useRuntime((state) => state.toast)
   const rule = model?.placement ?? 'any'
   const ruleLabel =
     rule === 'indoor'
@@ -611,6 +702,25 @@ function ObjectFields({ entity, update }: { entity: Extract<Entity, { kind: 'obj
           : rule === 'on-water'
             ? '需放置在水面上'
             : '任意位置'
+  const stairLike = /(stair|escalator|elevator)/.test(entity.modelId)
+  const footprint = model?.footprint ?? asset?.footprint ?? [2.4, 2.4]
+  const cutOpening = (allAbove: boolean) => {
+    const margin = model?.placement === 'indoor' ? 1 : 0.8
+    const result = cutFloorOpening({
+      x: entity.x,
+      z: entity.z,
+      width: footprint[0] + margin,
+      depth: footprint[1] + margin,
+      rot: entity.rot,
+      fromLevelId: entity.levelId,
+      allAbove,
+    })
+    if ('error' in result) {
+      toast(result.error, 'warn')
+      return
+    }
+    toast(`已在 ${result.levels.length} 个楼层的 ${result.slabs.length} 块楼板上开洞`, 'success')
+  }
   return (
     <>
       <Section title="变换">
@@ -626,8 +736,34 @@ function ObjectFields({ entity, update }: { entity: Extract<Entity, { kind: 'obj
             onChange={(degrees) => update({ rot: (degrees * Math.PI) / 180 })}
           />
           <NumberField label="缩放" value={entity.scale} min={0.1} max={10} step={0.05} precision={2} onChange={(scale) => update({ scale })} />
+          <NumberField
+            label="高度缩放"
+            value={entity.scaleY ?? 1}
+            min={0.2}
+            max={6}
+            step={0.05}
+            precision={2}
+            onChange={(scaleY) => update({ scaleY })}
+          />
         </div>
       </Section>
+      {stairLike && (
+        <Section title="楼层洞口 / 楼梯井">
+          <div className="button-row">
+            <button type="button" className="soft-button" onClick={() => cutOpening(false)}>
+              在上一层开洞
+            </button>
+            {entity.modelId === 'elevator-shaft' && (
+              <button type="button" className="soft-button" onClick={() => cutOpening(true)}>
+                贯穿上方所有楼层
+              </button>
+            )}
+          </div>
+          <p className="micro-hint">
+            按当前模型占地尺寸自动在楼板上切出真实洞口；电梯井可一次贯穿所有上层。
+          </p>
+        </Section>
+      )}
       <Section title="组件信息">
         <div className="readout-row">
           <span>模型</span>

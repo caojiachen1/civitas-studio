@@ -78,7 +78,7 @@ if (existsSync(target)) {
 cpSync(source, target, { recursive: true })
 
 const skillFile = join(target, 'SKILL.md')
-const text = readFileSync(skillFile, 'utf8')
+const text = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n')
 if (!text.startsWith('---\nname: drive-civitas-studio')) {
   console.error(`CIVITAS ERROR: installed SKILL.md looks invalid: ${skillFile}`)
   process.exit(1)

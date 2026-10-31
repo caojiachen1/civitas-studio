@@ -24,6 +24,8 @@ import { parsePlanContent } from '../ai/planParse'
 import type { AiAction, AiActionPlan, AiExecutionResult, AiRoomType } from '../ai/types'
 import { ROOM_TYPE_LABELS } from '../ai/types'
 import { completeLevelRooms, roomCompletionSummary } from '../editor/plan'
+import { cutFloorOpening } from '../editor/slabHoles'
+import { slabHoleFits } from '../editor/builders/slabs'
 import {
   checkObjectPlacement,
   checkOpeningPlacement,
@@ -43,6 +45,8 @@ import type {
   PathEntity,
   RoofEntity,
   RoofFinish,
+  SlabEntity,
+  SlabHole,
   SlabStyle,
   Vec2,
   WallEntity,
@@ -169,6 +173,7 @@ function entitySummary(entity: Entity) {
     base.z = entity.z
     base.rot = entity.rot
     base.scale = entity.scale
+    base.scaleY = entity.scaleY ?? 1
   } else if (entity.kind === 'slab' || entity.kind === 'roof') {
     base.x = entity.x
     base.z = entity.z
@@ -176,6 +181,7 @@ function entitySummary(entity: Entity) {
     base.d = entity.d
     base.rot = entity.rot
     base.style = entity.kind === 'slab' ? entity.style : entity.style
+    if (entity.kind === 'slab') base.holeCount = (entity.holes ?? []).length
   } else if (entity.kind === 'wall') {
     base.a = entity.a
     base.b = entity.b
@@ -319,8 +325,40 @@ function asVec3(value: unknown): [number, number, number] | null {
   return vector.every((item) => Number.isFinite(item)) ? (vector as [number, number, number]) : null
 }
 
-function findLevel(args: Args) {
+function parseHoles(value: unknown): SlabHole[] | null {
+  if (value === undefined) return null
+  if (!Array.isArray(value) || value.length > 12) return null
+  const holes: SlabHole[] = []
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') return null
+    const input = entry as Args
+    const x = Number(input.x)
+    const z = Number(input.z)
+    const w = Number(input.w ?? input.width)
+    const d = Number(input.d ?? input.depth)
+    if (![x, z, w, d].every((item) => Number.isFinite(item))) return null
+    if (w < 0.2 || d < 0.2) return null
+    holes.push({
+      id: typeof input.id === 'string' && input.id.trim() ? input.id.trim().slice(0, 64) : uid('hole'),
+      x: Math.min(400, Math.max(-400, x)),
+      z: Math.min(400, Math.max(-400, z)),
+      w: Math.min(40, w),
+      d: Math.min(40, d),
+      rot: Number.isFinite(Number(input.rot)) ? Number(input.rot) : 0,
+    })
+  }
+  return holes
+}
+
+function levelIdFromArgs(args: Args): string {
   const state = useEditor.getState()
+  return typeof args.levelId === 'string' &&
+    state.doc.levels.some((level) => level.id === args.levelId)
+    ? args.levelId
+    : state.doc.activeLevelId
+}
+
+function findLevel(args: Args) {  const state = useEditor.getState()
   if (typeof args.levelId === 'string') {
     return state.doc.levels.find((level) => level.id === args.levelId) ?? null
   }
@@ -352,7 +390,7 @@ function objectFootprints(): Map<string, [number, number]> {
   return footprints
 }
 
-function placeObject(modelId: string, x: number, z: number, rot: number, scale: number) {
+function placeObject(modelId: string, x: number, z: number, rot: number, scale: number, scaleY = 1) {
   const state = useEditor.getState()
   const model = objectModel(modelId)
   if (!model) return { error: `未知 modelId：${modelId}` }
@@ -376,6 +414,7 @@ function placeObject(modelId: string, x: number, z: number, rot: number, scale: 
     z,
     rot,
     scale,
+    scaleY: scaleY === 1 ? undefined : scaleY,
   }
   state.beginHistory('放置模型')
   state.addEntity(entity, false)
@@ -484,6 +523,8 @@ function buildEntityPatch(entity: Entity, args: Args): EntityPatchOutcome {
     const z = args.z !== undefined ? num(args.z, entity.z, -280, 280) : entity.z
     const rot = rotation ?? entity.rot
     const scale = args.scale !== undefined ? num(args.scale, entity.scale, 0.2, 8) : entity.scale
+    const scaleY =
+      args.scaleY !== undefined ? num(args.scaleY, entity.scaleY ?? 1, 0.2, 6) : (entity.scaleY ?? 1)
     const nextLevelId = levelId ?? entity.levelId
     const model = objectModel(entity.modelId)
     if (model) {
@@ -500,23 +541,51 @@ function buildEntityPatch(entity: Entity, args: Args): EntityPatchOutcome {
       )
       if (!check.valid) return { error: check.reason }
     }
-    Object.assign(patch, { x, z, rot, scale, levelId: nextLevelId })
+    Object.assign(patch, { x, z, rot, scale, scaleY: scaleY === 1 ? undefined : scaleY, levelId: nextLevelId })
     return { patch }
   }
 
   if (entity.kind === 'slab') {
     const style = typeof args.style === 'string' ? args.style : ''
     if (style && !SLAB_STYLES.some((item) => item.id === style)) return { error: `未知楼板材质：${style}` }
+    const x = args.x !== undefined ? num(args.x, entity.x, -280, 280) : entity.x
+    const z = args.z !== undefined ? num(args.z, entity.z, -280, 280) : entity.z
+    const w =
+      args.width !== undefined
+        ? num(args.width, entity.w, 0.3, 200)
+        : args.w !== undefined
+          ? num(args.w, entity.w, 0.3, 200)
+          : entity.w
+    const d =
+      args.depth !== undefined
+        ? num(args.depth, entity.d, 0.3, 200)
+        : args.d !== undefined
+          ? num(args.d, entity.d, 0.3, 200)
+          : entity.d
+    const rot = rotation ?? entity.rot
+    const thickness =
+      args.thickness !== undefined ? num(args.thickness, entity.thickness, 0.04, 1) : entity.thickness
+    const holes = args.holes === undefined ? entity.holes : parseHoles(args.holes)
+    if (args.holes !== undefined && !holes) return { error: 'holes 必须是 1..12 个有效矩形洞口。' }
+    if (holes?.length) {
+      const candidate: SlabEntity = { ...entity, x, z, w, d, rot, thickness, holes }
+      for (const hole of holes) {
+        if (!slabHoleFits(candidate, hole)) {
+          return { error: '洞口超出楼板范围，或楼板尺寸不足以包含该洞口。' }
+        }
+      }
+    }
     Object.assign(patch, {
-      x: args.x !== undefined ? num(args.x, entity.x, -280, 280) : entity.x,
-      z: args.z !== undefined ? num(args.z, entity.z, -280, 280) : entity.z,
-      w: args.width !== undefined ? num(args.width, entity.w, 0.3, 200) : args.w !== undefined ? num(args.w, entity.w, 0.3, 200) : entity.w,
-      d: args.depth !== undefined ? num(args.depth, entity.d, 0.3, 200) : args.d !== undefined ? num(args.d, entity.d, 0.3, 200) : entity.d,
-      rot: rotation ?? entity.rot,
-      thickness: args.thickness !== undefined ? num(args.thickness, entity.thickness, 0.04, 1) : entity.thickness,
+      x,
+      z,
+      w,
+      d,
+      rot,
+      thickness,
       style: (style || entity.style) as SlabStyle,
       levelId: levelId ?? entity.levelId,
     })
+    if (args.holes !== undefined) patch.holes = holes ?? []
     return { patch }
   }
 
@@ -610,6 +679,9 @@ export const MCP_TOOLS: McpToolSpec[] = [
       properties: {
         includeEntities: { type: 'boolean', description: 'Include entity list (default false).' },
         entityLimit: { type: 'number', description: 'Max entities to return (default 300, max 1000).' },
+        levelId: { type: 'string', description: 'Only entities on this level (openings follow their wall).' },
+        kind: { type: 'string', description: 'Only this entity kind: wall/opening/object/path/slab/roof/building.' },
+        modelId: { type: 'string', description: 'Only objects with this catalog/custom model id.' },
       },
     },
   },
@@ -834,7 +906,8 @@ export const MCP_TOOLS: McpToolSpec[] = [
   {
     name: 'add_slab',
     title: '绘制楼板',
-    description: 'Add a rectangular floor slab/platform at the active (or given) level.',
+    description:
+      'Add a rectangular floor slab/platform at the active (or given) level. Optional holes cut real stair/atrium voids through the slab.',
     inputSchema: {
       type: 'object',
       required: ['x', 'z'],
@@ -848,6 +921,44 @@ export const MCP_TOOLS: McpToolSpec[] = [
         thickness: { type: 'number', minimum: 0.04, maximum: 1 },
         style: { type: 'string', enum: SLAB_STYLES.map((item) => item.id) },
         levelId: { type: 'string' },
+        holes: {
+          type: 'array',
+          maxItems: 12,
+          description: 'World-space rectangular holes cut through the slab.',
+          items: {
+            type: 'object',
+            required: ['x', 'z'],
+            properties: {
+              x: { type: 'number' },
+              z: { type: 'number' },
+              w: { type: 'number' },
+              d: { type: 'number' },
+              width: { type: 'number' },
+              depth: { type: 'number' },
+              rot: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    name: 'cut_floor_opening',
+    title: '楼板开洞 / 楼梯井',
+    description:
+      'Cut a real rectangular opening through the slab above the active (or fromLevelId) level, or through all levels above for an elevator shaft. Use this after placing a stair/escalator, or with levelId to cut a specific level.',
+    inputSchema: {
+      type: 'object',
+      required: ['x', 'z', 'width', 'depth'],
+      properties: {
+        x: { type: 'number' },
+        z: { type: 'number' },
+        width: { type: 'number', minimum: 0.4, maximum: 40 },
+        depth: { type: 'number', minimum: 0.4, maximum: 40 },
+        rot: { type: 'number', description: 'Opening rotation in radians (world-space).' },
+        levelId: { type: 'string', description: 'Cut exactly this level instead of the next level above.' },
+        fromLevelId: { type: 'string', description: 'Source level for above/allAbove (default active level).' },
+        allAbove: { type: 'boolean', description: 'Cut every level above the source level (elevator shaft).' },
       },
     },
   },
@@ -877,6 +988,7 @@ export const MCP_TOOLS: McpToolSpec[] = [
         z: { type: 'number' },
         rot: { type: 'number', description: 'Rotation in radians.' },
         scale: { type: 'number', minimum: 0.2, maximum: 8 },
+        scaleY: { type: 'number', minimum: 0.2, maximum: 6, description: 'Vertical-only scale (stairs/elevators can be stretched to floor height).' },
       },
     },
   },
@@ -1057,7 +1169,7 @@ export const MCP_TOOLS: McpToolSpec[] = [
     name: 'update_entity',
     title: '编辑任意构件',
     description:
-      'Edit any entity by id with kind-aware validation — the API equivalent of the Inspector. Walls take a/b/height/thickness/color; openings take style/offset/width/height/sill/openAngle/hinge; objects take x/z/rot/scale; slabs take x/z/width/depth/rot/thickness/style; roofs take dimensions/rot/style/finish/pitch/eaveY/overhang; paths take points/width/style/sidewalk/lanes/bridgeHeight/railings/closed; buildings take x/z/rot/name. All entities accept levelId.',
+      'Edit any entity by id with kind-aware validation — the API equivalent of the Inspector. Walls take a/b/height/thickness/color; openings take style/offset/width/height/sill/openAngle/hinge; objects take x/z/rot/scale/scaleY; slabs take x/z/width/depth/rot/thickness/style/holes; roofs take dimensions/rot/style/finish/pitch/eaveY/overhang; paths take points/width/style/sidewalk/lanes/bridgeHeight/railings/closed; buildings take x/z/rot/name. All entities accept levelId.',
     inputSchema: {
       type: 'object',
       required: ['id'],
@@ -1071,6 +1183,7 @@ export const MCP_TOOLS: McpToolSpec[] = [
         rot: { type: 'number', description: 'Rotation in radians.' },
         rotDeg: { type: 'number', description: 'Rotation in degrees (overrides rot).' },
         scale: { type: 'number' },
+        scaleY: { type: 'number', minimum: 0.2, maximum: 6, description: 'Vertical-only scale for objects.' },
         width: { type: 'number' },
         height: { type: 'number' },
         depth: { type: 'number' },
@@ -1094,6 +1207,25 @@ export const MCP_TOOLS: McpToolSpec[] = [
         railings: { type: 'boolean' },
         closed: { type: 'boolean' },
         name: { type: 'string', description: 'Building display name.' },
+        holes: {
+          type: 'array',
+          maxItems: 12,
+          description: 'Replace slab holes with these world-space rectangles (empty array removes holes).',
+          items: {
+            type: 'object',
+            required: ['x', 'z'],
+            properties: {
+              id: { type: 'string' },
+              x: { type: 'number' },
+              z: { type: 'number' },
+              w: { type: 'number' },
+              d: { type: 'number' },
+              width: { type: 'number' },
+              depth: { type: 'number' },
+              rot: { type: 'number' },
+            },
+          },
+        },
       },
     },
   },
@@ -1398,9 +1530,22 @@ export async function runMcpTool(name: string, args: Args): Promise<unknown> {
         const context = getContext()
         const includeEntities = bool(args.includeEntities)
         const limit = Math.round(num(args.entityLimit, 300, 1, 1000))
-        const entities = includeEntities
-          ? Object.values(useEditor.getState().doc.entities).slice(0, limit).map(entitySummary)
-          : undefined
+        const levelFilter = str(args.levelId)
+        const kindFilter = str(args.kind)
+        const modelFilter = str(args.modelId)
+        const state = useEditor.getState()
+        const levelOf = (entity: Entity): string | undefined => {
+          if (entity.kind !== 'opening') return entity.levelId
+          const wall = state.doc.entities[entity.wallId]
+          return wall?.kind === 'wall' ? wall.levelId : undefined
+        }
+        const filtered = Object.values(state.doc.entities).filter((entity) => {
+          if (kindFilter && entity.kind !== kindFilter) return false
+          if (modelFilter && (entity.kind !== 'object' || entity.modelId !== modelFilter)) return false
+          if (levelFilter && levelOf(entity) !== levelFilter) return false
+          return true
+        })
+        const entities = includeEntities ? filtered.slice(0, limit).map(entitySummary) : undefined
         return toolResult({
           context,
           perf: useRuntime.getState().perf,
@@ -1409,6 +1554,7 @@ export async function runMcpTool(name: string, args: Args): Promise<unknown> {
           cameraEye: getEditorScene()?.getCameraPosition() ?? null,
           selection: selectedPayload(),
           entities,
+          entityTotal: filtered.length,
           entityLimit: limit,
         })
       }
@@ -1697,24 +1843,80 @@ export async function runMcpTool(name: string, args: Args): Promise<unknown> {
       }
       case 'add_slab': {
         const state = useEditor.getState()
+        const x = num(args.x, 0, -280, 280)
+        const z = num(args.z, 0, -280, 280)
+        const width = num(args.width, 6, 0.3, 200)
+        const depth = num(args.depth, 4, 0.3, 200)
         const rot =
           args.rotDeg !== undefined
             ? (num(args.rotDeg, 0, -3600, 3600) * Math.PI) / 180
             : num(args.rot, 0, -Math.PI * 20, Math.PI * 20)
+        const thickness = num(args.thickness, 0.2, 0.04, 1)
+        const style = str(args.style, 'wood')
+        const holes = args.holes === undefined ? undefined : parseHoles(args.holes) ?? undefined
+        if (args.holes !== undefined && !holes) {
+          return errorResult('holes 必须是 1..12 个有效矩形洞口。')
+        }
+        if (holes?.length) {
+          const candidate: SlabEntity = {
+            id: 'candidate',
+            kind: 'slab',
+            levelId: levelIdFromArgs(args),
+            x,
+            z,
+            w: width,
+            d: depth,
+            rot,
+            thickness,
+            style: style as SlabStyle,
+            holes,
+          }
+          for (const hole of holes) {
+            if (!slabHoleFits(candidate, hole)) {
+              return errorResult('洞口超出楼板范围，或楼板尺寸不足以包含该洞口。')
+            }
+          }
+        }
         const slab = createSlabEntity({
-          x: num(args.x, 0, -280, 280),
-          z: num(args.z, 0, -280, 280),
-          width: args.width === undefined ? undefined : num(args.width, 6, 0.3, 200),
-          depth: args.depth === undefined ? undefined : num(args.depth, 4, 0.3, 200),
+          x,
+          z,
+          width,
+          depth,
           rot,
-          thickness: args.thickness === undefined ? undefined : num(args.thickness, 0.2, 0.04, 1),
-          style: typeof args.style === 'string' ? args.style : undefined,
+          thickness,
+          style,
           levelId: typeof args.levelId === 'string' ? args.levelId : undefined,
+          holes,
         })
         state.beginHistory('绘制楼板')
         state.addEntity(slab, false)
         state.select(slab.id)
-        return toolResult({ id: slab.id, slab }, `已绘制楼板（${slab.w} × ${slab.d} m）`)
+        return toolResult(
+          { id: slab.id, slab },
+          holes?.length
+            ? `已绘制楼板（${slab.w} × ${slab.d} m，${holes.length} 个洞口）`
+            : `已绘制楼板（${slab.w} × ${slab.d} m）`,
+        )
+      }
+      case 'cut_floor_opening': {
+        const result = cutFloorOpening({
+          x: num(args.x, 0, -400, 400),
+          z: num(args.z, 0, -400, 400),
+          width: num(args.width, 3, 0.4, 40),
+          depth: num(args.depth, 3, 0.4, 40),
+          rot: args.rot === undefined ? 0 : num(args.rot, 0, -Math.PI * 2, Math.PI * 2),
+          levelId: typeof args.levelId === 'string' ? args.levelId : undefined,
+          fromLevelId: typeof args.fromLevelId === 'string' ? args.fromLevelId : undefined,
+          allAbove: bool(args.allAbove),
+        })
+        if ('error' in result) return errorResult(result.error)
+        const levelNames = result.levels
+          .map((id) => useEditor.getState().doc.levels.find((level) => level.id === id)?.name ?? id)
+          .join('、')
+        return toolResult(
+          result,
+          `已在 ${levelNames} 开洞（${result.slabs.length} 块楼板）`,
+        )
       }
       case 'furnish_room': {
         const roomType = (
@@ -1736,8 +1938,9 @@ export async function runMcpTool(name: string, args: Args): Promise<unknown> {
         const z = args.z === undefined ? undefined : num(args.z, 0, -270, 270)
         const rot = num(args.rot, 0, -Math.PI * 20, Math.PI * 20)
         const scale = num(args.scale, 1, 0.2, 8)
+        const scaleY = num(args.scaleY, 1, 0.2, 6)
         if (MODEL_MAP.has(modelId)) {
-          return runSingle(
+          const result = runSingle(
             {
               type: 'place_model',
               modelId,
@@ -1748,11 +1951,17 @@ export async function runMcpTool(name: string, args: Args): Promise<unknown> {
             },
             `MCP place_model ${modelId}`,
           )
+          if (scaleY !== 1 && result.ok && result.focusIds[0]) {
+            useEditor.getState().updateEntity(result.focusIds[0], { scaleY }, false)
+            result.scene = sceneSummary()
+            result.summary = `${result.summary ?? ''}（高度缩放 ${scaleY.toFixed(2)}）`
+          }
+          return result
         }
         if (useEditor.getState().doc.customAssets.some((asset) => asset.id === modelId)) {
           const target = getEditorScene()?.getView().target ?? [0, 0, 0]
           const spot: [number, number] = [x ?? target[0], z ?? target[2]]
-          const placed = placeObject(modelId, spot[0], spot[1], rot, scale)
+          const placed = placeObject(modelId, spot[0], spot[1], rot, scale, scaleY)
           if (placed.error) return errorResult(placed.error)
           return toolResult({ id: placed.entity!.id, custom: true, entity: placed.entity })
         }

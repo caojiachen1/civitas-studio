@@ -1,4 +1,4 @@
-# Civitas Studio API reference (57 tools)
+# Civitas Studio API reference (58 tools)
 
 All calls are REST: `POST http://127.0.0.1:8971/api/tools/<name>` with a JSON object body.
 MCP clients use `POST /mcp` JSON-RPC (`tools/list`, `tools/call`).
@@ -36,9 +36,9 @@ Coordinate range is roughly -280..280 for props and -400..400 for buildings.
 ## Read
 
 ### `get_scene`
-`{ includeEntities?: boolean, entityLimit?: 1..1000 }`
-Returns scene context (levels, counts, detected rooms, camera target), `perf`, `render`, live `view`, `cameraEye`, selection and optional entity list.
-Entity entries: id, kind, levelId, geometry fields, model name.
+`{ includeEntities?: boolean, entityLimit?: 1..1000, levelId?, kind?, modelId? }`
+Returns scene context (levels, counts, detected rooms, camera target), `perf`, `render`, live `view`, `cameraEye`, selection and optional entity list. `levelId`/`kind`/`modelId` filter the entity list (openings follow their wall's level).
+Entity entries: id, kind, levelId, geometry fields, model name; slabs include `holeCount`.
 
 ### `get_entity`
 `{ id }`
@@ -126,16 +126,21 @@ Window styles: `standard`, `wide`, `picture`, `slim`, `small`.
 Open angle -135..135 (0 closed); hinge `left`/`right`.
 
 ### `add_slab`
-`{ x, z, width?, depth?, rot?, rotDeg?, thickness?, style?, levelId? }`
+`{ x, z, width?, depth?, rot?, rotDeg?, thickness?, style?, levelId?, holes?:[{x,z,w,d,rot?}] }`
 Rectangular slab/deck. Slab styles: `wood`, `oak`, `concrete`, `tile`, `stone`, `deck`.
+`holes` are **world-space** rectangular voids cut through the slab (real geometry, not a decal); each hole must fit inside the slab.
+
+### `cut_floor_opening`
+`{ x, z, width, depth, rot?, levelId?, fromLevelId?, allAbove? }`
+Cut a real rectangular opening in the slab above the active level (or `fromLevelId`), or in every level above when `allAbove:true` (elevator shafts). `levelId` targets one exact level. Use it after placing a stair/escalator; the Inspector also exposes one-click buttons on stair/escalator/elevator objects. Returns affected slab and level ids. Each hole must fit inside a single slab.
 
 ### `furnish_room`
 `{ roomType?, centerX?, centerZ? }`
 Furnish an existing closed room (selected room or nearest to camera).
 
 ### `place_model`
-`{ modelId, x?, z?, rot?, scale? }`
-Place any catalog or imported custom model. Omit x/z to let the app find a legal spot (indoor items go to a room, vehicles to roads, boats to water).
+`{ modelId, x?, z?, rot?, scale?, scaleY? }`
+Place any catalog or imported custom model. `scaleY` stretches height only (e.g. stair/elevator models to the storey height) without changing footprint. Omit x/z to let the app find a legal spot (indoor items go to a room, vehicles to roads, boats to water).
 
 ### `draw_path`
 `{ pathType:"road"|"river"|"bridge"|"footpath"|"fence", points?:[[x,z],...], width?, closed?, sidewalk?, lanes?:2|4, bridgeHeight?, railings?, length?, curve?, centerX?, centerZ? }`
@@ -164,8 +169,8 @@ Convenience edits for the selection. For full Inspector-level control use `updat
 `{ id, ...fields }` — full kind-aware editing with validation:
 - wall: `a`, `b`, `height`, `thickness`, `color`, `levelId`
 - opening: `style`, `offset`, `width`, `height`, `sill`, `openAngle`, `hinge`
-- object: `x`, `z`, `rot`/`rotDeg`, `scale`, `levelId`
-- slab: `x`, `z`, `width`/`w`, `depth`/`d`, `rot`/`rotDeg`, `thickness`, `style`, `levelId`
+- object: `x`, `z`, `rot`/`rotDeg`, `scale`, `scaleY`, `levelId`
+- slab: `x`, `z`, `width`/`w`, `depth`/`d`, `rot`/`rotDeg`, `thickness`, `style`, `holes`, `levelId`
 - roof: `x`, `z`, `width`/`w`, `depth`/`d`, `rot`/`rotDeg`, `style`, `finish`, `pitch`, `eaveY`, `overhang`, `levelId`
 - path: `points`, `width`, `style`, `sidewalk`, `lanes`, `bridgeHeight`, `railings`, `closed`, `levelId`
 - building: `x`, `z`, `rot`/`rotDeg`, `name`, `levelId`

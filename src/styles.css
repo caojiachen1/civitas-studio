@@ -3546,3 +3546,19 @@ textarea:focus-visible {
   border-color: rgba(255, 255, 255, 0.44);
   background: rgba(255, 255, 255, 0.075);
 }
+
+.hole-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hole-item {
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

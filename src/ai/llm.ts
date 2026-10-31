@@ -48,8 +48,8 @@ Allowed actions (all fields except type are optional unless marked):
    Draw one wall segment. Use for custom layouts, extensions or partitions that the room builder cannot express. Give it an id when a later add_opening in the same plan must reference it.
 4c. {"type":"add_opening","wallId":"wall id","openingType":"door|window","style":"single|double|sliding|glass|garage|standard|wide|picture|slim|small","offset":number,"width":number,"height":number,"sill":number,"openAngle":number,"hinge":"left|right"}
    Cut a door/window into an existing wall. Get wall ids from the scene context or from earlier add_wall results. Offset is metres from wall point A.
-4d. {"type":"add_slab","x":number,"z":number,"width":number,"depth":number,"rot":number,"thickness":number,"style":"wood|oak|concrete|tile|stone|deck"}
-   Add a rectangular floor slab or outdoor deck.
+4d. {"type":"add_slab","x":number,"z":number,"width":number,"depth":number,"rot":number,"thickness":number,"style":"wood|oak|concrete|tile|stone|deck","holes":[{"x":number,"z":number,"w":number,"d":number}]}
+   Add a rectangular floor slab or outdoor deck. Optional world-space holes cut real stair/atrium openings through the slab.
 5. {"type":"draw_path","pathType":"road|river|bridge|footpath|fence","points":[[x,z],...],"width":number,"closed":boolean,"sidewalk":boolean,"lanes":2|4,"bridgeHeight":number,"length":number,"curve":number,"centerX":number,"centerZ":number}
    Freeform curved path. Omit points to let the app generate one; bridge automatically crosses the nearest river when points are omitted.
 6. {"type":"add_pond","radius":number,"centerX":number,"centerZ":number}

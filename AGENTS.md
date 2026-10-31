@@ -11,7 +11,7 @@ Civitas Studio is a Tauri 2 + React 19 + Three.js desktop city/building editor. 
 1. Install dependencies: `npm install` (Node 24+).
 2. Start the desktop app:
    - Source: `npm run tauri:dev` (requires the Rust toolchain), or
-   - Prebuilt: `release/Civitas Studio.exe`. If `tools` returns fewer than 57 tools, the prebuilt predates the latest API; rebuild with `npm run tauri:build`.
+   - Prebuilt: `release/Civitas Studio.exe`. If `tools` returns fewer than 58 tools, the prebuilt predates the latest API; rebuild with `npm run tauri:build`.
 3. Wait for the MCP service. The app auto-starts it on `127.0.0.1`, scanning ports 8971–8994:
 
 ```bash
@@ -23,7 +23,7 @@ Expected JSON contains `"name": "civitas-studio"`. If port 8971 is busy, check `
 
 ```bash
 node .agents/skills/drive-civitas-studio/scripts/civitas.mjs status
-node .agents/skills/drive-civitas-studio/scripts/civitas.mjs tools   # must print 57 tools
+node .agents/skills/drive-civitas-studio/scripts/civitas.mjs tools   # must print 58 tools
 node .agents/skills/drive-civitas-studio/scripts/civitas.mjs scene --brief
 ```
 
@@ -48,7 +48,7 @@ The canonical skill lives at `.agents/skills/drive-civitas-studio/` (vendor-neut
 
 ```text
 SKILL.md
-references/api.md        # all 57 tools
+references/api.md        # all 58 tools
 references/workflows.md  # recipes and troubleshooting
 scripts/civitas.mjs      # zero-dependency CLI
 ```
@@ -134,4 +134,4 @@ node .agents/skills/drive-civitas-studio/scripts/civitas.mjs help
 - Prefer `npm run build` and `npm run lint` before claiming code changes are complete.
 - `PROGRESS.md` is local-only and gitignored. Do not add report files or local paths to the public repo.
 - `release/` contains prebuilt binaries. Do not overwrite them unless the user asks to rebuild release artifacts.
-- Current API: 57 tools. See `README.md` → “External agent API (MCP / HTTP)” for the human-facing overview.
+- Current API: 58 tools. See `README.md` → “External agent API (MCP / HTTP)” for the human-facing overview.

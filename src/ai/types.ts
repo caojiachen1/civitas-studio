@@ -80,6 +80,7 @@ export type AiAction =
       thickness?: number
       style?: SlabStyle
       levelId?: string
+      holes?: { x: number; z: number; w: number; d: number; rot?: number }[]
     }
   | {
       type: 'draw_path'

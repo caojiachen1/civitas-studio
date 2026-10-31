@@ -6,6 +6,7 @@ import {
   type DoorHinge,
   type OpeningEntity,
   type SlabEntity,
+  type SlabHole,
   type SlabStyle,
   type Vec2,
   type WallEntity,
@@ -44,6 +45,7 @@ export interface SlabInput {
   thickness?: number
   style?: string
   levelId?: string
+  holes?: SlabHole[]
 }
 
 function clampNumber(value: number | undefined, fallback: number, min: number, max: number): number {
@@ -149,5 +151,6 @@ export function createSlabEntity(input: SlabInput): SlabEntity {
     rot: input.rot ?? 0,
     thickness: clampNumber(input.thickness, 0.2, 0.04, 1),
     style: style as SlabStyle,
+    holes: input.holes?.length ? input.holes : undefined,
   }
 }
