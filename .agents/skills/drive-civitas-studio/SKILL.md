@@ -82,10 +82,12 @@ Limits: 24 actions per plan, ~600 created entities, whole plan rolls back on any
 
 ## Stairs and floor openings
 
-Stairs/escalators are models: placing one does **not** automatically cut the slab. Add a real opening with `cut_floor_opening`, or select the model in the Inspector and use **楼层洞口 → 在上一层开洞** (elevators also have **贯穿上方所有楼层**). Stretch a low stair/elevator to the storey height with `scaleY` (e.g. `scaleY: 1.48` for a 3.1 m stair under a 4.6 m floor):
+Stairs/escalators are models: placing one does **not** automatically cut the slab. Add a real opening with `cut_floor_opening`, or select the model in the Inspector and use **楼层洞口 → 在上一层开洞** (elevators also have **贯穿上方所有楼层**).
+
+Use `stair-u-full` for a real 4.6 m storey: its top landing reaches the next floor. `stair-open-double` and `stair-u` are **half-storey** models (their height includes railings, not the step top); scaling them by model height leaves a missing flight. Stretch a genuinely short elevator/escalator only with `scaleY` when needed:
 
 ```bash
-node scripts/civitas.mjs call place_model '{"modelId":"stair-open-double","x":52,"z":32,"scaleY":1.48}'
+node scripts/civitas.mjs call place_model '{"modelId":"stair-u-full","x":52,"z":33}'
 node scripts/civitas.mjs call cut_floor_opening '{"objectId":"obj_stair_id"}'
 node scripts/civitas.mjs call cut_floor_opening '{"objectId":"obj_lift_id","allAbove":true}'
 ```

@@ -57,13 +57,15 @@ node scripts/civitas.mjs call build_room '{"roomType":"bedroom","width":6,"depth
 A stair model on a solid slab is decorative: it has no floor opening above. Place the model, then cut a real opening in the slab above (or all levels above for an elevator):
 
 ```bash
-# 1) place a stair on the active level (scaleY matches a 4.6 m storey)
-node scripts/civitas.mjs call place_model '{"modelId":"stair-open-double","x":52,"z":32,"scaleY":1.48}'
+# 1) place a full-storey stair (top landing reaches a 4.6 m floor)
+node scripts/civitas.mjs call place_model '{"modelId":"stair-u-full","x":52,"z":33}'
 
 # 2) find its id, then cut the floor above using its exact footprint
-node scripts/civitas.mjs call get_scene '{"includeEntities":true,"kind":"object","modelId":"stair-open-double"}'
+node scripts/civitas.mjs call get_scene '{"includeEntities":true,"kind":"object","modelId":"stair-u-full"}'
 node scripts/civitas.mjs call cut_floor_opening '{"objectId":"obj_xxx"}'
 ```
+
+`stair-open-double` / `stair-u` are half-storey models: their model height includes railings, so scaling by total height still leaves steps short of the next floor. Use `stair-u-full` for a full 4.6 m storey, or build two half flights with a landing.
 
 For an elevator shaft, place the cab on the lowest level and cut every level above:
 
